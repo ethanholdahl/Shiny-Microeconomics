@@ -87,3 +87,47 @@ result2
 
 
 ########################################### GRAPHS ######################################################
+
+######Indifference Curves######
+
+UCurves = 5
+Umin = 10
+Umax = 50
+U = seq(Umin, Umax, length.out = UCurves)
+x = seq(0,50,.1)
+
+
+fn <- function(Ufun, x, y) {
+  
+  U <- eval(Ufun) 
+  
+  return(U)
+  
+}
+
+yvals = function(x){
+
+fn2 <- function(y) crossprod(fn(Ufun,x,y) - c(U[1]))
+y = optimize(fn2,c(0:100))$minimum
+return(y)
+}
+
+y = sapply(x, yvals)
+
+tib=tibble(x,y)
+
+ggplot(data = tib, aes(x=x, y=y))+
+  geom_line()
+
+######Budget Lines######
+
+######Income Expansion Path######
+
+######Constrained Optimization######
+
+######Substitution/Income/Total Effect######
+
+
+############################# Demand Curve ###########################################
+
+############################ Engle Curve ############################################
