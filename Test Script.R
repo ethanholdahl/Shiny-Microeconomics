@@ -22,7 +22,7 @@ library(ggplot2)
 ######
 #Input a function
 #
-inputFunction = "x+y"
+inputFunction = "x^2 + 2*x*y"
 Ufun = parse(text = inputFunction)
 Px=5
 Py=2
@@ -38,10 +38,14 @@ getVars = function(Ufun, x, y, Px, Py, I) {
   Cost = x*Px + y*Py
   U = eval(Ufun)
   slopeBL = Px/Py
-  return(c(MUx, MUy, MRSxy, U, Cost, slopeBL, x, y))
+  return(tibble(MUx, MUy, MRSxy, U, Cost, slopeBL, x, y))
 }
 
-solveBundle = function(x, Ufun, Px, Py, I) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,5)] - c(Px/Py, I))
+solveBundle = function(x, Ufun, Px, Py, I){
+  vars = getVars(Ufun, x[1], x[2], Px, Py, I)
+  result = crossprod(c(vars$MRSxy, vars$Cost) - c(Px/Py, I))
+  return(result)
+}
 
 exactBundle = function(Ufun, Px, Py, I, precision = .0001){
   result = optim(c(1,1), solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
@@ -85,7 +89,11 @@ result1
 
 Py=1
 
-solveIntermediate = function(x, Ufun, Px, Py, I, U) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,4)] - c(Px/Py, U))
+solveIntermediate = function(x, Ufun, Px, Py, I, U){
+  vars = getVars(Ufun, x[1], x[2], Px, Py, I)
+  result = crossprod(c(vars$MRSxy, vars$U) - c(Px/Py, U))
+  return(result)
+}
 
 exactIntermediate = function(Ufun, Px, Py, I, U, precision = .0001){
   result = optim(c(1,1), solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
@@ -123,7 +131,7 @@ optimalIntermediate = function(Ufun, Px, Py, I, U) {
 }
 
 
-bundle2 = optimalIntermediate(Ufun, Px, Py, I, result1[4])
+bundle2 = optimalIntermediate(Ufun, Px, Py, I, result1$U)
 result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py, I),2)
 result2
 
