@@ -92,32 +92,45 @@ result2
 
 UCurves = 5
 Umin = 10
-Umax = 50
+Umax = 300
+xmax = 10
+ymax = 10
 U = seq(Umin, Umax, length.out = UCurves)
-x = seq(0,50,.1)
+x = seq(0,xmax,.01)
 
 
 fn <- function(Ufun, x, y) {
-  
   U <- eval(Ufun) 
-  
   return(U)
-  
 }
 
-yvals = function(x){
 
-fn2 <- function(y) crossprod(fn(Ufun,x,y) - c(U[1]))
+yvals = function(x,i){
+fn2 <- function(y) crossprod(fn(Ufun,x,y) - c(U[i]))
 y = optimize(fn2,c(0:100))$minimum
 return(y)
 }
 
-y = sapply(x, yvals)
 
-tib=tibble(x,y)
+for (i in 1:length(U)){
+  y = sapply(x, yvals, i=i)
+  
+  if(i == 1){
+    tib=tibble(x=x, y=y, U=as.factor(U[i]))
+  } else {
+    new_u = tibble(x=x, y=y, U=as.factor(U[i]))
+    tib = tib %>%
+      bind_rows(new_u, id=NULL)
+  }
 
-ggplot(data = tib, aes(x=x, y=y))+
-  geom_line()
+}
+
+
+ggplot(data = tib, aes(x=x, y=y, color=U))+
+  geom_line()+
+  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
+  scale_x_continuous(limits = c(0,xmax))+
+  scale_y_continuous(limits = c(0,ymax)) 
 
 ######Budget Lines######
 
