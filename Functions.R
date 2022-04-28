@@ -50,7 +50,7 @@ optimalBundle = function(Ufun, Px, Py, I) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
-    #linear utility function. Want corner Solution
+    #linear utility function. Likely want corner Solution
     if (MUx / Px > MUy / Py) {
       #spend all $ on good x
       bundle = c(I / Px, 0)
@@ -89,7 +89,7 @@ optimalIntermediate = function(Ufun, Px, Py, I, U) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
-    #linear utility function. Want corner Solution
+    #linear utility function. Likely want corner Solution
     if (MUx / Px > MUy / Py) {
       #spend all $ on good x
       bundle = c(I / Px, 0)
@@ -163,10 +163,31 @@ getYValues_IE = function(Ufun, x, ymax, Px, Py){
   return(y)
 }
 
-makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen"){
-  x = seq(precision, xmax, precision)
-  y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
-  incomeExpansion=tibble(x = x, y = y)
+makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen") {
+  MUx = D(Ufun, 'x')
+  MUy = D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Likely want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      x = c(0, xmax)
+      y = c(0, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        x = c(0, 0)
+        y = c(0, ymax)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        x = c(0, max(xmax, ymax))
+        y = c(0, max(xmax, ymax))
+      }
+    }
+  } else {
+    x = seq(precision, xmax, precision)
+    y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  }
+  incomeExpansion = tibble(x = x, y = y)
   incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
   return(incomeExpansionGeom)
 }

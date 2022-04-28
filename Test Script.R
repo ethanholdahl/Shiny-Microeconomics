@@ -59,7 +59,7 @@ optimalBundle = function(Ufun, Px, Py, I) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
-    #linear utility function. Want corner Solution
+    #linear utility function. Likely want corner Solution
     if (MUx / Px > MUy / Py) {
       #spend all $ on good x
       bundle = c(I / Px, 0)
@@ -103,7 +103,7 @@ optimalIntermediate = function(Ufun, Px, Py, I, U) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
-    #linear utility function. Want corner Solution
+    #linear utility function. Likely want corner Solution
     if (MUx / Px > MUy / Py) {
       #spend all $ on good x
       bundle = c(I / Px, 0)
@@ -132,8 +132,8 @@ result2
 
 ######Indifference Curves######
 
-inputFunction = "x^3 * y^2"
-Ufun = parse(text = input)
+inputFunction = "x+y"
+Ufun = parse(text = inputFunction)
 Px=5
 Py=2
 I=20
@@ -189,7 +189,6 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "
 
 Px=5
 Py=2
-I=20
 
 makeBudgetLine = function(Px, Py, I, color = "blue"){
   x = c(0,I/Px)
@@ -199,12 +198,18 @@ makeBudgetLine = function(Px, Py, I, color = "blue"){
   return(budgetLineGeom)
 }
 
+Px=5
+Py=2
+I=40
+xmax = 30
+ymax = 30
 
-ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
+ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
   scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
-  makeBudgetLine(5, 5, 10)+ 
+  labs(color = "U")+
+  makeBudgetLine(Px, Py, I)+ 
   geom_hline(yintercept = 0)+
   geom_vline(xintercept = 0)+
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
@@ -214,7 +219,7 @@ ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) +
 #Need: set MRS=slope of budget line, find all y values for a sequence of x values
 
 inputFunction = "x^3 * y^2"
-Ufun = parse(text = input)
+Ufun = parse(text = inputFunction)
 Px=5
 Py=2
 I=20
@@ -237,22 +242,54 @@ getYValues_IE = function(Ufun, x, ymax, Px, Py){
   return(y)
 }
 
-makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen"){
-  x = seq(precision, xmax, precision)
-  y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
-  incomeExpansion=tibble(x = x, y = y)
+makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen") {
+  MUx = D(Ufun, 'x')
+  MUy = D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Likely want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      x = c(0, xmax)
+      y = c(0, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        x = c(0, 0)
+        y = c(0, ymax)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        x = c(0, max(xmax, ymax))
+        y = c(0, max(xmax, ymax))
+      }
+    }
+  } else {
+    x = seq(precision, xmax, precision)
+    y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  }
+  incomeExpansion = tibble(x = x, y = y)
   incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
   return(incomeExpansionGeom)
 }
 
-ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
-  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
-  makeBudgetLine(Px, Py, 10)+
-  makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+
+inputFunction = "x+y"
+Ufun = parse(text = inputFunction)
+Px=5
+Py=5
+I=20
+xmax = 10
+ymax = 10
+
+ggplot() + 
   geom_hline(yintercept = 0)+
   geom_vline(xintercept = 0)+
+  makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
+  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
+  labs(color = "U")+
+  makeBudgetLine(Px, Py, I)+ 
+  makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Constrained Optimization######
