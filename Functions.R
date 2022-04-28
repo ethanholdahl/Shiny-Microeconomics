@@ -1,3 +1,25 @@
+###################### INPUTS NEEDED ######################
+
+inputFunction = "x^3 * y^2" #U(x,y) function input as a string
+Px=5 #Could be multiple for multiple budget lines
+Py=2 #Could be multiple for multiple budget lines
+I=20 #Could be multiple for multiple budget lines
+U = 10 #Could be multiple for multiple indifference curves
+xmax = 10 #Viewing area for ggplot
+ymax = 10 #Viewing area for ggplot
+precision = .01 #How smooth curves should be in plots
+
+###########################################################
+
+
+######################## FUNCTIONS ########################
+
+Ufun = parse(text = input)
+MUx=D(Ufun, 'x')
+MUy=D(Ufun, 'y')
+
+
+
 getVars <- function(Ufun, x, y, Px, Py, I) {
   MUx = eval(MUx)
   MUy = eval(MUy)
@@ -37,3 +59,38 @@ exactIntermediate = function(){
   }
   return(result1)
 }
+
+###################### PLOT FUNCTIONS #####################
+
+######### MAKE INDIFFERENCE CURVE ##########
+
+getUValue_U <- function(Ufun, x, y) {
+  U <- eval(Ufun) 
+  return(U)
+}
+
+solveYValue_U <- function(Ufun, U, x, y) crossprod(getUValue_U(Ufun,x,y) - U)
+
+getYValues_U = function(Ufun, U, x, ymax){
+  y = optimize(solveYValue_U,c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
+  return(y)
+}
+
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision){
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
+  indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  return(indifferenceCurveGeom)
+}
+
+############# MAKE BUDGET LINE #############
+
+makeBudgetLine = function(Px, Py, I, color){
+  x = c(0,I/Px)
+  y = c(I/Py,0)
+  budgetLine = tibble(x,y)
+  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color)  
+  return(budgetLineGeom)
+}
+

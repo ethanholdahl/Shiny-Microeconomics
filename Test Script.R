@@ -22,7 +22,7 @@ library(ggplot2)
 ######
 #Input a function
 #
-input = "x^3 * y^2"
+inputFunction = "x^3 * y^2"
 Ufun = parse(text = input)
 
 MUx=D(Ufun, 'x')
@@ -90,49 +90,69 @@ result2
 
 ######Indifference Curves######
 
-UCurves = 5
-Umin = 10
-Umax = 300
+# UCurves = 5
+# Umin = 10
+# Umax = 300
 xmax = 10
 ymax = 10
-U = seq(Umin, Umax, length.out = UCurves)
+# U = seq(Umin, Umax, length.out = UCurves)
 x = seq(0,xmax,.01)
 
+U = 10
 
-fn <- function(Ufun, x, y) {
+getUValue_U <- function(Ufun, x, y) {
   U <- eval(Ufun) 
   return(U)
 }
 
+solveYValue_U <- function(Ufun, U, x, y) crossprod(getUValue_U(Ufun,x,y) - U)
 
-yvals = function(x,i){
-fn2 <- function(y) crossprod(fn(Ufun,x,y) - c(U[i]))
-y = optimize(fn2,c(0:100))$minimum
+getYValues_U = function(Ufun, U, x, ymax){
+  y = optimize(solveYValue_U,c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
 return(y)
 }
 
 
-for (i in 1:length(U)){
-  y = sapply(x, yvals, i=i)
-  
-  if(i == 1){
-    tib=tibble(x=x, y=y, U=as.factor(U[i]))
-  } else {
-    new_u = tibble(x=x, y=y, U=as.factor(U[i]))
-    tib = tib %>%
-      bind_rows(new_u, id=NULL)
-  }
 
+# for (i in 1:length(U)){
+#   y = sapply(x, yvals, i=i)
+#   if(i == 1){
+#     tib=tibble(x=x, y=y, U=as.factor(U[i]))
+#   } else {
+#     new_u = tibble(x=x, y=y, U=as.factor(U[i]))
+#     tib = tib %>%
+#       bind_rows(new_u, id=NULL)
+#   }
+# }
+
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision){
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
+  indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  return(indifferenceCurveGeom)
+}
+
+ 
+######Budget Lines######
+
+makeBudgetLine = function(Px, Py, I, color){
+  x = c(0,I/Px)
+  y = c(I/Py,0)
+  budgetLine = tibble(x,y)
+  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color)  
+  return(budgetLineGeom)
 }
 
 
-ggplot(data = tib, aes(x=x, y=y, color=U))+
-  geom_line()+
+ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
   scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
-  scale_x_continuous(limits = c(0,xmax))+
-  scale_y_continuous(limits = c(0,ymax)) 
-
-######Budget Lines######
+  makeBudgetLine(5, 5, 10, "blue")+ 
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Income Expansion Path######
 
