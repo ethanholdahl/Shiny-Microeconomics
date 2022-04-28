@@ -125,11 +125,16 @@ return(y)
 #   }
 # }
 
-makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision){
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
   indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
-  indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  if (class(color) == "numeric"){
+    color = as.factor(color)
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
+  } else {
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+  }
   return(indifferenceCurveGeom)
 }
 
@@ -145,9 +150,9 @@ makeBudgetLine = function(Px, Py, I, color){
 }
 
 
-ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
-  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
+ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
   scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
   makeBudgetLine(5, 5, 10, "blue")+ 
   geom_hline(yintercept = 0)+
@@ -155,6 +160,8 @@ ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) +
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Income Expansion Path######
+
+
 
 ######Constrained Optimization######
 

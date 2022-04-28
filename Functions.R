@@ -76,11 +76,16 @@ getYValues_U = function(Ufun, U, x, ymax){
   return(y)
 }
 
-makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision){
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
   indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
-  indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  if (class(color) == "numeric"){
+    color = as.factor(color)
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
+  } else {
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+  }
   return(indifferenceCurveGeom)
 }
 
