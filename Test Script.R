@@ -24,7 +24,7 @@ library(ggplot2)
 #
 inputFunction = "x^2 + 2*x*y"
 Ufun = parse(text = inputFunction)
-Px=5
+Px=2
 Py=2
 I=20
 
@@ -140,9 +140,9 @@ result2
 
 ######Indifference Curves######
 
-inputFunction = "x+y"
+inputFunction = "x^2+y"
 Ufun = parse(text = inputFunction)
-Px=5
+Px=2
 Py=2
 I=20
 # UCurves = 5
@@ -151,7 +151,7 @@ I=20
 xmax = 10
 ymax = 10
 # U = seq(Umin, Umax, length.out = UCurves)
-# x = seq(0,xmax,.01)
+x = seq(0,xmax,.01)
 U = 10
 
 getUValue_U = function(Ufun, x, y) {
@@ -166,19 +166,6 @@ getYValues_U = function(Ufun, U, x, ymax){
 return(y)
 }
 
-
-
-# for (i in 1:length(U)){
-#   y = sapply(x, yvals, i=i)
-#   if(i == 1){
-#     tib=tibble(x=x, y=y, U=as.factor(U[i]))
-#   } else {
-#     new_u = tibble(x=x, y=y, U=as.factor(U[i]))
-#     tib = tib %>%
-#       bind_rows(new_u, id=NULL)
-#   }
-# }
-
 makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "red"){
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
@@ -191,6 +178,27 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "
   }
   return(indifferenceCurveGeom)
 }
+
+makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
+  x = seq(0, xmax, precision)
+  for (i in 1:length(Ulist)) {
+    y = sapply(x, getYValues_U, Ufun = Ufun, U = Ulist[i], ymax = ymax)
+    if (i == 1) {
+      indifferenceCurves = tibble(x = x, y = y, U = Ulist[i])
+    } else {
+      new_u = tibble(x = x, y = y, U = Ulist[i])
+      indifferenceCurves = indifferenceCurves %>%
+        bind_rows(new_u, id = NULL)
+    }
+  }
+  indifferenceCurves = indifferenceCurves %>%
+    arrange(as.numeric(U))
+  indifferenceCurvesGeom = geom_line(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U)), group = U))
+}
+
+Ulist = c(20,50,80, 110, 42)
+xmax = 1
+ggplot()+ makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax) + scale_color_viridis_d(begin = .1, end = .8, option="plasma")
 
  
 ######Budget Lines######
@@ -215,7 +223,7 @@ ymax = 30
 ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
   makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
   makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
-  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
+  scale_color_viridis_c(begin = .1, end = .8, option="plasma")+
   labs(color = "U")+
   makeBudgetLine(Px, Py, I)+ 
   geom_hline(yintercept = 0)+
@@ -257,21 +265,21 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
     #linear utility function. Likely want corner Solution
     if (MUx / Px > MUy / Py) {
       #spend all $ on good x
-      x = c(0, xmax)
+      x = c(0, xmax*1.2)
       y = c(0, 0)
     } else {
       if (MUx / Px < MUy / Py) {
         #spend all $ on good y
         x = c(0, 0)
-        y = c(0, ymax)
+        y = c(0, ymax*1.2)
       } else {
         #equality. Any allocation works. Default to spend all $ such that x=y
-        x = c(0, max(xmax, ymax))
-        y = c(0, max(xmax, ymax))
+        x = c(0, max(xmax*1.2, ymax*1.2))
+        y = c(0, max(xmax*1.2, ymax*1.2))
       }
     }
   } else {
-    x = seq(precision, xmax, precision)
+    x = seq(precision, xmax*1.2, precision)
     y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
   }
   incomeExpansion = tibble(x = x, y = y)
@@ -280,29 +288,88 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
 }
 
 
-inputFunction = "x+y"
+inputFunction = "x^2 +2*x*y"
 Ufun = parse(text = inputFunction)
-Px=5
-Py=5
+Px=2
+Py=1
 I=20
 xmax = 10
 ymax = 10
 
 ggplot() + 
-  geom_hline(yintercept = 0)+
-  geom_vline(xintercept = 0)+
   makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
   makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
   makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
-  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
+  scale_color_viridis_c(begin = .1, end = .8, option="plasma")+
   labs(color = "U")+
   makeBudgetLine(Px, Py, I)+ 
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
   makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Constrained Optimization######
 
-#Need: budget line, optimal bundle, 
+#Need: Optimal Bundle, Indifference curve at that utility level, budget line at that utility level
+
+makeOptimalBundle_Point = function(Ufun, Px, Py, I, color = "black", size = 3){
+  bundle = optimalBundle(Ufun, Px, Py, I)
+  x = bundle[1]
+  y = bundle[2]
+  optimalBundle_PointGeom = annotate("point", x = x, y = y, color = color, size = size)
+  return(optimalBundle_PointGeom)
+}
+
+makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision = .01, color = "red"){
+  bundle = optimalBundle(Ufun, Px, Py, I)
+  results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
+  U = results$U
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
+  if (class(color) == "numeric"){
+    color = as.factor(color)
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  } else {
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+  }
+  return(indifferenceCurveGeom)
+}
+
+bundle = optimalBundle(Ufun, Px, Py, I)
+results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
+U = results$U
+inputFunction = "x^2 +2*x*y"
+Ufun = parse(text = inputFunction)
+Px=2
+Py=1
+I=20
+xmax = 12
+ymax = 24
+Ulist = c(20,50,80, U)
+
+ggplot() + 
+  makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax)+
+  scale_color_viridis_d(begin = .1, end = .8, option="plasma") +
+  labs(color = "U(x,y)") +
+  makeBudgetLine(Px, Py, I) + 
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  makeIncomeExpansion(Ufun, Px, Py, xmax, ymax) +
+  makeOptimalBundle_Point(Ufun, Px, Py, I) +
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+
+
+ggplot() + 
+  makeOptimalBundle_Indifference(Ufun, Px, Py, I, xmax, ymax, color = 1)+
+  scale_color_viridis_d(begin = .6, end = .8, option="plasma") +
+  labs(color = "U(x,y)") +
+  makeBudgetLine(Px, Py, I) + 
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  makeIncomeExpansion(Ufun, Px, Py, xmax, ymax) +
+  makeOptimalBundle_Point(Ufun, Px, Py, I) +
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Substitution/Income/Total Effect######
 

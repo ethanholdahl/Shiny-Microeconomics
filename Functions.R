@@ -144,6 +144,23 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "
   return(indifferenceCurveGeom)
 }
 
+makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
+  x = seq(0, xmax, precision)
+  for (i in 1:length(Ulist)) {
+    y = sapply(x, getYValues_U, Ufun = Ufun, U = Ulist[i], ymax = ymax)
+    if (i == 1) {
+      indifferenceCurves = tibble(x = x, y = y, U = Ulist[i])
+    } else {
+      new_u = tibble(x = x, y = y, U = Ulist[i])
+      indifferenceCurves = indifferenceCurves %>%
+        bind_rows(new_u, id = NULL)
+    }
+  }
+  indifferenceCurves = indifferenceCurves %>%
+    arrange(as.numeric(U))
+  indifferenceCurvesGeom = geom_line(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U)), group = U))
+}
+
 ############# MAKE BUDGET LINE #############
 
 makeBudgetLine = function(Px, Py, I, color = "blue"){
@@ -197,4 +214,31 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
   incomeExpansion = tibble(x = x, y = y)
   incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
   return(incomeExpansionGeom)
+}
+
+######### CONSTRAINED OPTIMIZATION #########
+
+makeOptimalBundle_Point = function(Ufun, Px, Py, I, color = "black", size = 3){
+  bundle = optimalBundle(Ufun, Px, Py, I)
+  x = bundle[1]
+  y = bundle[2]
+  optimalBundle_PointGeom = annotate("point", x = x, y = y, color = color, size = size)
+  return(optimalBundle_PointGeom)
+}
+
+#Note: Preferred to use makeAllIndifferenceCurves
+makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision = .01, color = "red"){
+  bundle = optimalBundle(Ufun, Px, Py, I)
+  results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
+  U = results$U
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
+  if (class(color) == "numeric"){
+    color = as.factor(color)
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+  } else {
+    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+  }
+  return(indifferenceCurveGeom)
 }
