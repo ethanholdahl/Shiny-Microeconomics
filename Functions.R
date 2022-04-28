@@ -21,6 +21,8 @@ MUy=D(Ufun, 'y')
 
 
 getVars = function(Ufun, x, y, Px, Py, I) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
   MUx = eval(MUx)
   MUy = eval(MUy)
   MRSxy = MUx/MUy
@@ -30,34 +32,80 @@ getVars = function(Ufun, x, y, Px, Py, I) {
   return(c(MUx, MUy, MRSxy, U, Cost, slopeBL, x, y))
 }
 
-solveBundle = function(x) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,5)] - c(Px/Py, I))
+solveBundle = function(x, Ufun, Px, Py, I) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,5)] - c(Px/Py, I))
 
-exactBundle = function(){
-  precision = .0001
-  result = optim(c(1,1), solveBundle)$par
-  result1 = optim(result, solveBundle)$par
+exactBundle = function(Ufun, Px, Py, I, precision = .0001){
+  result = optim(c(1,1), solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
+  result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
   diff = abs(result-result1)
   while ((diff>precision)[1]||(diff>precision)[2]){
     result = result1
-    result1 = optim(result, solveBundle)$par
+    result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
     diff = abs(result-result1)
   }
   return(result1)
 }
 
-solveIntermediate = function(x) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,4)] - c(Px/Py, result1[4]))
+optimalBundle = function(Ufun, Px, Py, I) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      bundle = c(I / Px, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        bundle = c(0, I / Py)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        bundle = c(I / (Px + Py), I / (Px + Py))
+      }
+    }
+  } else {
+    #not linear, use exactBundle()
+    bundle = exactBundle(Ufun, Px, Py, I)
+  }
+}
 
-exactIntermediate = function(){
-  precision = .0001
-  result = optim(c(1,1), solveIntermediate)$par
-  result1 = optim(result, solveIntermediate)$par
+
+
+solveIntermediate = function(x, Ufun, Px, Py, I, U) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,4)] - c(Px/Py, U))
+
+exactIntermediate = function(Ufun, Px, Py, I, U, precision = .0001){
+  result = optim(c(1,1), solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
+  result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
   diff = abs(result-result1)
   while ((diff>precision)[1]||(diff>precision)[2]){
     result = result1
-    result1 = optim(result, solveIntermediate)$par
+    result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
     diff = abs(result-result1)
   }
   return(result1)
+}
+
+optimalIntermediate = function(Ufun, Px, Py, I, U) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      bundle = c(I / Px, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        bundle = c(0, I / Py)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        bundle = c(I / (Px + Py), I / (Px + Py))
+      }
+    }
+  } else {
+    #not linear, use exactIntermediate
+    bundle = exactIntermediate(Ufun, Px, Py, I, U)
+  }
 }
 
 ###################### PLOT FUNCTIONS #####################

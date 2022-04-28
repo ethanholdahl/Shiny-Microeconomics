@@ -22,16 +22,16 @@ library(ggplot2)
 ######
 #Input a function
 #
-inputFunction = "x^3 * y^2"
-Ufun = parse(text = input)
+inputFunction = "x+y"
+Ufun = parse(text = inputFunction)
 Px=5
 Py=2
 I=20
 
-MUx=D(Ufun, 'x')
-MUy=D(Ufun, 'y')
 
 getVars = function(Ufun, x, y, Px, Py, I) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
   MUx = eval(MUx)
   MUy = eval(MUy)
   MRSxy = MUx/MUy
@@ -41,45 +41,89 @@ getVars = function(Ufun, x, y, Px, Py, I) {
   return(c(MUx, MUy, MRSxy, U, Cost, slopeBL, x, y))
 }
 
-solveBundle = function(x) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,5)] - c(Px/Py, I))
+solveBundle = function(x, Ufun, Px, Py, I) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,5)] - c(Px/Py, I))
 
-Py=5
-
-exactBundle = function(){
-  precision = .0001
-  result = optim(c(1,1), solveBundle)$par
-  result1 = optim(result, solveBundle)$par
+exactBundle = function(Ufun, Px, Py, I, precision = .0001){
+  result = optim(c(1,1), solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
+  result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
   diff = abs(result-result1)
   while ((diff>precision)[1]||(diff>precision)[2]){
     result = result1
-    result1 = optim(result, solveBundle)$par
+    result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
     diff = abs(result-result1)
   }
   return(result1)
 }
 
-bundle1 = exactBundle()
+optimalBundle = function(Ufun, Px, Py, I) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      bundle = c(I / Px, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        bundle = c(0, I / Py)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        bundle = c(I / (Px + Py), I / (Px + Py))
+      }
+    }
+  } else {
+    #not linear, use exactBundle()
+    bundle = exactBundle(Ufun, Px, Py, I)
+  }
+}
+
+bundle1 = optimalBundle(Ufun, Px, Py, I)
+
 result1 = round(getVars(Ufun, bundle1[1], bundle1[2], Px, Py, I),2)
 result1
 
 Py=1
 
-solveIntermediate = function(x) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,4)] - c(Px/Py, result1[4]))
+solveIntermediate = function(x, Ufun, Px, Py, I, U) crossprod(getVars(Ufun, x[1], x[2], Px, Py, I)[c(3,4)] - c(Px/Py, U))
 
-exactIntermediate = function(){
-  precision = .0001
-  result = optim(c(1,1), solveIntermediate)$par
-  result1 = optim(result, solveIntermediate)$par
+exactIntermediate = function(Ufun, Px, Py, I, U, precision = .0001){
+  result = optim(c(1,1), solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
+  result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
   diff = abs(result-result1)
   while ((diff>precision)[1]||(diff>precision)[2]){
     result = result1
-    result1 = optim(result, solveIntermediate)$par
+    result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
     diff = abs(result-result1)
   }
   return(result1)
 }
 
-bundle2 = exactIntermediate()
+optimalIntermediate = function(Ufun, Px, Py, I, U) {
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Want corner Solution
+    if (MUx / Px > MUy / Py) {
+      #spend all $ on good x
+      bundle = c(I / Px, 0)
+    } else {
+      if (MUx / Px < MUy / Py) {
+        #spend all $ on good y
+        bundle = c(0, I / Py)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        bundle = c(I / (Px + Py), I / (Px + Py))
+      }
+    }
+  } else {
+    #not linear, use exactIntermediate
+    bundle = exactIntermediate(Ufun, Px, Py, I, U)
+  }
+}
+
+
+bundle2 = optimalIntermediate(Ufun, Px, Py, I, result1[4])
 result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py, I),2)
 result2
 
@@ -213,6 +257,7 @@ ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) +
 
 ######Constrained Optimization######
 
+#Need: budget line, optimal bundle, 
 
 ######Substitution/Income/Total Effect######
 
