@@ -24,16 +24,14 @@ library(ggplot2)
 #
 inputFunction = "x^3 * y^2"
 Ufun = parse(text = input)
-
-MUx=D(Ufun, 'x')
-MUy=D(Ufun, 'y')
-
-
 Px=5
 Py=2
 I=20
 
-getVars <- function(Ufun, x, y, Px, Py, I) {
+MUx=D(Ufun, 'x')
+MUy=D(Ufun, 'y')
+
+getVars = function(Ufun, x, y, Px, Py, I) {
   MUx = eval(MUx)
   MUy = eval(MUy)
   MRSxy = MUx/MUy
@@ -60,8 +58,8 @@ exactBundle = function(){
   return(result1)
 }
 
-bundle1=exactBundle()
-result1=round(getVars(Ufun, bundle1[1], bundle1[2], Px, Py, I),2)
+bundle1 = exactBundle()
+result1 = round(getVars(Ufun, bundle1[1], bundle1[2], Px, Py, I),2)
 result1
 
 Py=1
@@ -81,8 +79,8 @@ exactIntermediate = function(){
   return(result1)
 }
 
-bundle2=exactIntermediate()
-result2=round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py, I),2)
+bundle2 = exactIntermediate()
+result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py, I),2)
 result2
 
 
@@ -90,25 +88,29 @@ result2
 
 ######Indifference Curves######
 
+inputFunction = "x^3 * y^2"
+Ufun = parse(text = input)
+Px=5
+Py=2
+I=20
 # UCurves = 5
 # Umin = 10
 # Umax = 300
 xmax = 10
 ymax = 10
 # U = seq(Umin, Umax, length.out = UCurves)
-x = seq(0,xmax,.01)
-
+# x = seq(0,xmax,.01)
 U = 10
 
-getUValue_U <- function(Ufun, x, y) {
+getUValue_U = function(Ufun, x, y) {
   U <- eval(Ufun) 
   return(U)
 }
 
-solveYValue_U <- function(Ufun, U, x, y) crossprod(getUValue_U(Ufun,x,y) - U)
+solveYValue_U = function(Ufun, U, x, y) crossprod(getUValue_U(Ufun, x, y) - U)
 
 getYValues_U = function(Ufun, U, x, ymax){
-  y = optimize(solveYValue_U,c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
+  y = optimize(solveYValue_U, c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
 return(y)
 }
 
@@ -125,10 +127,10 @@ return(y)
 #   }
 # }
 
-makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "red"){
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
-  indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
+  indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
     indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
@@ -141,7 +143,11 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
  
 ######Budget Lines######
 
-makeBudgetLine = function(Px, Py, I, color){
+Px=5
+Py=2
+I=20
+
+makeBudgetLine = function(Px, Py, I, color = "blue"){
   x = c(0,I/Px)
   y = c(I/Py,0)
   budgetLine = tibble(x,y)
@@ -150,24 +156,69 @@ makeBudgetLine = function(Px, Py, I, color){
 }
 
 
-ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01, 10) + 
-  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01, 20) + 
-  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01, 30) +
+ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
   scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
-  makeBudgetLine(5, 5, 10, "blue")+ 
+  makeBudgetLine(5, 5, 10)+ 
   geom_hline(yintercept = 0)+
   geom_vline(xintercept = 0)+
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Income Expansion Path######
 
+#Need: set MRS=slope of budget line, find all y values for a sequence of x values
 
+inputFunction = "x^3 * y^2"
+Ufun = parse(text = input)
+Px=5
+Py=2
+I=20
+
+xmax = 10
+ymax = 10
+x = seq(0,xmax,.01)
+
+getMRS = function(Ufun, x, y){
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  MRSxy = eval(MUx)/eval(MUy)
+  return(MRSxy)
+}
+
+solveYValue_IE <- function(Ufun, x, y, Px, Py) crossprod(getMRS(Ufun, x, y) - (Px/Py))
+
+getYValues_IE = function(Ufun, x, ymax, Px, Py){
+  y = optimize(solveYValue_IE, c(0:ymax*5), Ufun = Ufun, x = x, Px = Px, Py = Py)$minimum
+  return(y)
+}
+
+makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen"){
+  x = seq(precision, xmax, precision)
+  y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  incomeExpansion=tibble(x = x, y = y)
+  incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
+  return(incomeExpansionGeom)
+}
+
+ggplot() + makeIndifferenceCurve(Ufun, 10, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 20, xmax, ymax, .01) + 
+  makeIndifferenceCurve(Ufun, 30, xmax, ymax, .01) +
+  scale_color_viridis_d(begin = .1, end = .9, option="plasma")+
+  makeBudgetLine(Px, Py, 10)+
+  makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
 
 ######Constrained Optimization######
+
 
 ######Substitution/Income/Total Effect######
 
 
 ############################# Demand Curve ###########################################
 
+
 ############################ Engle Curve ############################################
+

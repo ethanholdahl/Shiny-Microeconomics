@@ -20,7 +20,7 @@ MUy=D(Ufun, 'y')
 
 
 
-getVars <- function(Ufun, x, y, Px, Py, I) {
+getVars = function(Ufun, x, y, Px, Py, I) {
   MUx = eval(MUx)
   MUy = eval(MUy)
   MRSxy = MUx/MUy
@@ -64,22 +64,22 @@ exactIntermediate = function(){
 
 ######### MAKE INDIFFERENCE CURVE ##########
 
-getUValue_U <- function(Ufun, x, y) {
+getUValue_U = function(Ufun, x, y) {
   U <- eval(Ufun) 
   return(U)
 }
 
-solveYValue_U <- function(Ufun, U, x, y) crossprod(getUValue_U(Ufun,x,y) - U)
+solveYValue_U = function(Ufun, U, x, y) crossprod(getUValue_U(Ufun, x, y) - U)
 
 getYValues_U = function(Ufun, U, x, ymax){
-  y = optimize(solveYValue_U,c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
+  y = optimize(solveYValue_U, c(0:ymax*5), Ufun = Ufun, U = U, x = x)$minimum
   return(y)
 }
 
-makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
+makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "red"){
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
-  indifferenceCurve=tibble(x=x, y=y, U=as.factor(U))
+  indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
     indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
@@ -91,11 +91,34 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision, color){
 
 ############# MAKE BUDGET LINE #############
 
-makeBudgetLine = function(Px, Py, I, color){
+makeBudgetLine = function(Px, Py, I, color = "blue"){
   x = c(0,I/Px)
   y = c(I/Py,0)
   budgetLine = tibble(x,y)
-  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color)  
+  budgetLineGeom = geom_line(data = budgetLine, aes(x = x, y = y), color = color)  
   return(budgetLineGeom)
 }
 
+########## MAKE INCOME EXPANSION ###########
+
+getMRS = function(Ufun, x, y){
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  MRSxy = eval(MUx)/eval(MUy)
+  return(MRSxy)
+}
+
+solveYValue_IE <- function(Ufun, x, y, Px, Py) crossprod(getMRS(Ufun, x, y) - (Px/Py))
+
+getYValues_IE = function(Ufun, x, ymax, Px, Py){
+  y = optimize(solveYValue_IE, c(0:ymax*5), Ufun = Ufun, x = x, Px = Px, Py = Py)$minimum
+  return(y)
+}
+
+makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color = "darkgreen"){
+  x = seq(precision, xmax, precision)
+  y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  incomeExpansion=tibble(x = x, y = y)
+  incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
+  return(incomeExpansionGeom)
+}
