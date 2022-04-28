@@ -206,11 +206,11 @@ ggplot()+ makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax) + scale_color_viridi
 Px=5
 Py=2
 
-makeBudgetLine = function(Px, Py, I, color = "blue"){
+makeBudgetLine = function(Px, Py, I, color = "blue", linetype = "solid"){
   x = c(0,I/Px)
   y = c(I/Py,0)
   budgetLine = tibble(x,y)
-  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color)  
+  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color, linetype = linetype)  
   return(budgetLineGeom)
 }
 
@@ -336,6 +336,8 @@ makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision
   return(indifferenceCurveGeom)
 }
 
+
+
 bundle = optimalBundle(Ufun, Px, Py, I)
 results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
 U = results$U
@@ -373,6 +375,39 @@ ggplot() +
 
 ######Substitution/Income/Total Effect######
 
+inputFunction = "x^2 +2*x*y"
+Ufun = parse(text = inputFunction)
+Px=c(2,2)
+Py=c(1,2)
+I=c(20,20)
+xmax = 12
+ymax = 24
+bundle_1 = optimalBundle(Ufun, Px[1], Py[1], I[1])
+results_1 = round(getVars(Ufun, bundle_1[1], bundle_1[2], Px[1], Py[1], I[1]),2)
+
+bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], I[2], results_1$U)
+results_2 = round(getVars(Ufun, bundle_2[1], bundle_2[2], Px[2], Py[2], I[2]),2)
+
+bundle_3 = optimalBundle(Ufun, Px[2], Py[2], I[2])
+results_3 = round(getVars(Ufun, bundle_3[1], bundle_3[2], Px[2], Py[2], I[2]),2)
+
+ggplot() + 
+  makeOptimalBundle_Indifference(Ufun, Px[1], Py[1], I[1], xmax, ymax, color = 1) +
+  makeOptimalBundle_Indifference(Ufun, Px[2], Py[2], I[2], xmax, ymax, color = 1) +
+  scale_color_viridis_d(begin = .5, end = .8, option="plasma") +
+  labs(color = "U(x,y)") +
+  makeBudgetLine(Px[1], Py[1], I[1]) + 
+  makeBudgetLine(Px[2], Py[2], I[2], color = "lightblue") + 
+  makeBudgetLine(Px[2], Py[2], results_2$Cost, color = "lightblue", linetype = "longdash") + 
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  makeIncomeExpansion(Ufun, Px[1], Py[1], xmax, ymax) +
+  makeIncomeExpansion(Ufun, Px[2], Py[2], xmax, ymax, color = "green") +
+  makeOptimalBundle_Point(Ufun, Px[1], Py[1], I[1]) +
+  makeOptimalBundle_Point(Ufun, Px[2], Py[2], I[2]) +
+  makeOptimalBundle_Point(Ufun, Px[2], Py[2], results_2$Cost) +
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  
 
 ############################# Demand Curve ###########################################
 
