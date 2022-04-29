@@ -182,9 +182,9 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "
   indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
-    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
   } else {
-    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
   }
   return(indifferenceCurveGeom)
 }
@@ -203,7 +203,7 @@ makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
   }
   indifferenceCurves = indifferenceCurves %>%
     arrange(as.numeric(U))
-  indifferenceCurvesGeom = geom_line(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U)), group = U))
+  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U)), group = U))
 }
 
 
@@ -213,10 +213,9 @@ makeBudgetLine = function(Px, Py, I, color = "blue", linetype = "solid"){
   x = c(0,I/Px)
   y = c(I/Py,0)
   budgetLine = tibble(x,y)
-  budgetLineGeom = geom_line(data = budgetLine, aes(x=x, y=y), color = color, linetype = linetype)  
+  budgetLineGeom = geom_path(data = budgetLine, aes(x=x, y=y), color = color, linetype = linetype)  
   return(budgetLineGeom)
 }
-
 ########## MAKE INCOME EXPANSION ###########
 
 getMRS = function(Ufun, x, y){
@@ -258,10 +257,9 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
     y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
   }
   incomeExpansion = tibble(x = x, y = y)
-  incomeExpansionGeom = geom_line(data = incomeExpansion, aes(x = x, y = y), color = color)
+  incomeExpansionGeom = geom_path(data = incomeExpansion, aes(x = x, y = y), color = color)
   return(incomeExpansionGeom)
 }
-
 
 ######### CONSTRAINED OPTIMIZATION #########
 
@@ -282,13 +280,12 @@ makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision
   indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
-    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
   } else {
-    indifferenceCurveGeom = geom_line(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
   }
   return(indifferenceCurveGeom)
 }
-
 ############### ENGEL CURVES ###############
 
 makeEngelData = function(Ufun, Px, Py, xmax, ymax, precision = .01) {
@@ -321,3 +318,147 @@ makeEngelData = function(Ufun, Px, Py, xmax, ymax, precision = .01) {
   return(engelCurvesData)
 }
 
+makeEngelCurveX = function(Ufun, Px, Py, xmax, ymax, precision = .01){
+  engelData = makeEngelData(Ufun, Px, Py, xmax, ymax)
+  engelCurveX = ggplot() +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    geom_path(data = engelData, aes(x = x, y = I), color = "darkgreen") +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,max(engelData$I)))
+  return(engelCurveX)
+}
+
+makeEngelCurveY = function(Ufun, Px, Py, xmax, ymax, precision = .01){
+  engelData = makeEngelData(Ufun, Px, Py, xmax, ymax)
+  engelCurveY = ggplot() +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    geom_path(data = engelData, aes(x = y, y = I), color = "darkgreen") +
+    coord_cartesian(xlim = c(0,ymax), ylim = c(0,max(engelData$I)))
+  return(engelCurveY)
+}
+
+########## DERIVED DEMAND CURVE ############
+
+makeDemandDataX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision = .5){
+  Px = c(seq(Pxmin, Pxmax, precision), addedPx)
+  bundles = sapply(Px, optimalBundle, Ufun = Ufun, Py = Py, I = I)
+  x = round(bundles[1,], 2)
+  addedX = x[(length(x)-length(addedPx)+1):length(x)]
+  bundleList = bundles[, (length(x)-length(addedPx)+1):length(x)]
+  demandX = tibble(Px, x) %>%
+    arrange(Px)
+  demandAddedX = tibble(Px = addedPx, x = addedX)
+  return(list(demandX, demandAddedX, bundleList))
+}
+
+makeDemandDataY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision = .5){
+  Py = c(seq(Pymin, Pymax, precision), addedPy)
+  bundles = sapply(Py, optimalBundle, Ufun = Ufun, Px = Px, I = I)
+  y = round(bundles[2,], 2)
+  addedY = y[(length(y)-length(addedPy)+1):length(y)]
+  bundleList = bundles[, (length(y)-length(addedPy)+1):length(y)]
+  demandY = tibble(Py, y) %>%
+    arrange(Py)
+  demandAddedY = tibble(Py = addedPy, y = addedY)
+  return(list(demandY, demandAddedY, bundleList))
+}
+
+makeDerivedDemandPlotX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision = .5, xmax, ymax){
+  demandDataX = makeDemandDataX(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision)
+  
+  demandX = demandDataX[[1]]
+  demandAddedX = demandDataX[[2]]
+  bundleList = demandDataX[[3]]
+  
+  Ulist = c()
+  for (i in 1:length(addedPx)){
+    x = bundleList[1, i]
+    y = bundleList[2, i]
+    results = round(getVars(Ufun, bundleList[1, i], bundleList[2, i], addedPx[i], Py), 2)
+    Ulist = c(Ulist, results$U)
+  }
+  
+  indiffCurvesPlot = ggplot() + 
+    makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax)+
+    scale_color_viridis_d(begin = .1, end = .8, option="plasma") +
+    labs(color = "U(x,y)") +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  
+  for (i in 1:length(addedPx)){
+    indiffCurvesPlot = indiffCurvesPlot +
+      makeBudgetLine(addedPx[i], Py, I) +
+      makeOptimalBundle_Point(Ufun, addedPx[i], Py, I)
+  }
+  
+  indiffCurvesPlot = ggplotly(indiffCurvesPlot) %>%
+    layout(yaxis = list(title = "y"), xaxis = list(title = "x"))
+  
+  demandPlot = ggplot()+
+    geom_path(data = demandX, aes(x = x, y = Px), color = "orange") +
+    geom_point(data = demandAddedX, aes(x = x, y = Px), size = 3) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0, xmax), ylim = c(0, Pxmax)) 
+  
+  demandPlot = ggplotly(demandPlot) %>%
+    layout(yaxis = list(title = "Px"), xaxis = list(title = "x"))
+  
+  derivedDemandPlot = subplot(indiffCurvesPlot, demandPlot, nrows = 2, shareX = TRUE, titleY = TRUE, titleX = TRUE) %>%
+    layout(title = list(text = "Derived Demand Curve"))
+  
+  return(derivedDemandPlot)
+}
+
+makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision = .5, xmax, ymax){
+  demandDataY = makeDemandDataY(Ufun, Px, I, addedPy, Pymin, Pymax, precision)
+  
+  demandY = demandDataY[[1]]
+  demandAddedY = demandDataY[[2]]
+  bundleList = demandDataY[[3]]
+  
+  Ulist = c()
+  for (i in 1:length(addedPy)){
+    x = bundleList[1, i]
+    y = bundleList[2, i]
+    results = round(getVars(Ufun, bundleList[1, i], bundleList[2, i], Px, addedPy[i]), 2)
+    Ulist = c(Ulist, results$U)
+  }
+  
+  indiffCurvesPlot = ggplot() + 
+    makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax)+
+    scale_color_viridis_d(begin = .1, end = .8, option="plasma") +
+    labs(color = "U(x,y)") +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  
+  for (i in 1:length(addedPy)){
+    indiffCurvesPlot = indiffCurvesPlot +
+      makeBudgetLine(Px, addedPy[i], I) +
+      makeOptimalBundle_Point(Ufun, Px, addedPy[i], I)
+  }
+  
+  indiffCurvesPlot = indiffCurvesPlot +
+    coord_flip()
+  
+  indiffCurvesPlot = ggplotly(indiffCurvesPlot) %>%
+    layout(yaxis = list(title = "x"), xaxis = list(title = "y"))
+  
+  demandPlot = ggplot()+
+    geom_path(data = demandY, aes(x = y, y = Py), color = "orange") +
+    geom_point(data = demandAddedY, aes(x = y, y = Py), size = 3) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0, xmax), ylim = c(0, Pxmax)) 
+  
+  demandPlot = ggplotly(demandPlot) %>%
+    layout(yaxis = list(title = "Py"), xaxis = list(title = "y"))
+  
+  derivedDemandPlot = subplot(indiffCurvesPlot, demandPlot, nrows = 2, shareX = TRUE, titleY = TRUE, titleX = TRUE) %>%
+    layout(title = list(text = "Derived Demand Curve"))
+  
+  return(derivedDemandPlot)
+}
