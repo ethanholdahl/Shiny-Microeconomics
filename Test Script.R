@@ -130,7 +130,7 @@ exactIntermediate = function(Ufun, Px, Py, U, precision = .0001){
   return(result1)
 }
 
-optimalIntermediate = function(Ufun, Px, Py, U) {
+optimalIntermediate = function(Ufun, Px, Py, U, xmax, ymax) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
@@ -169,7 +169,7 @@ optimalIntermediate = function(Ufun, Px, Py, U) {
 }
 
 
-bundle2 = optimalIntermediate(Ufun, Px, Py, result1$U)
+bundle2 = optimalIntermediate(Ufun, Px, Py, result1$U, xmax, ymax)
 result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py),2)
 result2
 
@@ -429,7 +429,7 @@ ymax = 20
 bundle_1 = optimalBundle(Ufun, Px[1], Py[1], I[1])
 results_1 = round(getVars(Ufun, bundle_1[1], bundle_1[2], Px[1], Py[1]),2)
 
-bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], results_1$U)
+bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], results_1$U, xmax, ymax)
 results_2 = round(getVars(Ufun, bundle_2[1], bundle_2[2], Px[2], Py[2]),2)
 
 bundle_3 = optimalBundle(Ufun, Px[2], Py[2], I[2])
@@ -451,10 +451,75 @@ ggplot() +
   annotate("point", x = results_2$x, y = results_2$y, size = 3) +
   annotate("point", x = results_3$x, y = results_3$y, size = 3) +
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
-  
+
+substitutionEffect = c(results_2$x-results_1$x, results_2$y-results_1$y)
+incomeEffect = c(results_3$x-results_2$x, results_3$y-results_2$y)
+totalEffect = substitutionEffect+incomeEffect
+
+############################ Engel Curve ############################################
+
+makeEngelData = function(Ufun, Px, Py, xmax, ymax, precision = .01) {
+  MUx = D(Ufun, 'x')
+  MUy = D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Likely want corner Solution
+    if ((MUx / Px) > (MUy / Py)) {
+      #spend all $ on good x
+      x = c(0, xmax*1.2)
+      y = c(0, 0)
+    } else {
+      if ((MUx / Px) < (MUy / Py)) {
+        #spend all $ on good y
+        x = c(0, 0)
+        y = c(0, ymax*1.2)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        x = c(0, max(xmax*1.2, ymax*1.2))
+        y = c(0, max(xmax*1.2, ymax*1.2))
+      }
+    }
+  } else {
+    x = seq(precision, xmax*1.2, precision)
+    y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  }
+  engelCurvesData = tibble(x = x, y = y, I = x*Px + y*Py) %>%
+    arrange(I) %>%
+    round(3)
+  return(engelCurvesData)
+}
+
+engelData = makeEngelData(Ufun, Px, Py, xmax, ymax)
+max(engelData$I)
+
+ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_line(data = engelData, aes(x = x, y = I), color = "darkgreen") +
+  coord_cartesian(xlim = c(0,xmax), ylim = c(0,max(engelData$I)))
+
+ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_line(data = engelData, aes(x = y, y = I), color = "darkgreen") +
+  coord_cartesian(xlim = c(0,ymax), ylim = c(0,max(engelData$I)))
+
+
+##################### MARKET DEMAND + EQ PRICE & QUANTITY ########################
+
+
 
 ############################# Demand Curve ###########################################
 
 
-############################ Engle Curve ############################################
+
+########################### INSURANCE ####################################
+
+
+
+########################### ELASTICITIES ###################################
+
+
+
+#################### FEASIBLE VS INFEASIBLE BUNDLES ####################
+
 

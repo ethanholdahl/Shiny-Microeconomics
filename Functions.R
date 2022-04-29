@@ -115,7 +115,7 @@ exactIntermediate = function(Ufun, Px, Py, U, precision = .0001){
   return(result1)
 }
 
-optimalIntermediate = function(Ufun, Px, Py, U) {
+optimalIntermediate = function(Ufun, Px, Py, U, xmax, ymax) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
@@ -288,3 +288,36 @@ makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision
   }
   return(indifferenceCurveGeom)
 }
+
+############### ENGEL CURVES ###############
+
+makeEngelData = function(Ufun, Px, Py, xmax, ymax, precision = .01) {
+  MUx = D(Ufun, 'x')
+  MUy = D(Ufun, 'y')
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Likely want corner Solution
+    if ((MUx / Px) > (MUy / Py)) {
+      #spend all $ on good x
+      x = c(0, xmax*1.2)
+      y = c(0, 0)
+    } else {
+      if ((MUx / Px) < (MUy / Py)) {
+        #spend all $ on good y
+        x = c(0, 0)
+        y = c(0, ymax*1.2)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        x = c(0, max(xmax*1.2, ymax*1.2))
+        y = c(0, max(xmax*1.2, ymax*1.2))
+      }
+    }
+  } else {
+    x = seq(precision, xmax*1.2, precision)
+    y = sapply(x, getYValues_IE, Ufun = Ufun, ymax = ymax, Px = Px, Py = Py)
+  }
+  engelCurvesData = tibble(x = x, y = y, I = x*Px + y*Py) %>%
+    arrange(I) %>%
+    round(3)
+  return(engelCurvesData)
+}
+
