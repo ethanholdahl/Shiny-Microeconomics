@@ -511,10 +511,6 @@ makeEngelCurveY = function(Ufun, Px, Py, xmax, ymax, precision = .01){
 }
 
 
-##################### MARKET DEMAND + EQ PRICE & QUANTITY ########################
-
-
-
 ####################### DERIVED DEMAND CURVE #####################################
 
 #Need: vector of Px / Py resulting in a vector of x / y
@@ -663,6 +659,49 @@ Pymax = 10
 makeDerivedDemandPlotY(Ufun, Px, I, addedPy, Pymin, Pymax, precision, xmax, ymax)
   
 
+#################### FEASIBLE VS INFEASIBLE BUNDLES ####################
+
+
+
+xrand = runif(3, max = I/Px*1.2)
+yrand = runif(3, max = I/Py*1.2)
+xon = runif(2, max = I/Px)
+yon = (I-Px*xon)/Py
+xover = runif(2, min = 0, max = 3*xmax/4)
+yover=c()
+for(i in 1:2){
+  x = xover[i]
+  yover = c(yover, runif(1, min = max((I-x*Px)/Py,0), max = 3*ymax/4))
+} 
+xunder = runif(2, max = I/Px)
+yunder = c()
+for(i in 1:2){
+  x = xunder[i]
+  yunder = c(yunder, runif(1, min = 0, max = (I-x*Px)/Py))
+} 
+x = c(xrand, xon, xover, xunder)
+y = c(yrand, yon, yover, yunder)
+
+bundles = tibble(x, y, Cost = x*Px + y*Py)
+
+ggplot()+
+  geom_point(data = bundles, aes(x = x, y = y), size = 3) +
+  makeBudgetLine(Px, Py, I) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+
+ggplot()+
+  geom_point(data = bundles, aes(x = x, y = y, alpha = I>=Cost), size = 3) +
+  scale_alpha_discrete(range = c(.2,1), labels = c("TRUE" = "Feasible", "FALSE" = "Infeasible")) +
+  labs(alpha = c("Bundles")) +
+  makeBudgetLine(Px, Py, I) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+
+
+
 ########################### INSURANCE ####################################
 
 
@@ -671,6 +710,5 @@ makeDerivedDemandPlotY(Ufun, Px, I, addedPy, Pymin, Pymax, precision, xmax, ymax
 
 
 
-#################### FEASIBLE VS INFEASIBLE BUNDLES ####################
 
-
+##################### MARKET DEMAND + EQ PRICE & QUANTITY ########################
