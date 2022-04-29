@@ -29,7 +29,7 @@ Py=2
 I=20
 
 
-getVars = function(Ufun, x, y, Px, Py, I) {
+getVars = function(Ufun, x, y, Px, Py) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   MUx = eval(MUx)
@@ -42,7 +42,7 @@ getVars = function(Ufun, x, y, Px, Py, I) {
 }
 
 solveBundle = function(x, Ufun, Px, Py, I){
-  vars = getVars(Ufun, x[1], x[2], Px, Py, I)
+  vars = getVars(Ufun, x[1], x[2], Px, Py)
   result = crossprod(c(vars$MRSxy, vars$Cost) - c(Px/Py, I))
   return(result)
 }
@@ -51,9 +51,15 @@ exactBundle = function(Ufun, Px, Py, I, precision = .0001){
   result = optim(c(1,1), solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
   result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
   diff = abs(result-result1)
+  count = 0
   while ((diff>precision)[1]||(diff>precision)[2]){
+    count = count + 1
     result = result1
     result1 = optim(result, solveBundle, Ufun = Ufun, Px = Px, Py = Py, I = I)$par
+    if (count > 2 & (result1[1] < 0 | result1[2] < 0)){
+      #to catch when the solution doesn't converge due to runaway outside of the positive quadrent
+      result = result1
+    }
     diff = abs(result-result1)
   }
   return(result1)
@@ -64,11 +70,11 @@ optimalBundle = function(Ufun, Px, Py, I) {
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
     #linear utility function. Likely want corner Solution
-    if (MUx / Px > MUy / Py) {
+    if ((MUx / Px) > (MUy / Py)) {
       #spend all $ on good x
       bundle = c(I / Px, 0)
     } else {
-      if (MUx / Px < MUy / Py) {
+      if ((MUx / Px) < (MUy / Py)) {
         #spend all $ on good y
         bundle = c(0, I / Py)
       } else {
@@ -79,60 +85,92 @@ optimalBundle = function(Ufun, Px, Py, I) {
   } else {
     #not linear, use exactBundle()
     bundle = exactBundle(Ufun, Px, Py, I)
+    #check for negatives
+    if (bundle[1] < 0){
+      #spend all $ on good y
+      bundle = c(0, I / Py)
+    } else {
+      if(bundle[2] < 0){
+        #spend all $ on good x
+        bundle = c(I / Px, 0)
+      }
+    }
   }
+  return(bundle)
 }
 
 bundle1 = optimalBundle(Ufun, Px, Py, I)
 
-result1 = round(getVars(Ufun, bundle1[1], bundle1[2], Px, Py, I),2)
+result1 = round(getVars(Ufun, bundle1[1], bundle1[2], Px, Py),2)
 result1
 
 Py=1
 
-solveIntermediate = function(x, Ufun, Px, Py, I, U){
-  vars = getVars(Ufun, x[1], x[2], Px, Py, I)
+solveIntermediate = function(x, Ufun, Px, Py, U){
+  vars = getVars(Ufun, x[1], x[2], Px, Py)
   result = crossprod(c(vars$MRSxy, vars$U) - c(Px/Py, U))
   return(result)
 }
 
-exactIntermediate = function(Ufun, Px, Py, I, U, precision = .0001){
-  result = optim(c(1,1), solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
-  result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
+exactIntermediate = function(Ufun, Px, Py, U, precision = .0001){
+  result = optim(c(1,1), solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, U = U)$par
+  result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, U = U)$par
   diff = abs(result-result1)
+  count = 0
   while ((diff>precision)[1]||(diff>precision)[2]){
+    count = count + 1
     result = result1
-    result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, I = I, U = U)$par
+    result1 = optim(result, solveIntermediate, Ufun = Ufun, Px = Px, Py = Py, U = U)$par
+    if (count > 2 & (result1[1] < 0 | result1[2] < 0)){
+      #to catch when the solution doesn't converge due to runaway outside of the positive quadrent
+      result = result1
+    }
     diff = abs(result-result1)
   }
   return(result1)
 }
 
-optimalIntermediate = function(Ufun, Px, Py, I, U) {
+optimalIntermediate = function(Ufun, Px, Py, U) {
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
     #linear utility function. Likely want corner Solution
-    if (MUx / Px > MUy / Py) {
+    if ((MUx / Px) > (MUy / Py)) {
       #spend all $ on good x
-      bundle = c(I / Px, 0)
+      #make U the same as before
+      bundle = c(U / MUx, 0)
     } else {
-      if (MUx / Px < MUy / Py) {
+      if ((MUx / Px) < (MUy / Py)) {
         #spend all $ on good y
-        bundle = c(0, I / Py)
+        #make U the same as before
+        bundle = c(0, U / MUy)
       } else {
         #equality. Any allocation works. Default to spend all $ such that x=y
-        bundle = c(I / (Px + Py), I / (Px + Py))
+        bundle = c(U / (MUx + MUy), U / (MUx + MUy))
       }
     }
   } else {
     #not linear, use exactIntermediate
-    bundle = exactIntermediate(Ufun, Px, Py, I, U)
+    bundle = exactIntermediate(Ufun, Px, Py, U)
+    #check for negatives
+    if (bundle[1] < 0){
+      #spend all $ on good y
+      #make U the same as before
+      bundle = c(0, getYValues_U(Ufun, U, 0, ymax))
+    } else {
+      if(bundle[2] < 0){
+        #spend all $ on good x
+        #make U the same as before
+        bundle = c(getXValues_U(Ufun, U, 0, xmax), 0)
+      }
+    }
   }
+  return(bundle)
 }
 
 
-bundle2 = optimalIntermediate(Ufun, Px, Py, I, result1$U)
-result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py, I),2)
+bundle2 = optimalIntermediate(Ufun, Px, Py, result1$U)
+result2 = round(getVars(Ufun, bundle2[1], bundle2[2], Px, Py),2)
 result2
 
 
@@ -157,6 +195,13 @@ U = 10
 getUValue_U = function(Ufun, x, y) {
   U <- eval(Ufun) 
   return(U)
+}
+
+solveXValue_U = function(Ufun, U, y, x) crossprod(getUValue_U(Ufun, x, y) - U)
+
+getXValues_U = function(Ufun, U, y, xmax){
+  x = optimize(solveXValue_U, c(0:xmax*5), Ufun = Ufun, U = U, y = y)$minimum
+  return(x)
 }
 
 solveYValue_U = function(Ufun, U, x, y) crossprod(getUValue_U(Ufun, x, y) - U)
@@ -263,12 +308,12 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
   MUy = D(Ufun, 'y')
   if (class(MUx) == "numeric" & class(MUy) == "numeric") {
     #linear utility function. Likely want corner Solution
-    if (MUx / Px > MUy / Py) {
+    if ((MUx / Px) > (MUy / Py)) {
       #spend all $ on good x
       x = c(0, xmax*1.2)
       y = c(0, 0)
     } else {
-      if (MUx / Px < MUy / Py) {
+      if ((MUx / Px) < (MUy / Py)) {
         #spend all $ on good y
         x = c(0, 0)
         y = c(0, ymax*1.2)
@@ -322,7 +367,7 @@ makeOptimalBundle_Point = function(Ufun, Px, Py, I, color = "black", size = 3){
 
 makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision = .01, color = "red"){
   bundle = optimalBundle(Ufun, Px, Py, I)
-  results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
+  results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py),2)
   U = results$U
   x = seq(0, xmax, precision)
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
@@ -337,18 +382,17 @@ makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision
 }
 
 
-
-bundle = optimalBundle(Ufun, Px, Py, I)
-results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py, I),2)
-U = results$U
 inputFunction = "x^2 +2*x*y"
 Ufun = parse(text = inputFunction)
+bundle = optimalBundle(Ufun, Px, Py, I)
+results = round(getVars(Ufun, bundle[1], bundle[2], Px, Py),2)
+U = results$U
 Px=2
-Py=1
+Py=5
 I=20
 xmax = 12
 ymax = 24
-Ulist = c(20,50,80, U)
+Ulist = c(seq(30,300,30), U)
 
 ggplot() + 
   makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax)+
@@ -378,18 +422,18 @@ ggplot() +
 inputFunction = "x^2 +2*x*y"
 Ufun = parse(text = inputFunction)
 Px=c(2,2)
-Py=c(1,2)
+Py=c(1,5)
 I=c(20,20)
-xmax = 12
-ymax = 24
+xmax = 20
+ymax = 20
 bundle_1 = optimalBundle(Ufun, Px[1], Py[1], I[1])
-results_1 = round(getVars(Ufun, bundle_1[1], bundle_1[2], Px[1], Py[1], I[1]),2)
+results_1 = round(getVars(Ufun, bundle_1[1], bundle_1[2], Px[1], Py[1]),2)
 
-bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], I[2], results_1$U)
-results_2 = round(getVars(Ufun, bundle_2[1], bundle_2[2], Px[2], Py[2], I[2]),2)
+bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], results_1$U)
+results_2 = round(getVars(Ufun, bundle_2[1], bundle_2[2], Px[2], Py[2]),2)
 
 bundle_3 = optimalBundle(Ufun, Px[2], Py[2], I[2])
-results_3 = round(getVars(Ufun, bundle_3[1], bundle_3[2], Px[2], Py[2], I[2]),2)
+results_3 = round(getVars(Ufun, bundle_3[1], bundle_3[2], Px[2], Py[2]),2)
 
 ggplot() + 
   makeOptimalBundle_Indifference(Ufun, Px[1], Py[1], I[1], xmax, ymax, color = 1) +
@@ -403,9 +447,9 @@ ggplot() +
   geom_vline(xintercept = 0) +
   makeIncomeExpansion(Ufun, Px[1], Py[1], xmax, ymax) +
   makeIncomeExpansion(Ufun, Px[2], Py[2], xmax, ymax, color = "green") +
-  makeOptimalBundle_Point(Ufun, Px[1], Py[1], I[1]) +
-  makeOptimalBundle_Point(Ufun, Px[2], Py[2], I[2]) +
-  makeOptimalBundle_Point(Ufun, Px[2], Py[2], results_2$Cost) +
+  annotate("point", x = results_1$x, y = results_1$y, size = 3) +
+  annotate("point", x = results_2$x, y = results_2$y, size = 3) +
+  annotate("point", x = results_3$x, y = results_3$y, size = 3) +
   coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
   
 
