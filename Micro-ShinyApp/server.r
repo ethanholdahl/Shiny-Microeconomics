@@ -516,11 +516,11 @@ function(input, output, session) {
     yon = (I-Px*xon)/Py
     xrand = runif(rand, max = I/Px*1.2)
     yrand = runif(rand, max = I/Py*1.2)
-    xover = runif(over, min = 0, max = 3*xmax/4)
+    xover = runif(over, min = 0, max = I/Px*1.2)
     yover=c()
     for(i in 1:over){
       x = xover[i]
-      yover = c(yover, runif(1, min = max((I-x*Px)/Py,0), max = 3*ymax/4))
+      yover = c(yover, runif(1, min = max((I-x*Px)/Py, 0), max = I/Py*1.2))
     } 
     xunder = runif(under, max = I/Px)
     yunder = c()
@@ -703,7 +703,20 @@ function(input, output, session) {
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
       coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax))
-    ggplotly(plot)
+    plot = ggplotly(plot)
     return(plot)
   })
+  ###### Budget Constraints ######
+  feasibilityPlots = reactive({
+    rand = input$BudgetN-6
+    feasibilityPlots = makeFeasibilityGraphs(input$BudgetPx, input$BudgetPy, input$BudgetI, rand = rand)
+    return(feasibilityPlots)
+  })
+  output$BudgetPlot = renderPlotly({
+    if(input$BudgetFeasibility) {
+      return(feasibilityPlots()[[2]])
+    } else {
+      return(feasibilityPlots()[[1]])
+    }
+    })
 }

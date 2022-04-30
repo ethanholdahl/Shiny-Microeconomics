@@ -110,7 +110,7 @@ fluidPage(
                        label = "Utility Level",
                        value = 10,
                        min = 1,
-                       width = '150px'
+                       width = '200px'
                      )),
                  div(style="display:inline-block",
                      numericInput(
@@ -134,7 +134,48 @@ fluidPage(
                ),
                wellPanel(
                  tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                             src = "Budget_Constraints.pdf")
+                             src = "Budget_Constraints.pdf"),
+                 div(style="display:inline-block",
+                     numericInput(
+                       inputId = "BudgetI",
+                       label = "Income ($)",
+                       value = 20,
+                       min = 1,
+                       width = '200px'
+                     )),
+                 div(style="display:inline-block",
+                     numericInput(
+                       inputId = "BudgetPx",
+                       label = "Price of good x ($)",
+                       value = 2,
+                       min = 1,
+                       width = '200px'
+                     )),
+                 div(style="display:inline-block",
+                     numericInput(
+                       inputId = "BudgetPy",
+                       label = "Price of good y ($)",
+                       value = 3,
+                       min = 1,
+                       width = '200px'
+                     )),
+                 div(style="display:inline-block",
+                     numericInput(
+                       inputId = "BudgetN",
+                       label = "Number of Bundles",
+                       value = 50,
+                       min = 6,
+                       step = 1,
+                       width = '200px'
+                     )),
+                 div(style="display:inline-block",
+                     checkboxInput(
+                       inputId = "BudgetFeasibility",
+                       label = "Show feasibility",
+                       value = FALSE,
+                       width = '200px'
+                     )),
+                 plotlyOutput("BudgetPlot")
                ),
                wellPanel(
                  tags$iframe(style = "height:600px; width:100%; scrolling=yes",
