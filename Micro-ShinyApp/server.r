@@ -204,6 +204,7 @@ function(input, output, session) {
     indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = U))
   }
   
+  
   ############# MRS INDIFFERENCE CURVE ############
   
   makeMRSCurve = function(Ufun, U, xmax, ymax, precision = .01){
@@ -215,6 +216,7 @@ function(input, output, session) {
     MRSCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
   }
   
+  
   ############# MAKE BUDGET LINE #############
   
   makeBudgetLine = function(Px, Py, I, color = "blue", linetype = "solid"){
@@ -224,6 +226,34 @@ function(input, output, session) {
     budgetLineGeom = geom_path(data = budgetLine, aes(x=x, y=y), color = color, linetype = linetype)  
     return(budgetLineGeom)
   }
+  
+  makeBudgetLines = function(Pxlist, Pylist, Ilist, color = TRUE, linetype = "solid"){
+    #first make all lists the same length (should all be length 1 or n)
+    nLines = max(length(Pxlist), length(Pylist), length(Ilist))
+    if(length(Pxlist) != nLines){
+      Pxlist = rep(Pxlist, nLines)
+    }
+    if(length(Pylist) != nLines){
+      Pylist = rep(Pylist, nLines)
+    }
+    if(length(Ilist) != nLines){
+      Ilist = rep(Ilist, nLines)
+    }
+    x = as.vector(sapply(Ilist/Pxlist, seq, from = 0, length.out = 100))
+    y = as.vector(sapply(Ilist/Pylist, seq, to = 0, length.out = 100))
+    Budget_Lines = x
+    for(i in 0:(nLines-1)){
+      Budget_Lines[(i*100+1):(i*100+100)] = rep(paste0(" I = ", Ilist[(i+1)], ", Px = ", Pxlist[(i+1)], ", Py = ", Pylist[(i+1)]), 100)
+    }
+    budgetLineData = tibble(x, y, Budget_Lines)
+    if(color == TRUE){
+      budgetLinesGeom = geom_line(data = budgetLineData, aes(x = x, y = y, color = Budget_Lines), linetype = linetype)
+    } else {
+      budgetLinesGeom = geom_line(data = budgetLineData, aes(x = x, y = y, group = Budget_Lines), color = color, linetype = linetype)
+    }
+    return(budgetLinesGeom)
+  }
+  
   
   ########## MAKE INCOME EXPANSION ###########
   
@@ -268,6 +298,53 @@ function(input, output, session) {
     incomeExpansion = tibble(x = x, y = y)
     incomeExpansionGeom = geom_path(data = incomeExpansion, aes(x = x, y = y), color = color)
     return(incomeExpansionGeom)
+  }
+  
+  makeIncomeExpansionPlotly = function(Ufun, Px, Py, I, xmax, ymax){
+    bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+    x = bundles[1,]
+    y = bundles[2,]
+    U = c()
+    for (i in 1:length(Ilist)){
+      U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
+    }
+    plot = ggplot()+
+      makeBudgetLines(Px, Py, I, color = "blue") +
+      makeAllIndiffernceCurves(Ufun, U, xmax, ymax) +
+      scale_color_viridis_d("U(x,y)", begin = .25, end = .85, option="plasma")+
+      geom_hline(yintercept = 0)+
+      geom_vline(xintercept = 0)+
+      makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+      coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+    
+    plot = ggplotly(p)
+    return(plot)
+  }
+  
+  new_scale <- function(new_aes) {
+    structure(ggplot2::standardise_aes_names(new_aes), class = "new_aes")
+  }
+  
+  makeIncomeExpansionPlot = function(Ufun, Px, Py, I, xmax, ymax){
+    bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+    x = bundles[1,]
+    y = bundles[2,]
+    U = c()
+    for (i in 1:length(Ilist)){
+      U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
+    }
+    plot = ggplot()+
+      makeBudgetLines(Px, Py, Ilist) +
+      scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7) +
+      new_scale("color")+
+      makeAllIndiffernceCurves(Ufun, U, xmax, ymax) +
+      scale_color_viridis_d("U(x,y)", begin = .25, end = .85, option="plasma") +
+      geom_hline(yintercept = 0)+
+      geom_vline(xintercept = 0)+
+      makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+      coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+    
+    return(plot)
   }
   
   ######### CONSTRAINED OPTIMIZATION #########
@@ -739,4 +816,36 @@ function(input, output, session) {
     plot = ggplotly(plot)
     return(plot)
   })
+  ########## Individual and Market Demand - Study ##########
+  
+  ###### Income Expansion Path ######
+  
+  ###### Engel Curves ######
+  
+  ###### Derived Demand Curve ######
+  
+  ###### Income and Substitution Effects ######
+  effectsPlotPlus = reactive({
+    Ufun = parse(text = input$IncSubEffectsFunction)
+    Px = c(input$IncSubEffectsPx, input$IncSubEffectsPx1)
+    Py = c(input$IncSubEffectsPy, input$IncSubEffectsPy1)
+    I = c(input$IncSubEffectsI, input$IncSubEffectsI1)
+    xmax = input$IncSubEffectsXMax
+    ymax = input$IncSubEffectsYMax
+    effectsPlotPlus = makeEffectsPlot(Ufun, Px, Py, I, xmax, ymax)
+  })
+  output$IncSubEffectsPlot = renderPlotly({
+    effectsPlotPlus()[[1]]
+  })
+  output$IncSubEffectsSub = renderText({
+    effectsPlotPlus()[[2]]
+  })
+  output$IncSubEffectsInc = renderText({
+    effectsPlotPlus()[[3]]
+  })
+  output$IncSubEffectsTotal = renderText({
+    effectsPlotPlus()[[4]]
+  })
+  ###### Market Demand Curve ######
+  
 }

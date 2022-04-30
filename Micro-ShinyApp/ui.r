@@ -1,4 +1,5 @@
 
+
 # Load and install the packages
 library(shiny)
 library(tidyverse)
@@ -19,15 +20,23 @@ fluidPage(
       "Intermediate Microeconomics by <a href='https://ethanholdahl.com' style='color:darkgreen'>Ethan Holdahl</a>"
     ),
     useShinyjs(),
-    tabPanel("Home",
-             value = "Home",
-             h1("Coming Soon")),
+    tabPanel(
+      "Home",
+      value = "Home",
+      h1("More Content Coming Soon"),
+      p(
+        "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can throughout the weekend"
+      )
+    ),
     navbarMenu(
       "Consumer Behavior",
       tabPanel(
         "Study",
         value = "ConsumerStudy",
-        h1("Hello!"),
+        h1("Chapter 4: Consumer Behavior"),
+        p(
+          "Class Notes and interactive content to help make the concepts more engaging"
+        ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Utility.pdf"),
@@ -58,7 +67,7 @@ fluidPage(
             numericInput(
               inputId = "IndifferenceNumCurves",
               label = "Number of Indifference Curves",
-              value = 6,
+              value = 10,
               min = 1,
               max = 100,
               step = 1,
@@ -70,7 +79,7 @@ fluidPage(
             numericInput(
               inputId = "IndifferenceMaxU",
               label = "Max Utility Level",
-              value = 100,
+              value = 10,
               min = 1,
               width = '150px'
             )
@@ -80,7 +89,7 @@ fluidPage(
             numericInput(
               inputId = "IndifferenceXMax",
               label = "Maximum x value of plot",
-              value = 20,
+              value = 10,
               min = 1,
               max = 100,
               width = '200px'
@@ -91,7 +100,7 @@ fluidPage(
             numericInput(
               inputId = "IndifferenceYMax",
               label = "Maximum y value of plot",
-              value = 20,
+              value = 40,
               min = 1,
               max = 100,
               width = '200px'
@@ -122,7 +131,7 @@ fluidPage(
             numericInput(
               inputId = "MRSXMax",
               label = "Maximum x value of plot",
-              value = 5,
+              value = 10,
               min = 1,
               max = 100,
               width = '200px'
@@ -133,7 +142,7 @@ fluidPage(
             numericInput(
               inputId = "MRSYMax",
               label = "Maximum y value of plot",
-              value = 5,
+              value = 8,
               min = 1,
               max = 100,
               width = '200px'
@@ -265,22 +274,148 @@ fluidPage(
       
       tabPanel("Practice",
                value = "ConsumerPractice",
-               h1("Hello!")),
+               h1("Coming Soon")),
       tabPanel("Graphs",
                value = "ConsumerGraphs",
-               h1("Hello!"))
+               h1("Coming Soon"))
     ),
     navbarMenu(
       "Individual and Market Demand",
-      tabPanel("Study",
-               value = "DemandStudy",
-               h1("Hello!")),
+      tabPanel(
+        "Study",
+        value = "DemandStudy",
+        h1("Chapter 5: Individual and Market Demand"),
+        p(
+          "Class Notes and interactive content to help make the concepts more engaging"
+        ),
+        wellPanel(
+          tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                      src = "Income_Expansion_Path.pdf"),
+        ),
+        wellPanel(
+          tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                      src = "Engel_Curves.pdf"),
+        ),
+        wellPanel(
+          tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                      src = "Derived_Demand.pdf"),
+        ),
+        wellPanel(
+          tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                      src = "Income&Substitution_Effects.pdf"),
+          div(
+            style = "display:inline-block",
+            textInput(
+              inputId = "IncSubEffectsFunction",
+              label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
+              value = "x * y"
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsXMax",
+              label = "Maximum x value of plot",
+              value = 10,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsYMax",
+              label = "Maximum y value of plot",
+              value = 10,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsI",
+              label = "Initial Income ($)",
+              value = 20,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsPx",
+              label = "Initial Price of good x ($)",
+              value = 4,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsPy",
+              label = "Initial Price of good y ($)",
+              value = 2,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsI1",
+              label = "New Income ($)",
+              value = 20,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsPx1",
+              label = "New Price of good x ($)",
+              value = 4,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncSubEffectsPy1",
+              label = "New Price of good y ($)",
+              value = 6,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          plotlyOutput("IncSubEffectsPlot"),
+          p("In the above graph, the original budget line is given by the dark blue line and the original income expansion path is given by the dark green line.
+            After the change in prices and/or income the utility maximizing bundle has shifted. The bright green line is the new income expansion path and the solid light blue line is the new budget line.
+            The dashed light blue line is a ficticious budget line parallel to the new budget line. It is tangent to the original indifference curve at the same place the new budget line intersects the old indifference curve.
+            That point where those three lines: the ficticious budget line, the new income expansion path, and the indifference curve corresponding the the utility realized in the original bundle is the ficticious point we use to calculate the income and substitution effects.
+            The differnce between it and the original bundle is the substitution effect, and the income effect is the difference between the new utility maximizing bundle and it.
+            Note: the income effect takes place along the new income expansion path and the substitution effect takes place along the indifference curve corresponding to the original utility.
+            When only income changes, there is no substitution effect, only a income effect."),
+          p("In the example in the plot above, the substitution effect was:", textOutput(outputId = "IncSubEffectsSub", inline = T),
+            "the income effect was:", textOutput(outputId = "IncSubEffectsInc", inline = T), "and the total effect was:", textOutput(outputId = "IncSubEffectsTotal", inline = T)),
+        ),
+        wellPanel(
+          tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                      src = "Market_Demand.pdf"),
+        ),
+        
+      ),
       tabPanel("Practice",
                value = "DemandPractice",
-               h1("Hello!")),
+               h1("Coming Soon")),
       tabPanel("Graphs",
                value = "DemandGraphs",
-               h1("Hello!"))
+               h1("Coming Soon"))
     ),
     tabPanel("Graphs",
              value = "Graphs",
