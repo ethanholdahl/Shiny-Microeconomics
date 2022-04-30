@@ -719,4 +719,24 @@ function(input, output, session) {
       return(feasibilityPlots()[[1]])
     }
     })
+  ###### Constrained Optimization ######
+  output$ConstrainedPlot = renderPlotly({
+    Ufun = parse(text = input$ConstrainedFunction)
+    xmax = input$ConstrainedXMax
+    ymax = input$ConstrainedYMax
+    Px = input$ConstrainedPx
+    Py = input$ConstrainedPy
+    I = input$ConstrainedI
+    plot = ggplot() + 
+      makeOptimalBundle_Indifference(Ufun, Px, Py, I, xmax, ymax, color = 1)+
+      scale_color_viridis_d(begin = .6, end = .8, option="plasma") +
+      labs(color = "U(x,y)") +
+      makeBudgetLine(Px, Py, I) + 
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      makeOptimalBundle_Point(Ufun, Px, Py, I) +
+      coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+    plot = ggplotly(plot)
+    return(plot)
+  })
 }
