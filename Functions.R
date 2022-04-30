@@ -182,9 +182,9 @@ makeIndifferenceCurve = function(Ufun, U, xmax, ymax, precision = .01, color = "
   indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
-    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = color, group = U))
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = color))
   } else {
-    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y), color = color)
   }
   return(indifferenceCurveGeom)
 }
@@ -203,19 +203,20 @@ makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
   }
   indifferenceCurves = indifferenceCurves %>%
     arrange(as.numeric(U))
-  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U)), group = U))
+  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U))))
 }
 
 
 ############# MAKE BUDGET LINE #############
 
 makeBudgetLine = function(Px, Py, I, color = "blue", linetype = "solid"){
-  x = c(0,I/Px)
-  y = c(I/Py,0)
+  x = seq(0, I/Px, length.out = 100)
+  y = seq(I/Py, 0, length.out = 100)
   budgetLine = tibble(x,y)
   budgetLineGeom = geom_path(data = budgetLine, aes(x=x, y=y), color = color, linetype = linetype)  
   return(budgetLineGeom)
 }
+
 ########## MAKE INCOME EXPANSION ###########
 
 getMRS = function(Ufun, x, y){
@@ -280,12 +281,49 @@ makeOptimalBundle_Indifference = function(Ufun, Px, Py, I, xmax, ymax, precision
   indifferenceCurve=tibble(x = x, y = y, U = as.factor(U))
   if (class(color) == "numeric"){
     color = as.factor(color)
-    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = U, group = U))
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = U))
   } else {
-    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, group = U), color = color)
+    indifferenceCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y), color = color)
   }
   return(indifferenceCurveGeom)
 }
+
+##### SUBSTITUTION/INCOME/TOTAL EFFECT #####
+
+makeEffectsPlot = function(Ufun, Px, Py, I, xmax, ymax){
+  bundle_1 = optimalBundle(Ufun, Px[1], Py[1], I[1])
+  results_1 = round(getVars(Ufun, bundle_1[1], bundle_1[2], Px[1], Py[1]),2)
+  
+  bundle_2 = optimalIntermediate(Ufun, Px[2], Py[2], results_1$U, xmax, ymax)
+  results_2 = round(getVars(Ufun, bundle_2[1], bundle_2[2], Px[2], Py[2]),2)
+  
+  bundle_3 = optimalBundle(Ufun, Px[2], Py[2], I[2])
+  results_3 = round(getVars(Ufun, bundle_3[1], bundle_3[2], Px[2], Py[2]),2)
+  
+  effectsPlot = ggplot() + 
+    makeOptimalBundle_Indifference(Ufun, Px[1], Py[1], I[1], xmax, ymax, color = 1) +
+    makeOptimalBundle_Indifference(Ufun, Px[2], Py[2], I[2], xmax, ymax, color = 1) +
+    scale_color_viridis_d(begin = .5, end = .8, option="plasma") +
+    labs(color = "U(x,y)") +
+    makeBudgetLine(Px[1], Py[1], I[1]) + 
+    makeBudgetLine(Px[2], Py[2], I[2], color = "lightblue") + 
+    makeBudgetLine(Px[2], Py[2], results_2$Cost, color = "lightblue", linetype = "longdash") + 
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    makeIncomeExpansion(Ufun, Px[1], Py[1], xmax, ymax) +
+    makeIncomeExpansion(Ufun, Px[2], Py[2], xmax, ymax, color = "green") +
+    annotate("point", x = results_1$x, y = results_1$y, size = 3) +
+    annotate("point", x = results_2$x, y = results_2$y, size = 3) +
+    annotate("point", x = results_3$x, y = results_3$y, size = 3) +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  effectsPlot = ggplotly(effectsPlot)
+  
+  substitutionEffect = c(results_2$x-results_1$x, results_2$y-results_1$y)
+  incomeEffect = c(results_3$x-results_2$x, results_3$y-results_2$y)
+  totalEffect = substitutionEffect+incomeEffect
+  return(list(effectsPlot, substitutionEffect, incomeEffect, totalEffect))
+}
+
 ############### ENGEL CURVES ###############
 
 makeEngelData = function(Ufun, Px, Py, xmax, ymax, precision = .01) {
@@ -461,4 +499,109 @@ makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision 
     layout(title = list(text = "Derived Demand Curve"))
   
   return(derivedDemandPlot)
+}
+
+##### FEASIBLE VS INFEASIBLE BUNDLES #######
+
+makeFeasibilityGraphs = function(Px, Py, I, on = 2, over = 2, under = 2, rand = 6){
+  xon = runif(on, max = I/Px)
+  yon = (I-Px*xon)/Py
+  xrand = runif(rand, max = I/Px*1.2)
+  yrand = runif(rand, max = I/Py*1.2)
+  xover = runif(over, min = 0, max = 3*xmax/4)
+  yover=c()
+  for(i in 1:over){
+    x = xover[i]
+    yover = c(yover, runif(1, min = max((I-x*Px)/Py,0), max = 3*ymax/4))
+  } 
+  xunder = runif(under, max = I/Px)
+  yunder = c()
+  for(i in 1:under){
+    x = xunder[i]
+    yunder = c(yunder, runif(1, min = 0, max = (I-x*Px)/Py))
+  } 
+  x = c(xrand, xon, xover, xunder)
+  y = c(yrand, yon, yover, yunder)
+  
+  bundles = tibble(x, y, Cost = x*Px + y*Py, Feasibility = x)
+  for (i in 1:length(x)){
+    if(I>=bundles$Cost[i]){
+      bundles$Feasibility[i] = "Feasible"
+    } else {
+      bundles$Feasibility[i] = "Infeasible"
+    }
+  }
+  bundles = bundles %>%
+    arrange(Cost)
+  
+  bundlesPlot = ggplot()+
+    geom_point(data = bundles, aes(x = x, y = y, color = Cost), size = 3) +
+    scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
+    makeBudgetLine(Px, Py, I) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+  bundlesPlot = bundlesPlot %>%
+    ggplotly()
+  
+  feasibilityPlot = ggplot()+
+    geom_point(data = bundles, aes(x = x, y = y, alpha = Feasibility, color = Cost), size = 3) +
+    scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
+    scale_alpha_discrete(range = c(1,.2)) +
+    labs(alpha = c("Bundles")) +
+    makeBudgetLine(Px, Py, I) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+  feasibilityPlot = feasibilityPlot %>%
+    ggplotly() %>%
+    layout(showlegend = TRUE)
+  return(list(bundlesPlot, feasibilityPlot))
+}
+
+############### ELASTICITIES ###############
+
+
+elasticityPx = function(Ufun, Px, Py, I, precision = .00001){
+  Pxlist = seq(Px-precision, Px+precision, precision)
+  bundles = round(sapply(Pxlist, optimalBundle, Ufun = Ufun, Py = Py, I = I),7)
+  pDX = (bundles[1,1]-bundles[1,3])/(bundles[1,2])
+  pDP = 2*precision/Px
+  pDY = (bundles[2,3]-bundles[2,1])/(bundles[2,2])
+  ePriceDemandX = round(pDX/pDP,2)
+  eCrossDemandY = round(pDY/pDP,2)
+  return(list(ePriceDemandX, eCrossDemandY))
+}
+
+elasticityPy = function(Ufun, Px, Py, I, precision = .00001){
+  Pylist = seq(Py-precision, Py+precision, precision)
+  bundles = round(sapply(Pylist, optimalBundle, Ufun = Ufun, Px = Px, I = I),7)
+  pDY = (bundles[2,1]-bundles[2,3])/(bundles[2,2])
+  pDP = 2*precision/Py
+  pDX = (bundles[1,3]-bundles[1,1])/(bundles[1,2])
+  ePriceDemandY = round(pDY/pDP,2)
+  eCrossDemandX = round(pDX/pDP,2)
+  return(list(eCrossDemandX, ePriceDemandY))
+}
+
+elasticityI = function(Ufun, Px, Py, I, precision = .00001){
+  Ilist = seq(I-precision, I+precision, precision)
+  bundles = round(sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py),7)
+  pDY = (bundles[2,3]-bundles[2,1])/(bundles[2,2])
+  pDI = 2*precision/I
+  pDX = (bundles[1,3]-bundles[1,1])/(bundles[1,2])
+  eIncomeDemandY = round(pDY/pDI,2)
+  eIncomeDemandX = round(pDX/pDI,2)
+  return(list(eIncomeDemandX, eIncomeDemandY))
+}
+
+getElasticities = function(Ufun, Px, Py, I, precision = .00001){
+  ePx = elasticityPx(Ufun, Px, Py, I, precision)
+  ePy = elasticityPy(Ufun, Px, Py, I, precision)
+  eI = elasticityI(Ufun, Px, Py, I, precision)
+  elasticities = tibble(type = c("Price Elasticity of Demand", "Cross Price Elasticity", "Income Elasticity of Demand"),
+                        x = c(ePx[[1]], ePy[[1]], eI[[1]]),
+                        y = c(ePy[[2]], ePx[[2]], eI[[2]])
+  )
+  return(elasticities)
 }
