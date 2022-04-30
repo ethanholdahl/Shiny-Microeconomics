@@ -301,11 +301,11 @@ function(input, output, session) {
   }
   
   makeIncomeExpansionPlotly = function(Ufun, Px, Py, I, xmax, ymax){
-    bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+    bundles = sapply(I, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
     x = bundles[1,]
     y = bundles[2,]
     U = c()
-    for (i in 1:length(Ilist)){
+    for (i in 1:length(I)){
       U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
     }
     plot = ggplot()+
@@ -317,7 +317,7 @@ function(input, output, session) {
       makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
       coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
     
-    plot = ggplotly(p)
+    plot = ggplotly(plot)
     return(plot)
   }
   
@@ -326,15 +326,15 @@ function(input, output, session) {
   }
   
   makeIncomeExpansionPlot = function(Ufun, Px, Py, I, xmax, ymax){
-    bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+    bundles = sapply(I, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
     x = bundles[1,]
     y = bundles[2,]
     U = c()
-    for (i in 1:length(Ilist)){
+    for (i in 1:length(I)){
       U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
     }
     plot = ggplot()+
-      makeBudgetLines(Px, Py, Ilist) +
+      makeBudgetLines(Px, Py, I) +
       scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7) +
       new_scale("color")+
       makeAllIndiffernceCurves(Ufun, U, xmax, ymax) +
@@ -819,6 +819,16 @@ function(input, output, session) {
   ########## Individual and Market Demand - Study ##########
   
   ###### Income Expansion Path ######
+  output$IncomeExpansionPlot = renderPlotly({
+    Ufun = parse(text = input$IncomeExpansionFunction)
+    Px = input$IncomeExpansionPx
+    Py = input$IncomeExpansionPy
+    I = seq(input$IncomeExpansionIMax/input$IncomeExpansionINum, input$IncomeExpansionIMax, length.out = input$IncomeExpansionINum)
+    xmax = input$IncomeExpansionXMax
+    ymax = input$IncomeExpansionYMax
+    plot = makeIncomeExpansionPlotly(Ufun, Px, Py, I, xmax, ymax)
+    return(plot)
+  })
   
   ###### Engel Curves ######
   

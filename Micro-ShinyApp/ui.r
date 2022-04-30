@@ -6,6 +6,7 @@ library(tidyverse)
 #library(shinythemes)
 library(plotly)
 library(shinyjs)
+library(ggnewscale)
 
 
 # Define UI for the application
@@ -28,6 +29,7 @@ fluidPage(
         "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can throughout the weekend"
       )
     ),
+    ###### Consumer Behavior ######
     navbarMenu(
       "Consumer Behavior",
       tabPanel(
@@ -279,6 +281,7 @@ fluidPage(
                value = "ConsumerGraphs",
                h1("Coming Soon"))
     ),
+    ###### Individual and Market Demand ######
     navbarMenu(
       "Individual and Market Demand",
       tabPanel(
@@ -291,6 +294,78 @@ fluidPage(
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Income_Expansion_Path.pdf"),
+          div(
+            style = "display:inline-block",
+            textInput(
+              inputId = "IncomeExpansionFunction",
+              label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
+              value = "x * y"
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionPx",
+              label = "Initial Price of good x ($)",
+              value = 3,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionPy",
+              label = "Initial Price of good y ($)",
+              value = 2,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionIMax",
+              label = "Largest Level of Income ($)",
+              value = 20,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionINum",
+              label = "Number of Income Levels",
+              value = 10,
+              min = 1,
+              step = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionXMax",
+              label = "Maximum x value of plot",
+              value = 10,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "IncomeExpansionYMax",
+              label = "Maximum y value of plot",
+              value = 10,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          plotlyOutput("IncomeExpansionPlot"),
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
