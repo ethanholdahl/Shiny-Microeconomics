@@ -239,8 +239,9 @@ makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
     }
   }
   indifferenceCurves = indifferenceCurves %>%
-    arrange(as.numeric(U))
-  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U))))
+    arrange(as.numeric(U)) %>%
+    mutate(U = as.factor(U))
+  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = U))
 }
 
 Ulist = c(20,50,80, 110, 42)
@@ -793,3 +794,46 @@ getElasticities(Ufun, Px, Py, I)
 
 
 ##################### MARKET DEMAND + EQ PRICE & QUANTITY ########################
+
+
+############## MRS INDIFFERENCE CURVE #############
+
+Ufun = parse(text = "x*y")
+xmax = 7
+ymax = 7
+precision = .01
+U = 10
+
+makeMRSCurve = function(Ufun, U, xmax, ymax, precision = .01){
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  indifferenceCurve=tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
+  MRSCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
+}
+
+plot = ggplot()+
+  makeIndifferenceCurve(Ufun, U, xmax, ymax) +
+  makeMRSCurve(Ufun, U, xmax, ymax) +
+  scale_color_viridis_c(option = "viridis", limits = c(0, 10), direction = -1) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax))
+plot
+ggplotly(plot)
+
+######################## TEST ##################3
+
+Ulist = seq(100/10, 100, length.out = 10)
+
+plot = ggplot() +
+  makeAllIndiffernceCurves(Ufun, Ulist, xmax, ymax) +
+  scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
+  labs(color = "U(x,y)") +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax))
+
+plot = ggplotly(plot)
+plot

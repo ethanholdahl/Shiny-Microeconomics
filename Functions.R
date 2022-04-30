@@ -14,11 +14,12 @@ precision = .01 #How smooth curves should be in plots
 
 ######################## FUNCTIONS ########################
 
-Ufun = parse(text = input)
-MUx=D(Ufun, 'x')
-MUy=D(Ufun, 'y')
-
-
+getMarginal = function(UfunStr){
+  Ufun = parse(text = UfunStr)
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  return(list(Ufun, MUx, MUy))
+}
 
 getVars = function(Ufun, x, y, Px, Py) {
   MUx=D(Ufun, 'x')
@@ -202,8 +203,21 @@ makeAllIndiffernceCurves = function(Ufun, Ulist, xmax, ymax, precision = .01){
     }
   }
   indifferenceCurves = indifferenceCurves %>%
-    arrange(as.numeric(U))
-  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = as.factor(sort(U))))
+    arrange(as.numeric(U)) %>%
+    mutate(U = as.factor(U))
+  indifferenceCurvesGeom = geom_path(data = indifferenceCurves, aes(x = x, y = y, color = U))
+}
+
+
+############# MRS INDIFFERENCE CURVE ############
+
+makeMRSCurve = function(Ufun, U, xmax, ymax, precision = .01){
+  x = seq(0, xmax, precision)
+  y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
+  MUx=D(Ufun, 'x')
+  MUy=D(Ufun, 'y')
+  indifferenceCurve=tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
+  MRSCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
 }
 
 
