@@ -674,11 +674,11 @@ makeFeasibilityGraphs = function(Px, Py, I, on = 2, over = 2, under = 2, rand = 
   yon = (I-Px*xon)/Py
   xrand = runif(rand, max = I/Px*1.2)
   yrand = runif(rand, max = I/Py*1.2)
-  xover = runif(over, min = 0, max = 3*xmax/4)
+  xover = runif(over, min = 0, max = I/Px*1.2)
   yover=c()
   for(i in 1:over){
     x = xover[i]
-    yover = c(yover, runif(1, min = max((I-x*Px)/Py,0), max = 3*ymax/4))
+    yover = c(yover, runif(1, min = max((I-x*Px)/Py, 0), max = I/Py*1.2))
   } 
   xunder = runif(under, max = I/Px)
   yunder = c()
