@@ -231,6 +231,34 @@ makeBudgetLine = function(Px, Py, I, color = "blue", linetype = "solid"){
   return(budgetLineGeom)
 }
 
+makeBudgetLines = function(Pxlist, Pylist, Ilist, color = TRUE, linetype = "solid"){
+  #first make all lists the same length (should all be length 1 or n)
+  nLines = max(length(Pxlist), length(Pylist), length(Ilist))
+  if(length(Pxlist) != nLines){
+    Pxlist = rep(Pxlist, nLines)
+  }
+  if(length(Pylist) != nLines){
+    Pylist = rep(Pylist, nLines)
+  }
+  if(length(Ilist) != nLines){
+    Ilist = rep(Ilist, nLines)
+  }
+  x = as.vector(sapply(Ilist/Pxlist, seq, from = 0, length.out = 100))
+  y = as.vector(sapply(Ilist/Pylist, seq, to = 0, length.out = 100))
+  Budget_Lines = x
+  for(i in 0:(nLines-1)){
+    Budget_Lines[(i*100+1):(i*100+100)] = rep(paste0(" I = ", Ilist[(i+1)], ", Px = ", Pxlist[(i+1)], ", Py = ", Pylist[(i+1)]), 100)
+  }
+  budgetLineData = tibble(x, y, Budget_Lines)
+  if(color == TRUE){
+    budgetLinesGeom = geom_line(data = budgetLineData, aes(x = x, y = y, color = Budget_Lines), linetype = linetype)
+  } else {
+    budgetLinesGeom = geom_line(data = budgetLineData, aes(x = x, y = y, group = Budget_Lines), color = color, linetype = linetype)
+  }
+  return(budgetLinesGeom)
+}
+
+
 ########## MAKE INCOME EXPANSION ###########
 
 getMRS = function(Ufun, x, y){
@@ -274,6 +302,53 @@ makeIncomeExpansion = function(Ufun, Px, Py, xmax, ymax, precision = .01, color 
   incomeExpansion = tibble(x = x, y = y)
   incomeExpansionGeom = geom_path(data = incomeExpansion, aes(x = x, y = y), color = color)
   return(incomeExpansionGeom)
+}
+
+makeIncomeExpansionPlotly = function(Ufun, Px, Py, I, xmax, ymax){
+  bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+  x = bundles[1,]
+  y = bundles[2,]
+  U = c()
+  for (i in 1:length(Ilist)){
+    U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
+  }
+  plot = ggplot()+
+    makeBudgetLines(Px, Py, I, color = "blue") +
+    makeAllIndiffernceCurves(Ufun, U, xmax, ymax) +
+    scale_color_viridis_d("U(x,y)", begin = .25, end = .85, option="plasma")+
+    geom_hline(yintercept = 0)+
+    geom_vline(xintercept = 0)+
+    makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  
+  plot = ggplotly(p)
+  return(plot)
+}
+
+new_scale <- function(new_aes) {
+  structure(ggplot2::standardise_aes_names(new_aes), class = "new_aes")
+}
+
+makeIncomeExpansionPlot = function(Ufun, Px, Py, I, xmax, ymax){
+  bundles = sapply(Ilist, optimalBundle, Ufun = Ufun, Px = Px, Py = Py)
+  x = bundles[1,]
+  y = bundles[2,]
+  U = c()
+  for (i in 1:length(Ilist)){
+    U = c(U,round(getUValue_U(Ufun, x[i], y[i]),4))
+  }
+  plot = ggplot()+
+    makeBudgetLines(Px, Py, Ilist) +
+    scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7) +
+    new_scale("color")+
+    makeAllIndiffernceCurves(Ufun, U, xmax, ymax) +
+    scale_color_viridis_d("U(x,y)", begin = .25, end = .85, option="plasma") +
+    geom_hline(yintercept = 0)+
+    geom_vline(xintercept = 0)+
+    makeIncomeExpansion(Ufun, Px, Py, xmax, ymax)+
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  
+  return(plot)
 }
 
 ######### CONSTRAINED OPTIMIZATION #########
