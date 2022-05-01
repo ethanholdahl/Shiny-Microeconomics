@@ -372,14 +372,14 @@ fluidPage(
           p("Note that the income expansion path is the collection of all of the utility maximizing bundles subject to a budget constraint at every income level.
             Recall how we find a utility maximizing bundle subject to a budget constraint: we set MRSxy = the slope of the budget line. Then we used systems of equations with the budget line to find the utility maximizing bundle.
             The first step to constrained optimization: setting MRSxy = the slope of the budget line gives us the relationship between x and y that maximizes our utility independant of our budget.
-            This means that setting MRSxy = the slople of the budget line is the equation that gives us the income expansion path.")
+            This means that setting MRSxy = the slople of the budget line is the equation that gives us the income expansion path."),
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Engel_Curves.pdf"),
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
           plotlyOutput("EngelPlots"),
-          P("An engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior.")
+          p("An Engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior."),
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
