@@ -7,7 +7,7 @@ library(tidyverse)
 library(plotly)
 library(shinyjs)
 library(ggnewscale)
-
+library(shinyWidgets)
 
 # Define UI for the application
 fluidPage(
@@ -26,7 +26,7 @@ fluidPage(
       value = "Home",
       h1("More Content Coming Soon"),
       p(
-        "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can throughout the weekend"
+        "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can."
       )
     ),
     ###### Consumer Behavior ######
@@ -198,10 +198,11 @@ fluidPage(
           ),
           div(
             style = "display:inline-block",
-            checkboxInput(
+            materialSwitch(
               inputId = "BudgetFeasibility",
-              label = "Show feasibility",
+              label = "Show Feasibility",
               value = FALSE,
+              status = "success",
               width = '200px'
             )
           ),
@@ -210,6 +211,8 @@ fluidPage(
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Constrained_Optimization.pdf"),
+          
+          
           div(
             style = "display:inline-block",
             textInput(
@@ -366,12 +369,17 @@ fluidPage(
             )
           ),
           plotlyOutput("IncomeExpansionPlot"),
+          p("Note that the income expansion path is the collection of all of the utility maximizing bundles subject to a budget constraint at every income level.
+            Recall how we find a utility maximizing bundle subject to a budget constraint: we set MRSxy = the slope of the budget line. Then we used systems of equations with the budget line to find the utility maximizing bundle.
+            The first step to constrained optimization: setting MRSxy = the slope of the budget line gives us the relationship between x and y that maximizes our utility independant of our budget.
+            This means that setting MRSxy = the slople of the budget line is the equation that gives us the income expansion path.")
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Engel_Curves.pdf"),
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
           plotlyOutput("EngelPlots"),
+          P("An engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior.")
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",

@@ -399,15 +399,15 @@ makeIncomeExpansionPlot = function(Ufun, Px, Py, I, xmax, ymax){
   return(plot)
 }
 
-makeIncomeExpansionPlotly(Ufun, Px, Py, seq(10,100,10), xmax, ymax)
+makeIncomeExpansionPlot(Ufun, Px, Py, seq(10,80,5), xmax, ymax)
 
 inputFunction = "x^2 +2*x*y"
 Ufun = parse(text = inputFunction)
-Px=2
-Py=1
+Px=5
+Py=2
 I=20
-xmax = 10
-ymax = 10
+xmax = 15
+ymax = 30
 
 Ilist = seq(1,10,1)
 
