@@ -376,6 +376,98 @@ fluidPage(
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Derived_Demand.pdf"),
+          div(
+            style = "display:inline-block",
+            textInput(
+              inputId = "DerivedDemandFunction",
+              label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
+              value = "x^2 +2*x*y"
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandXMax",
+              label = "Maximum x value of plot",
+              value = 10,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandYMax",
+              label = "Maximum y value of plot",
+              value = 6,
+              min = 1,
+              max = 100,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandI",
+              label = "Income ($)",
+              value = 16,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandPy",
+              label = "Price of good y ($)",
+              value = 2,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandPxmin",
+              label = "Min price of x used to make demand curve",
+              value = 1.5,
+              min = .5,
+              step = .5,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandPxmax",
+              label = "Max price of x used to make demand curve",
+              value = 10,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandPointMax",
+              label = "Max price of x",
+              value = 10,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "DerivedDemandPointN",
+              label = "Number of prices for x",
+              value = 5,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          plotlyOutput("DerivedDemandPlot"),
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",

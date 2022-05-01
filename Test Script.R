@@ -644,7 +644,7 @@ makeDemandDataY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision = .5){
   return(list(demandY, demandAddedY, bundleList))
 }
 
-makeDerivedDemandPlotX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision = .5, xmax, ymax){
+makeDerivedDemandPlotX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, xmax, ymax, precision = .5){
   demandDataX = makeDemandDataX(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision)
   
   demandX = demandDataX[[1]]
@@ -677,7 +677,7 @@ makeDerivedDemandPlotX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision 
     layout(yaxis = list(title = "y"), xaxis = list(title = "x"))
   
   demandPlot = ggplot()+
-    geom_path(data = demandX, aes(x = x, y = Px), color = "orange") +
+    geom_path(data = demandX, aes(x = x, y = Px), color = "red") +
     geom_point(data = demandAddedX, aes(x = x, y = Px), size = 3) +
     geom_hline(yintercept = 0) +
     geom_vline(xintercept = 0) +
@@ -687,12 +687,12 @@ makeDerivedDemandPlotX = function(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision 
     layout(yaxis = list(title = "Px"), xaxis = list(title = "x"))
   
   derivedDemandPlot = subplot(indiffCurvesPlot, demandPlot, nrows = 2, shareX = TRUE, titleY = TRUE, titleX = TRUE) %>%
-    layout(title = list(text = "Derived Demand Curve"))
+    layout(title = list(text = "Derived Demand Curve for x"))
   
   return(derivedDemandPlot)
 }
 
-makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision = .5, xmax, ymax){
+makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, xmax, ymax, precision = .5){
   demandDataY = makeDemandDataY(Ufun, Px, I, addedPy, Pymin, Pymax, precision)
   
   demandY = demandDataY[[1]]
@@ -728,7 +728,7 @@ makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision 
     layout(yaxis = list(title = "x"), xaxis = list(title = "y"))
   
   demandPlot = ggplot()+
-    geom_path(data = demandY, aes(x = y, y = Py), color = "orange") +
+    geom_path(data = demandY, aes(x = y, y = Py), color = "red") +
     geom_point(data = demandAddedY, aes(x = y, y = Py), size = 3) +
     geom_hline(yintercept = 0) +
     geom_vline(xintercept = 0) +
@@ -738,7 +738,7 @@ makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, precision 
     layout(yaxis = list(title = "Py"), xaxis = list(title = "y"))
   
   derivedDemandPlot = subplot(indiffCurvesPlot, demandPlot, nrows = 2, shareX = TRUE, titleY = TRUE, titleX = TRUE) %>%
-    layout(title = list(text = "Derived Demand Curve"))
+    layout(title = list(text = "Derived Demand Curve for y"))
   
   return(derivedDemandPlot)
 }
@@ -754,14 +754,14 @@ I = 20
 xmax = 12
 ymax = 15
 
-makeDerivedDemandPlotX(Ufun, Py, I, addedPx, Pxmin, Pxmax, precision, xmax, ymax)
+makeDerivedDemandPlotX(Ufun, Py, I, addedPx, Pxmin, Pxmax, xmax, ymax, precision)
 
 Px = 3
 addedPy = c(1, 2, 3, 4, 5)
 Pymin = .5
 Pymax = 10
 
-makeDerivedDemandPlotY(Ufun, Px, I, addedPy, Pymin, Pymax, precision, xmax, ymax)
+makeDerivedDemandPlotY(Ufun, Px, I, addedPy, Pymin, Pymax, xmax, ymax, precision)
   
 
 #################### FEASIBLE VS INFEASIBLE BUNDLES ####################
