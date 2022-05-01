@@ -1,9 +1,3 @@
-
-## Load and install the packages
-#library("tidyverse", "shiny", "stringr", "plotly", "shinyjs")
-#theme_set(theme_minimal())
-
-
 # Define server logic
 function(input, output, session) {
   
@@ -831,7 +825,37 @@ function(input, output, session) {
   })
   
   ###### Engel Curves ######
-  
+  engelData = reactive({
+    Ufun = parse(text = input$IncomeExpansionFunction)
+    Px = input$IncomeExpansionPx
+    Py = input$IncomeExpansionPy
+    xmax = input$IncomeExpansionXMax
+    ymax = input$IncomeExpansionYMax
+    data = makeEngelData(Ufun, Px, Py, xmax, ymax)
+    return(data)
+  })
+  output$EngelPlots = renderPlotly({
+    engelCurveX = ggplot() +
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      geom_path(data = engelData(), aes(x = x, y = I), color = "darkgreen") +
+      coord_cartesian(xlim = c(0,xmax), ylim = c(0,max(engelData()$I)))
+    engelCurveX = ggplotly(engelCurveX) %>%
+      layout(yaxis = list(title = "I"), xaxis = list(title = "x"))
+    
+    engelCurveY = ggplot() +
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      geom_path(data = engelData(), aes(x = y, y = I), color = "darkgreen") +
+      coord_cartesian(xlim = c(0,ymax), ylim = c(0,max(engelData()$I)))
+    engelCurveY = ggplotly(engelCurveY) %>%
+      layout(yaxis = list(title = "I"), xaxis = list(title = "y"))
+    
+    engelPlots = subplot(engelCurveY, engelCurveX, nrows = 1, shareY = TRUE, titleY = TRUE, titleX = TRUE) %>%
+      layout(title = list(text = "Engel Curves"), margin = c(0,0,.1,0))
+    return(engelPlots)
+  })
+
   ###### Derived Demand Curve ######
   
   ###### Income and Substitution Effects ######

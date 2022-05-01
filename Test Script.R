@@ -16,7 +16,7 @@ library(ggnewscale)
 ######Budget Line
 ######Constrained Optimization
 ######Income Expansion path
-######Engle Curve
+######Engel Curve
 ######Income/Substitution Effect (when price of good,income changes)
 ######Classify: Complements, Substitutes
 ######Classify: Giffin, Inferior, Normal, Luxury

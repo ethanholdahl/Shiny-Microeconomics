@@ -370,6 +370,8 @@ fluidPage(
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Engel_Curves.pdf"),
+          p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
+          plotlyOutput("EngelPlots"),
         ),
         wellPanel(
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
