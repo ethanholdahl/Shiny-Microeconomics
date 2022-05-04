@@ -839,7 +839,7 @@ function(input, output, session) {
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
       geom_path(data = engelData(), aes(x = x, y = I), color = "darkgreen") +
-      coord_cartesian(xlim = c(0,engelData()$xmax), ylim = c(0,max(engelData()$I)))
+      coord_cartesian(xlim = c(0,input$IncomeExpansionXMax), ylim = c(0,max(engelData()$I)))
     engelCurveX = ggplotly(engelCurveX) %>%
       layout(yaxis = list(title = "I"), xaxis = list(title = "x"))
     
@@ -847,7 +847,7 @@ function(input, output, session) {
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
       geom_path(data = engelData(), aes(x = y, y = I), color = "darkgreen") +
-      coord_cartesian(xlim = c(0,engelData()$ymax), ylim = c(0,max(engelData()$I)))
+      coord_cartesian(xlim = c(0,input$IncomeExpansionYMax), ylim = c(0,max(engelData()$I)))
     engelCurveY = ggplotly(engelCurveY) %>%
       layout(yaxis = list(title = "I"), xaxis = list(title = "y"))
     

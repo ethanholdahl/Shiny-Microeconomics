@@ -39,11 +39,14 @@ fluidPage(
         p(
           "Class Notes and interactive content to help make the concepts more engaging"
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Utility.pdf"),
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Derivatives.pdf"),
+                      src = "Derivatives.pdf")
+          ),
+          column(6,
           textInput(
             inputId = "UtilityFunction",
             label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
@@ -55,10 +58,14 @@ fluidPage(
           p("MUx =", textOutput(outputId = "UtilityMUx", inline = T)),
           HTML("MUy, the derivative of U(x,y) with respect to y is:"),
           p("MUy =", textOutput(outputId = "UtilityMUy", inline = T)),
+        )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Indifference_Curves.pdf"),
+                      src = "Indifference_Curves.pdf")
+          ),
+          column(6,
           textInput(
             inputId = "IndifferenceFunction",
             label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
@@ -109,10 +116,14 @@ fluidPage(
             )
           ),
           plotlyOutput("IndifferencePlot")
+          ),
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "MRS.pdf"),
+                      src = "MRS.pdf")
+          ),
+          column(6,
           textInput(
             inputId = "MRSFunction",
             label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
@@ -151,10 +162,14 @@ fluidPage(
             )
           ),
           plotlyOutput("MRSPlot")
+          )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Budget_Constraints.pdf"),
+                      src = "Budget_Constraints.pdf"),0
+          ),
+          column(6,
           div(
             style = "display:inline-block",
             numericInput(
@@ -207,12 +222,14 @@ fluidPage(
             )
           ),
           plotlyOutput("BudgetPlot")
+          )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Constrained_Optimization.pdf"),
-          
-          
+                      src = "Constrained_Optimization.pdf")
+          ),
+          column(6,
           div(
             style = "display:inline-block",
             textInput(
@@ -275,6 +292,7 @@ fluidPage(
           ),
           plotlyOutput("ConstrainedPlot")
         )
+        )
       ),
       
       tabPanel("Practice",
@@ -294,9 +312,12 @@ fluidPage(
         p(
           "Class Notes and interactive content to help make the concepts more engaging"
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Income_Expansion_Path.pdf"),
+                      src = "Income_Expansion_Path.pdf")
+          ),
+          column(6,
           div(
             style = "display:inline-block",
             textInput(
@@ -372,18 +393,26 @@ fluidPage(
           p("Note that the income expansion path is the collection of all of the utility maximizing bundles subject to a budget constraint at every income level.
             Recall how we find a utility maximizing bundle subject to a budget constraint: we set MRSxy = the slope of the budget line. Then we used systems of equations with the budget line to find the utility maximizing bundle.
             The first step to constrained optimization: setting MRSxy = the slope of the budget line gives us the relationship between x and y that maximizes our utility independant of our budget.
-            This means that setting MRSxy = the slople of the budget line is the equation that gives us the income expansion path."),
+            This means that setting MRSxy = the slople of the budget line is the equation that gives us the income expansion path.")
+          )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Engel_Curves.pdf"),
+                      src = "Engel_Curves.pdf")
+          ),
+          column(6,
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
           plotlyOutput("EngelPlots"),
           p("An Engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior."),
+          )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Derived_Demand.pdf"),
+                      src = "Derived_Demand.pdf")
+        ),
+        column(6,
           div(
             style = "display:inline-block",
             textInput(
@@ -476,10 +505,14 @@ fluidPage(
             )
           ),
           plotlyOutput("DerivedDemandPlot"),
+        )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Income&Substitution_Effects.pdf"),
+                      src = "Income&Substitution_Effects.pdf")
+          ),
+          column(6,
           div(
             style = "display:inline-block",
             textInput(
@@ -580,10 +613,13 @@ fluidPage(
             When only income changes, there is no substitution effect, only a income effect."),
           p("In the example in the plot above, the substitution effect was:", textOutput(outputId = "IncSubEffectsSub", inline = T),
             "the income effect was:", textOutput(outputId = "IncSubEffectsInc", inline = T), "and the total effect was:", textOutput(outputId = "IncSubEffectsTotal", inline = T)),
+        )
         ),
-        wellPanel(
+        fluidRow(
+          column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Market_Demand.pdf"),
+          )
         ),
         
       ),
