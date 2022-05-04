@@ -144,7 +144,7 @@ fluidPage(
             numericInput(
               inputId = "MRSXMax",
               label = "Maximum x value of plot",
-              value = 10,
+              value = 9,
               min = 1,
               max = 100,
               width = '200px'
@@ -155,7 +155,7 @@ fluidPage(
             numericInput(
               inputId = "MRSYMax",
               label = "Maximum y value of plot",
-              value = 8,
+              value = 9,
               min = 1,
               max = 100,
               width = '200px'

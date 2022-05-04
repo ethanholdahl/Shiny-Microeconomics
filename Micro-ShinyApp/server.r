@@ -206,8 +206,10 @@ function(input, output, session) {
     y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
     MUx=D(Ufun, 'x')
     MUy=D(Ufun, 'y')
-    indifferenceCurve=tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
+    indifferenceCurve = tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
     MRSCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
+    MRSPointsGeom = geom_point(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
+    return(list(MRSCurveGeom, MRSPointsGeom))
   }
   
   
@@ -769,7 +771,8 @@ function(input, output, session) {
     ymax = input$MRSYMax
     plot = ggplot()+
       makeIndifferenceCurve(Ufun, U, xmax, ymax, color = "black") +
-      makeMRSCurve(Ufun, U, xmax, ymax) +
+      makeMRSCurve(Ufun, U, xmax, ymax)[2] +
+      makeMRSCurve(Ufun, U, xmax, ymax)[1] +
       scale_color_viridis_c(option = "viridis", limits = c(0, 10), direction = -1) +
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +

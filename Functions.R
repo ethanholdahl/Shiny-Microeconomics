@@ -216,8 +216,10 @@ makeMRSCurve = function(Ufun, U, xmax, ymax, precision = .01){
   y = sapply(x, getYValues_U, Ufun = Ufun, U = U, ymax = ymax)
   MUx=D(Ufun, 'x')
   MUy=D(Ufun, 'y')
-  indifferenceCurve=tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
+  indifferenceCurve = tibble(x = x, y = y, U = U, MRSxy = eval(MUx)/eval(MUy))
   MRSCurveGeom = geom_path(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
+  MRSPointsGeom = geom_point(data = indifferenceCurve, aes(x = x, y = y, color = MRSxy))
+  return(list(MRSCurveGeom, MRSPointsGeom))
 }
 
 
