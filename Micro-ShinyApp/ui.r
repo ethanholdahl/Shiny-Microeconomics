@@ -42,9 +42,9 @@ fluidPage(
         fluidRow(
           column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Utility.pdf"),
+                      src = "Derivatives.pdf"),
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
-                      src = "Derivatives.pdf")
+                      src = "Utility.pdf")
           ),
           column(6,
           textInput(
