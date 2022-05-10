@@ -8,6 +8,7 @@ library(plotly)
 library(shinyjs)
 library(ggnewscale)
 library(shinyWidgets)
+library(shinycssloaders)
 
 # Define UI for the application
 fluidPage(
@@ -57,7 +58,7 @@ fluidPage(
           HTML("MUx, the derivative of U(x,y) with respect to x is:"),
           p("MUx =", textOutput(outputId = "UtilityMUx", inline = T)),
           HTML("MUy, the derivative of U(x,y) with respect to y is:"),
-          p("MUy =", textOutput(outputId = "UtilityMUy", inline = T)),
+          p("MUy =", textOutput(outputId = "UtilityMUy", inline = T)%>% withSpinner(color="#004623")),
         )
         ),
         fluidRow(
@@ -115,7 +116,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("IndifferencePlot")
+          plotlyOutput("IndifferencePlot")%>% withSpinner(color="#004623")
           ),
         ),
         fluidRow(
@@ -161,7 +162,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("MRSPlot")
+          plotlyOutput("MRSPlot")%>% withSpinner(color="#004623")
           )
         ),
         fluidRow(
@@ -221,7 +222,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("BudgetPlot")
+          plotlyOutput("BudgetPlot")%>% withSpinner(color="#004623")
           )
         ),
         fluidRow(
@@ -290,7 +291,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("ConstrainedPlot")
+          plotlyOutput("ConstrainedPlot")%>% withSpinner(color="#004623")
         )
         )
       ),
@@ -389,7 +390,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("IncomeExpansionPlot"),
+          plotlyOutput("IncomeExpansionPlot")%>% withSpinner(color="#004623"),
           p("Note that the income expansion path is the collection of all of the utility maximizing bundles subject to a budget constraint at every income level.
             Recall how we find a utility maximizing bundle subject to a budget constraint: we set MRSxy = the slope of the budget line. Then we used systems of equations with the budget line to find the utility maximizing bundle.
             The first step to constrained optimization: setting MRSxy = the slope of the budget line gives us the relationship between x and y that maximizes our utility independant of our budget.
@@ -403,7 +404,7 @@ fluidPage(
           ),
           column(6,
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
-          plotlyOutput("EngelPlots"),
+          plotlyOutput("EngelPlots")%>% withSpinner(color="#004623"),
           p("An Engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior."),
           )
         ),
@@ -504,7 +505,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("DerivedDemandPlot"),
+          plotlyOutput("DerivedDemandPlot")%>% withSpinner(color="#004623"),
         )
         ),
         fluidRow(
@@ -603,7 +604,7 @@ fluidPage(
               width = '200px'
             )
           ),
-          plotlyOutput("IncSubEffectsPlot"),
+          plotlyOutput("IncSubEffectsPlot")%>% withSpinner(color="#004623"),
           p("In the above graph, the original budget line is given by the dark blue line and the original income expansion path is given by the dark green line.
             After the change in prices and/or income the utility maximizing bundle has shifted. The bright green line is the new income expansion path and the solid light blue line is the new budget line.
             The dashed light blue line is a ficticious budget line parallel to the new budget line. It is tangent to the original indifference curve at the same place the new budget line intersects the old indifference curve.
