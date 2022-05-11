@@ -53,6 +53,9 @@ fluidPage(
             label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
             value = "4*x+3*y+x^2*y^3+17"
           ),
+          actionButton(inputId = "RunUtilityFunction",
+                       label = "Calculate"),
+          br(),
           HTML("The Function you entered appears as:"),
           p("U(x,y) =", textOutput(outputId = "UtilityFunction", inline = T)),
           HTML("MUx, the derivative of U(x,y) with respect to x is:"),
@@ -116,6 +119,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunIndifferencePlot",
+                       label = "Draw Graph"),
           plotlyOutput("IndifferencePlot")%>% withSpinner(color="#004623")
           ),
         ),
@@ -162,6 +167,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunMRSPlot",
+                       label = "Draw Graph"),
           plotlyOutput("MRSPlot")%>% withSpinner(color="#004623")
           )
         ),
@@ -222,6 +229,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunBudgetPlot",
+                       label = "Draw Graph"),
           plotlyOutput("BudgetPlot")%>% withSpinner(color="#004623")
           )
         ),
@@ -234,7 +243,7 @@ fluidPage(
           div(
             style = "display:inline-block",
             textInput(
-              inputId = "ConstrainedFunction",
+              inputId = "ConstrainedUtilityFunction",
               label = "Input a differentiable utility function with arguments x and y. Be sure not to omit the multiplication sign (*).",
               value = "x^2 + 2 * x * y"
             )
@@ -242,7 +251,7 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
-              inputId = "ConstrainedXMax",
+              inputId = "ConstrainedUtilityXMax",
               label = "Maximum x value of plot",
               value = 12,
               min = 1,
@@ -253,7 +262,7 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
-              inputId = "ConstrainedYMax",
+              inputId = "ConstrainedUtilityYMax",
               label = "Maximum y value of plot",
               value = 10,
               min = 1,
@@ -264,7 +273,7 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
-              inputId = "ConstrainedI",
+              inputId = "ConstrainedUtilityI",
               label = "Income ($)",
               value = 20,
               min = 1,
@@ -274,7 +283,7 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
-              inputId = "ConstrainedPx",
+              inputId = "ConstrainedUtilityPx",
               label = "Price of good x ($)",
               value = 2,
               min = 1,
@@ -284,14 +293,16 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
-              inputId = "ConstrainedPy",
+              inputId = "ConstrainedUtilityPy",
               label = "Price of good y ($)",
               value = 3,
               min = 1,
               width = '200px'
             )
           ),
-          plotlyOutput("ConstrainedPlot")%>% withSpinner(color="#004623")
+          actionButton(inputId = "RunConstrainedUtilityPlot",
+                       label = "Draw Graph"),
+          plotlyOutput("ConstrainedUtilityPlot")%>% withSpinner(color="#004623")
         )
         )
       ),
@@ -390,6 +401,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunIncomeExpansionPlot",
+                       label = "Draw Graph"),
           plotlyOutput("IncomeExpansionPlot")%>% withSpinner(color="#004623"),
           p("Note that the income expansion path is the collection of all of the utility maximizing bundles subject to a budget constraint at every income level.
             Recall how we find a utility maximizing bundle subject to a budget constraint: we set MRSxy = the slope of the budget line. Then we used systems of equations with the budget line to find the utility maximizing bundle.
@@ -404,6 +417,8 @@ fluidPage(
           ),
           column(6,
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
+          actionButton(inputId = "RunEngelPlot",
+                       label = "Draw Graph"),
           plotlyOutput("EngelPlots")%>% withSpinner(color="#004623"),
           p("An Engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior."),
           )
@@ -505,6 +520,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunDerivedDemandPlot",
+                       label = "Draw Graph"),
           plotlyOutput("DerivedDemandPlot")%>% withSpinner(color="#004623"),
         )
         ),
@@ -604,6 +621,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunIncSubEffectsPlot",
+                       label = "Draw Graph"),
           plotlyOutput("IncSubEffectsPlot")%>% withSpinner(color="#004623"),
           p("In the above graph, the original budget line is given by the dark blue line and the original income expansion path is given by the dark green line.
             After the change in prices and/or income the utility maximizing bundle has shifted. The bright green line is the new income expansion path and the solid light blue line is the new budget line.

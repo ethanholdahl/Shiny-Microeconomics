@@ -794,13 +794,13 @@ function(input, output, session) {
     }
     })
   ###### Constrained Optimization ######
-  output$ConstrainedPlot = renderPlotly({
-    Ufun = parse(text = input$ConstrainedFunction)
-    xmax = input$ConstrainedXMax
-    ymax = input$ConstrainedYMax
-    Px = input$ConstrainedPx
-    Py = input$ConstrainedPy
-    I = input$ConstrainedI
+  output$ConstrainedUtilityPlot = renderPlotly({
+    Ufun = parse(text = input$ConstrainedUtilityFunction)
+    xmax = input$ConstrainedUtilityXMax
+    ymax = input$ConstrainedUtilityYMax
+    Px = input$ConstrainedUtilityPx
+    Py = input$ConstrainedUtilityPy
+    I = input$ConstrainedUtilityI
     plot = ggplot() + 
       makeOptimalBundle_Indifference(Ufun, Px, Py, I, xmax, ymax, color = 1)+
       scale_color_viridis_d(begin = .6, end = .8, option="plasma") +
