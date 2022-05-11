@@ -636,6 +636,8 @@ fluidPage(
              h1("Coming Soon")),
     tabPanel("Code",
              value = "Code",
-             h1("Coming Soon"))
+             h3("GitHub Repository"),
+             HTML('<a href="https://github.com/ethanholdahl/Shiny-Microeconomics"><img src="https://github-readme-stats.vercel.app/api/pin/?username=ethanholdahl&amp;repo=Shiny-Microeconomics&amp;title_color=004623&amp;text_color=462300&amp;bg_color=FFFFF&amp;border_color=004623&amp;icon_color=330046 alt="Repo Card" align="left"></a>'),
+    )
   )
 )
