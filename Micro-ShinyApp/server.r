@@ -690,7 +690,17 @@ function(input, output, session) {
   
   ########## SHINY SERVER CODE ##########
   
-  values <- reactiveValues(myurl = c(), parent_tab = "")
+  values <- reactiveValues(myurl = c(), parent_tab = "",
+                           getMarginalOutput = NULL,
+                           IndifferencePlot = NULL,
+                           MRSPlot = NULL,
+                           BudgetPlot = NULL,
+                           ConstrainedUtilityPlot = NULL,
+                           IncomeExpansionPlot = NULL,
+                           EngelPlots = NULL,
+                           DerivedDemandPlot = NULL,
+                           IncSubEffectsPlot = NULL
+                           )
   
   # url navigation code from Dean Attali
   observe({
@@ -738,18 +748,37 @@ function(input, output, session) {
   ########## Consumer Behavior - Study ##########
   
   ###### Utility ######
+  
+  observeEvent(input$RunUtilityFunction, {
+    values$getMarginalOutput = getMarginal(input$UtilityFunction)
+  })
+  
   output$UtilityFunction = renderText({
-    as.character(getMarginal(input$UtilityFunction)[[1]])
+    if(is.null(values$getMarginalOutput[[1]])){
+      "Press Calculate"
+    } else {
+      as.character(values$getMarginalOutput[[1]])
+    }
+   
   })
   output$UtilityMUx = renderPrint({
-    getMarginal(input$UtilityFunction)[[2]]
+    if(is.null(values$getMarginalOutput[[2]])){
+      "Press Calculate"
+    } else {
+      values$getMarginalOutput[[2]]
+    }
   })
   output$UtilityMUy = renderPrint({
-    getMarginal(input$UtilityFunction)[[3]]
+    if(is.null(values$getMarginalOutput[[3]])){
+      "Press Calculate"
+    } else {
+      values$getMarginalOutput[[3]]
+    }
   })
   
   ###### Indifference Curves ######
-  output$IndifferencePlot = renderPlotly({
+  
+  observeEvent(input$RunIndifferencePlot, {
     Ufun = parse(text = input$IndifferenceFunction)
     Ulist = seq(from = input$IndifferenceMaxU/input$IndifferenceNumCurves, to = input$IndifferenceMaxU,length.out = input$IndifferenceNumCurves)
     plot = ggplot() +
@@ -760,11 +789,16 @@ function(input, output, session) {
       geom_vline(xintercept = 0) +
       coord_cartesian(xlim = c(0, input$IndifferenceXMax), ylim = c(0, input$IndifferenceYMax))
     
-    plot = ggplotly(plot)
-    return(plot)
+    values$IndifferencePlot =  ggplotly(plot)
   })
+  
+  output$IndifferencePlot = renderPlotly({
+    values$IndifferencePlot
+  })
+  
   ###### MRS Curves ######
-  output$MRSPlot = renderPlotly({
+  
+  observeEvent(input$RunMRSPlot, {
     Ufun = parse(text = input$MRSFunction)
     U = input$MRSU
     xmax = input$MRSXMax
@@ -777,24 +811,31 @@ function(input, output, session) {
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
       coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax))
-    plot = ggplotly(plot)
-    return(plot)
+    values$MRSPlot = ggplotly(plot)
   })
+  
+  output$MRSPlot = renderPlotly({
+    values$MRSPlot
+  })
+  
   ###### Budget Constraints ######
-  feasibilityPlots = reactive({
+  
+  observeEvent(input$RunBudgetPlot, {
     rand = input$BudgetN-6
-    feasibilityPlots = makeFeasibilityGraphs(input$BudgetPx, input$BudgetPy, input$BudgetI, rand = rand)
-    return(feasibilityPlots)
+    values$BudgetPlot =  makeFeasibilityGraphs(input$BudgetPx, input$BudgetPy, input$BudgetI, rand = rand)
   })
+  
   output$BudgetPlot = renderPlotly({
     if(input$BudgetFeasibility) {
-      return(feasibilityPlots()[[2]])
+      return(values$BudgetPlot[[2]])
     } else {
-      return(feasibilityPlots()[[1]])
+      return(values$BudgetPlot[[1]])
     }
     })
+  
   ###### Constrained Optimization ######
-  output$ConstrainedUtilityPlot = renderPlotly({
+  
+  observeEvent(input$RunConstrainedUtilityPlot, {
     Ufun = parse(text = input$ConstrainedUtilityFunction)
     xmax = input$ConstrainedUtilityXMax
     ymax = input$ConstrainedUtilityYMax
@@ -810,57 +851,70 @@ function(input, output, session) {
       geom_vline(xintercept = 0) +
       makeOptimalBundle_Point(Ufun, Px, Py, I) +
       coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
-    plot = ggplotly(plot)
-    return(plot)
+    values$ConstrainedUtilityPlot = ggplotly(plot)
   })
+  
+  output$ConstrainedUtilityPlot = renderPlotly({
+    values$ConstrainedUtilityPlot
+  })
+  
   ########## Individual and Market Demand - Study ##########
   
   ###### Income Expansion Path ######
-  output$IncomeExpansionPlot = renderPlotly({
+  
+  observeEvent(input$RunIncomeExpansionPlot, {
     Ufun = parse(text = input$IncomeExpansionFunction)
     Px = input$IncomeExpansionPx
     Py = input$IncomeExpansionPy
     I = seq(input$IncomeExpansionIMax/input$IncomeExpansionINum, input$IncomeExpansionIMax, length.out = input$IncomeExpansionINum)
     xmax = input$IncomeExpansionXMax
     ymax = input$IncomeExpansionYMax
-    plot = makeIncomeExpansionPlotly(Ufun, Px, Py, I, xmax, ymax)
-    return(plot)
+    values$IncomeExpansionPlot = makeIncomeExpansionPlotly(Ufun, Px, Py, I, xmax, ymax)
+  })
+  
+  output$IncomeExpansionPlot = renderPlotly({
+    values$IncomeExpansionPlot
   })
   
   ###### Engel Curves ######
-  engelData = reactive({
+  
+  observeEvent(input$RunEngelPlots, {
     Ufun = parse(text = input$IncomeExpansionFunction)
     Px = input$IncomeExpansionPx
     Py = input$IncomeExpansionPy
     xmax = input$IncomeExpansionXMax
     ymax = input$IncomeExpansionYMax
-    data = makeEngelData(Ufun, Px, Py, xmax, ymax)
-    return(data)
-  })
-  output$EngelPlots = renderPlotly({
+    engelData = makeEngelData(Ufun, Px, Py, xmax, ymax)
+    
     engelCurveX = ggplot() +
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
-      geom_path(data = engelData(), aes(x = x, y = I), color = "darkgreen") +
-      coord_cartesian(xlim = c(0,input$IncomeExpansionXMax), ylim = c(0,max(engelData()$I)))
+      geom_path(data = engelData, aes(x = x, y = I), color = "darkgreen") +
+      coord_cartesian(xlim = c(0,input$IncomeExpansionXMax), ylim = c(0,max(engelData$I)))
     engelCurveX = ggplotly(engelCurveX) %>%
       layout(yaxis = list(title = "I"), xaxis = list(title = "x"))
     
     engelCurveY = ggplot() +
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = 0) +
-      geom_path(data = engelData(), aes(x = y, y = I), color = "darkgreen") +
-      coord_cartesian(xlim = c(0,input$IncomeExpansionYMax), ylim = c(0,max(engelData()$I)))
+      geom_path(data = engelData, aes(x = y, y = I), color = "darkgreen") +
+      coord_cartesian(xlim = c(0,input$IncomeExpansionYMax), ylim = c(0,max(engelData$I)))
     engelCurveY = ggplotly(engelCurveY) %>%
       layout(yaxis = list(title = "I"), xaxis = list(title = "y"))
     
     engelPlots = subplot(engelCurveY, engelCurveX, nrows = 1, shareY = TRUE, titleY = TRUE, titleX = TRUE) %>%
       layout(title = list(text = "Engel Curves"), margin = c(0,0,.1,0))
-    return(engelPlots)
+    
+    values$EngelPlots = engelPlots
+  })
+  
+  output$EngelPlots = renderPlotly({
+    values$EngelPlots
   })
 
   ###### Derived Demand Curve ######
-  output$DerivedDemandPlot = renderPlotly({
+  
+  observeEvent(input$RunDerivedDemandPlot, {
     Ufun = parse(text = input$DerivedDemandFunction)
     Pxmin = input$DerivedDemandPxmin
     Pxmax = input$DerivedDemandPxmax
@@ -869,30 +923,47 @@ function(input, output, session) {
     xmax = input$DerivedDemandXMax
     ymax = input$DerivedDemandYMax
     addedPx = seq(input$DerivedDemandPointMax/input$DerivedDemandPointN, input$DerivedDemandPointMax, length.out = input$DerivedDemandPointN)
-    xDemand = makeDerivedDemandPlotX(Ufun, Py, I, addedPx, Pxmin, Pxmax, xmax, ymax)
-    return(xDemand)
+    values$DerivedDemandPlot = makeDerivedDemandPlotX(Ufun, Py, I, addedPx, Pxmin, Pxmax, xmax, ymax)
   })
+  output$DerivedDemandPlot = renderPlotly({
+    values$DerivedDemandPlot
+  })
+  
   ###### Income and Substitution Effects ######
-  effectsPlotPlus = reactive({
+  
+  observeEvent(input$RunIncSubEffectsPlot, {
     Ufun = parse(text = input$IncSubEffectsFunction)
     Px = c(input$IncSubEffectsPx, input$IncSubEffectsPx1)
     Py = c(input$IncSubEffectsPy, input$IncSubEffectsPy1)
     I = c(input$IncSubEffectsI, input$IncSubEffectsI1)
     xmax = input$IncSubEffectsXMax
     ymax = input$IncSubEffectsYMax
-    effectsPlotPlus = makeEffectsPlot(Ufun, Px, Py, I, xmax, ymax)
+    values$IncSubEffectsPlot = makeEffectsPlot(Ufun, Px, Py, I, xmax, ymax)
   })
+  
   output$IncSubEffectsPlot = renderPlotly({
-    effectsPlotPlus()[[1]]
+    values$IncSubEffectsPlot[[1]]
   })
   output$IncSubEffectsSub = renderText({
-    effectsPlotPlus()[[2]]
+    if(is.null(values$IncSubEffectsPlot[[2]])){
+      "Press Draw Graph"
+    } else {
+      values$IncSubEffectsPlot[[2]]
+    }
   })
   output$IncSubEffectsInc = renderText({
-    effectsPlotPlus()[[3]]
+    if(is.null(values$IncSubEffectsPlot[[3]])){
+      "Press Draw Graph"
+    } else {
+      values$IncSubEffectsPlot[[3]]
+    }
   })
   output$IncSubEffectsTotal = renderText({
-    effectsPlotPlus()[[4]]
+    if(is.null(values$IncSubEffectsPlot[[4]])){
+      "Press Draw Graph"
+    } else {
+      values$IncSubEffectsPlot[[4]]
+    }
   })
   ###### Market Demand Curve ######
   

@@ -417,7 +417,7 @@ fluidPage(
           ),
           column(6,
           p("The paramaters governing the dynamics for the Engel Curves are taken from the Income Expansion Path paramaters since they are so intertwined."),
-          actionButton(inputId = "RunEngelPlot",
+          actionButton(inputId = "RunEngelPlots",
                        label = "Draw Graph"),
           plotlyOutput("EngelPlots")%>% withSpinner(color="#004623"),
           p("An Engel plot is simply the income expansion path with just one good placed on the x axis and income placed on the y axis. It is useful foor identifying income ranges over which goods are normal or inferior."),
