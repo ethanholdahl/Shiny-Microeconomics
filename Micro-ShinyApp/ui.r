@@ -211,10 +211,30 @@ fluidPage(
           div(
             style = "display:inline-block",
             numericInput(
+              inputId = "BudgetXMax",
+              label = "Maximum x value of plot|bundles",
+              value = 10,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
+              inputId = "BudgetYMax",
+              label = "Maximum y value of plot|bundles",
+              value = 8,
+              min = 1,
+              width = '200px'
+            )
+          ),
+          div(
+            style = "display:inline-block",
+            numericInput(
               inputId = "BudgetN",
               label = "Number of Bundles",
               value = 50,
-              min = 6,
+              min = 1,
               step = 1,
               width = '200px'
             )
@@ -229,6 +249,8 @@ fluidPage(
               width = '200px'
             )
           ),
+          actionButton(inputId = "RunBudgetNewBundles",
+                       label = "Create New Set of Bundles"),
           actionButton(inputId = "RunBudgetPlot",
                        label = "Draw Graph"),
           plotlyOutput("BudgetPlot")%>% withSpinner(color="#004623")

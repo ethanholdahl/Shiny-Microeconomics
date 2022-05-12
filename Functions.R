@@ -594,6 +594,49 @@ makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, xmax, ymax
 
 ##### FEASIBLE VS INFEASIBLE BUNDLES #######
 
+makeRandomBundles = function(Px, Py, I, xmax, ymax, N){
+  x = runif(N, max = xmax)
+  y = runif(N, max = ymax)
+  return(list(x, y))
+}
+
+makeRandomFeasibilityGraphs = function(Px, Py, I, xmax, ymax, x, y){
+  bundles = tibble(x, y, Cost = x*Px + y*Py, Feasibility = x)
+  for (i in 1:(dim(bundles)[1])){
+    if(I>=bundles$Cost[i]){
+      bundles$Feasibility[i] = "Feasible"
+    } else {
+      bundles$Feasibility[i] = "Infeasible"
+    }
+  }
+  bundles = bundles %>%
+    arrange(Cost)
+  
+  bundlesPlot = ggplot()+
+    geom_point(data = bundles, aes(x = x, y = y, color = Cost), size = 3) +
+    scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
+    makeBudgetLine(Px, Py, I) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  bundlesPlot = bundlesPlot %>%
+    ggplotly()
+  
+  feasibilityPlot = ggplot()+
+    geom_point(data = bundles, aes(x = x, y = y, alpha = Feasibility, color = Cost), size = 3) +
+    scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
+    scale_alpha_discrete(range = c(1,.2)) +
+    labs(alpha = c("Bundles")) +
+    makeBudgetLine(Px, Py, I) +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
+  feasibilityPlot = feasibilityPlot %>%
+    ggplotly() %>%
+    layout(showlegend = TRUE)
+  return(list(bundlesPlot, feasibilityPlot))
+}
+
 makeFeasibilityGraphs = function(Px, Py, I, on = 2, over = 2, under = 2, rand = 6){
   xon = runif(on, max = I/Px)
   yon = (I-Px*xon)/Py
