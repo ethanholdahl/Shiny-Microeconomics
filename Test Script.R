@@ -88,5 +88,55 @@ makeRandomFeasibilityGraphs(5, Py, I, 5, ymax, bundles[[1]], bundles[[2]])
 
 ##################### MARKET DEMAND + EQ PRICE & QUANTITY ########################
 
+install.packages("devtools")
+devtools::install_github("r-cas/ryacas", 
+                         build_opts = c("--no-resave-data", "--no-manual"))
+library(Ryacas)
+
+
+
+demand1 = "100 - 5*p"
+N1 = 6
+demand2 = "50 -5*p"
+N2 = 4
+demand3 = "60 -2*p"
+N3 = 10
+test = function(demand1, demand2, demand3, N1, N2, N3){
+demand1N = yac_str(paste0(N1, "*(", demand1, ")"))
+demand2N = yac_str(paste0(N2, "*(", demand2, ")"))
+demand3N = yac_str(paste0(N3, "*(", demand3, ")"))
+
+demand12N_simp = yac_str(paste(demand1N, demand2N, sep = " + ")) %>%
+  yac_symbol() %>%
+  simplify() %>%
+  yac_str()
+demand12N_expand = yac('Expand(%)')
+return(list(demand12N_simp, demand12N_expand))
+}
+
+test("100 - 5*p", "50 -5*p", "60 -2*p", 6, 4, 10)
+
+
+
+D1 = parse(text = demand1)
+D2 = parse(text = demand2)
+D3 = parse(text = demand3)
+p = 0
+
+getQValue_Choke = function(Dfun, p) {
+  Q <- eval(Dfun) 
+  return(Q)
+}
+
+solvePValue_Choke = function(Dfun, Q, p) crossprod(getQValue_Choke(Dfun, p) - Q)
+
+
+choke1 = optimize(solvePValue_Choke, c(0,eval(D1)), Dfun = D1, Q = 0)$minimum
+choke2 = optimize(solvePValue_Choke, c(0,eval(D2)), Dfun = D2, Q = 0)$minimum
+choke3 = optimize(solvePValue_Choke, c(0,eval(D3)), Dfun = D3, Q = 0)$minimum
+
+D12 = parse(text = paste(demand1, demand2, sep = " + "))
+D12
+
 
 
