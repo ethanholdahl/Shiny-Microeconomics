@@ -820,7 +820,8 @@ function(input, output, session) {
                            EngelPlots = NULL,
                            DerivedDemandPlot = NULL,
                            IncSubEffectsPlot = NULL,
-                           MarketDemandPlot = NULL
+                           MarketDemandPlot = NULL,
+                           piecewiseData = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1097,10 +1098,84 @@ function(input, output, session) {
   
   ###### Market Demand Curve ######
   
+  output$MarketDemandFunsList <- renderUI({
+    MarketDemandFuns <- lapply(1:5, function(i){
+      textInput(inputId = paste0("MarketDemandFun", i), label = paste0("Demand Function", i, ": Q", i, "(p)="), value = paste0(sample(10:100,1), "-",sample(2:10,1),"*p"), width = '200px')
+    })
+    shinyjs::hidden(MarketDemandFuns)
+  })
+  
+  output$MarketDemandFunsNList <- renderUI({
+    MarketDemandFunsN <- lapply(1:5, function(i){
+      numericInput(inputId = paste0("MarketDemandFunN", i), label = paste0("How many people have demand function Q", i, "?"), value = 1, min = 1, width = '160px')
+    })
+    shinyjs::hidden(MarketDemandFunsN)
+  })
+  
+  observeEvent(input$RunMarketDemandNFuns, {
+    n <- seq(length.out = as.numeric(input$MarketDemandNFuns))
+    lapply(seq(5), function(i) {
+      if(i %in% n) {
+        shinyjs::show(id = paste0("MarketDemandFun", i))
+        shinyjs::show(id = paste0("MarketDemandFunN", i))
+      } else {
+        shinyjs::hide(id = paste0("MarketDemandFun", i))
+        shinyjs::hide(id = paste0("MarketDemandFunN", i))
+      }
+    })
+    num = input$MarketDemandNFuns
+    demandList1 = list(input$MarketDemandFun1, input$MarketDemandFun2, input$MarketDemandFun3, input$MarketDemandFun4, input$MarketDemandFun5)
+    NList1 = list (input$MarketDemandFunN1, input$MarketDemandFunN2, input$MarketDemandFunN3, input$MarketDemandFunN4, input$MarketDemandFunN5)
+    demandList = list()
+    NList = list()
+    for (i in 1:num){
+      demandList[[i]] =  demandList1[[i]]
+      NList[[i]] = NList1[[i]]
+    }
+    values$piecewiseData = makePiecewise(demandList, NList)
+  })
+  
   observeEvent(input$RunMarketDemandPlot, {
+    n <- seq(length.out = as.numeric(input$MarketDemandNFuns))
+    lapply(seq(5), function(i) {
+      if(i %in% n) {
+        shinyjs::show(id = paste0("MarketDemandFunN", i))
+        shinyjs::show(id = paste0("MarketDemandFun", i))
+      } else {
+        shinyjs::hide(id = paste0("MarketDemandFunN", i))
+        shinyjs::hide(id = paste0("MarketDemandFun", i))
+      }
+    })
+    num = input$MarketDemandNFuns
+    demandList1 = list(input$MarketDemandFun1, input$MarketDemandFun2, input$MarketDemandFun3, input$MarketDemandFun4, input$MarketDemandFun5)
+    NList1 = list (input$MarketDemandFunN1, input$MarketDemandFunN2, input$MarketDemandFunN3, input$MarketDemandFunN4, input$MarketDemandFunN5)
+    demandList = list()
+    NList = list()
+    for (i in 1:num){
+      demandList[[i]] =  demandList1[[i]]
+      NList[[i]] = NList1[[i]]
+    }
+    values$piecewiseData = makePiecewise(demandList, NList)
+    values$MarketDemandPlot = makePiecewisePlot(values$piecewiseData[[1]], values$piecewiseData[[3]], values$piecewiseData[[4]], values$piecewiseData[[5]])
+  })
+  
+  observeEvent(input$RunMarketDemandPiecewise, {
     
-    piecewiseData = makePiecewise(demandList, NList)
-    values$MarketDemandPlot = makePiecewisePlot(piecewiseData[[1]], piecewiseData[[3]], piecewiseData[[4]], piecewiseData[[5]])
+    num = length(values$piecewiseData[[7]])
+    str = c("$$
+      Q_{Market}(p) = 
+      \\begin{cases}")
+    for (i in 1:num){
+      str = paste0(str, values$piecewiseData[[7]][[i]], " & \\text{if $p \\in{[", values$piecewiseData[[4]][i], ",", values$piecewiseData[[4]][i+1], ")}$} \\\\ 
+                   ")
+    }
+    str = paste0(str, "0 & \\text{otherwise} 
+                 \\end{cases} 
+                 $$")
+    
+    output$MarketDemandPiecewiseFun = renderUI({withMathJax(HTML(
+      str))
+    })
   })
   
   output$MarketDemandPlot = renderPlotly({

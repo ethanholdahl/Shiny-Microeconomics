@@ -9,6 +9,7 @@ library(shinyjs)
 library(ggnewscale)
 library(shinyWidgets)
 library(shinycssloaders)
+library(Ryacas)
 
 # Define UI for the application
 fluidPage(
@@ -661,7 +662,46 @@ fluidPage(
           column(6,
           tags$iframe(style = "height:600px; width:100%; scrolling=yes",
                       src = "Market_Demand.pdf"),
-          )
+          ),
+          column(6,
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "MarketDemandNFuns",
+                     label = "How many different types of demand functions are there?",
+                     value = "3",
+                     min = 1,
+                     max = 5,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   uiOutput(
+                     outputId = "MarketDemandFunsList"
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   uiOutput(
+                     outputId = "MarketDemandFunsNList"
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   actionButton(
+                     inputId = "RunMarketDemandNFuns",
+                     label = "Update Number of Demand Functions"
+                   )
+                 ),
+                 actionButton(inputId = "RunMarketDemandPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("MarketDemandPlot")%>% withSpinner(color="#004623"),
+                 actionButton(inputId = "RunMarketDemandPiecewise",
+                              label = "Calculate Market Demand Function"),
+                 uiOutput("MarketDemandPiecewiseFun"),
+                
+                 )
         ),
         
       ),

@@ -183,8 +183,8 @@ N6 = 8
 demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
 NList = list(N1, N2, N3, N4, N5, N6)
 
-makePiecewise(demandList, NList)
+a = makePiecewise(demandList, NList)
 
-
+b = makePiecewisePlot(a[[1]], a[[3]], a[[4]], a[[5]])
 
 
