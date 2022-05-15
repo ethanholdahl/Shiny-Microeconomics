@@ -93,36 +93,6 @@ devtools::install_github("r-cas/ryacas",
                          build_opts = c("--no-resave-data", "--no-manual"))
 library(Ryacas)
 
-
-
-demand1 = "100 - 5*p"
-N1 = 6
-demand2 = "50 -5*p"
-N2 = 4
-demand3 = "60 -2*p"
-N3 = 10
-test = function(demand1, demand2, demand3, N1, N2, N3){
-demand1N = yac_str(paste0(N1, "*(", demand1, ")"))
-demand2N = yac_str(paste0(N2, "*(", demand2, ")"))
-demand3N = yac_str(paste0(N3, "*(", demand3, ")"))
-
-demand12N_simp = yac_str(paste(demand1N, demand2N, sep = " + ")) %>%
-  yac_symbol() %>%
-  simplify() %>%
-  yac_str()
-demand12N_expand = yac('Expand(%)')
-return(list(demand12N_simp, demand12N_expand))
-}
-
-test("100 - 5*p", "50 -5*p", "60 -2*p", 6, 4, 10)
-
-
-
-D1 = parse(text = demand1)
-D2 = parse(text = demand2)
-D3 = parse(text = demand3)
-p = 0
-
 getQValue_Choke = function(Dfun, p) {
   Q <- eval(Dfun) 
   return(Q)
@@ -131,7 +101,66 @@ getQValue_Choke = function(Dfun, p) {
 solvePValue_Choke = function(Dfun, Q, p) crossprod(getQValue_Choke(Dfun, p) - Q)
 
 
-choke1 = optimize(solvePValue_Choke, c(0,eval(D1)), Dfun = D1, Q = 0)$minimum
+demand1 = "100 - 5*p"
+N1 = 6
+demand2 = "50 -5*p"
+N2 = 4
+demand3 = "60 -2*p"
+N3 = 10
+demand4 = "70 -7*p"
+N4 = 4
+demand5 = "150 -5*p"
+N5 = 6
+demand6 = "60 -6*p"
+N6 = 8
+demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
+NList = list(N1, N2, N3, N4, N5, N6)
+makePiecewise = function(demandList, NList){
+  num = length(demandList)
+  chokeList = list()
+  chokeVector = c()
+  demandNList = list()
+  demandNListExpanded = list()
+  for (i in 1:num){
+    demadExpr = yac_expr(demandList[[i]])
+    p = 0
+    chokeList[[i]] = round(optimize(solvePValue_Choke, c(0,eval(demadExpr)), Dfun = demadExpr, Q = 0)$minimum,2)
+    chokeVector = c(chokeVector, chokeList[[i]])
+    demandNList[[i]] = yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
+    demandNListExpanded[[i]] = yac('Expand(%)')
+  }
+  chokes = sort(unique(c(0,chokeVector)))
+  demandMarket = list()
+  demandMarketSimp = list()
+  demandMarketExpanded = list()
+  for (i in 1:(length(chokes)-1)){
+    #get index of demand functions not choked out
+    demandIndicies = (1:length(chokeVector))[chokeVector>chokes[i]]
+    for (j in 1:length(demandIndicies)){
+      if (j > 1){
+        demandMarket[[i]] = yac_str(paste(demandMarket[[i]], demandNList[[demandIndicies[j]]], sep = " + "))
+      } else {
+        demandMarket[[i]] = yac_str(demandNList[[demandIndicies[j]]])
+      }
+    }
+    demandMarketSimp[[i]] = demandMarket[[i]] %>%
+      yac_symbol() %>%
+      simplify() %>%
+      yac_str()
+    demandMarketExpanded[[i]] = yac('Expand(%)')
+  }
+return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
+}
+
+
+D1 = parse(text = demand1)
+D2 = parse(text = demand2)
+D3 = parse(text = demand3)
+p = 0
+
+
+
+
 choke2 = optimize(solvePValue_Choke, c(0,eval(D2)), Dfun = D2, Q = 0)$minimum
 choke3 = optimize(solvePValue_Choke, c(0,eval(D3)), Dfun = D3, Q = 0)$minimum
 
