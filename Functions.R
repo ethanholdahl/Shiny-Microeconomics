@@ -594,7 +594,7 @@ makeDerivedDemandPlotY = function(Ufun, Px, I, addedPy, Pymin, Pymax, xmax, ymax
 
 ##### FEASIBLE VS INFEASIBLE BUNDLES #######
 
-makeRandomBundles = function(Px, Py, I, xmax, ymax, N){
+makeRandomBundles = function(xmax, ymax, N){
   x = runif(N, max = xmax)
   y = runif(N, max = ymax)
   return(list(x, y))
@@ -637,28 +637,10 @@ makeRandomFeasibilityGraphs = function(Px, Py, I, xmax, ymax, x, y){
   return(list(bundlesPlot, feasibilityPlot))
 }
 
-makeFeasibilityGraphs = function(Px, Py, I, on = 2, over = 2, under = 2, rand = 6){
-  xon = runif(on, max = I/Px)
-  yon = (I-Px*xon)/Py
-  xrand = runif(rand, max = I/Px*1.2)
-  yrand = runif(rand, max = I/Py*1.2)
-  xover = runif(over, min = 0, max = I/Px*1.2)
-  yover=c()
-  for(i in 1:over){
-    x = xover[i]
-    yover = c(yover, runif(1, min = max((I-x*Px)/Py, 0), max = I/Py*1.2))
-  } 
-  xunder = runif(under, max = I/Px)
-  yunder = c()
-  for(i in 1:under){
-    x = xunder[i]
-    yunder = c(yunder, runif(1, min = 0, max = (I-x*Px)/Py))
-  } 
-  x = c(xrand, xon, xover, xunder)
-  y = c(yrand, yon, yover, yunder)
-  
+makeRandomFeasibilityGraphs = function(Px, Py, I, xmax, ymax, x, y){
   bundles = tibble(x, y, Cost = x*Px + y*Py, Feasibility = x)
-  for (i in 1:length(x)){
+  N = dim(bundles)[1]
+  for (i in 1:N){
     if(I>=bundles$Cost[i]){
       bundles$Feasibility[i] = "Feasible"
     } else {
@@ -674,19 +656,19 @@ makeFeasibilityGraphs = function(Px, Py, I, on = 2, over = 2, under = 2, rand = 
     makeBudgetLine(Px, Py, I) +
     geom_hline(yintercept = 0) +
     geom_vline(xintercept = 0) +
-    coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
   bundlesPlot = bundlesPlot %>%
     ggplotly()
   
   feasibilityPlot = ggplot()+
     geom_point(data = bundles, aes(x = x, y = y, alpha = Feasibility, color = Cost), size = 3) +
     scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
-    scale_alpha_discrete(range = c(1,.2)) +
+    scale_alpha_discrete(range = c(1,.3*min(N, 2000)/N)) +
     labs(alpha = c("Bundles")) +
     makeBudgetLine(Px, Py, I) +
     geom_hline(yintercept = 0) +
     geom_vline(xintercept = 0) +
-    coord_cartesian(xlim = c(0,I/Px*1.2), ylim = c(0,I/Py*1.2))
+    coord_cartesian(xlim = c(0,xmax), ylim = c(0,ymax))
   feasibilityPlot = feasibilityPlot %>%
     ggplotly() %>%
     layout(showlegend = TRUE)

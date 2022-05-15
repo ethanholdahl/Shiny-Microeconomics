@@ -584,7 +584,7 @@ function(input, output, session) {
   
   ##### FEASIBLE VS INFEASIBLE BUNDLES #######
   
-  makeRandomBundles = function(Px, Py, I, xmax, ymax, N){
+  makeRandomBundles = function(xmax, ymax, N){
     x = runif(N, max = xmax)
     y = runif(N, max = ymax)
     return(list(x, y))
@@ -592,7 +592,8 @@ function(input, output, session) {
   
   makeRandomFeasibilityGraphs = function(Px, Py, I, xmax, ymax, x, y){
     bundles = tibble(x, y, Cost = x*Px + y*Py, Feasibility = x)
-    for (i in 1:(dim(bundles)[1])){
+    N = dim(bundles)[1]
+    for (i in 1:N){
       if(I>=bundles$Cost[i]){
         bundles$Feasibility[i] = "Feasible"
       } else {
@@ -615,7 +616,7 @@ function(input, output, session) {
     feasibilityPlot = ggplot()+
       geom_point(data = bundles, aes(x = x, y = y, alpha = Feasibility, color = Cost), size = 3) +
       scale_color_viridis_c(guide = "none", option = "inferno", begin = .3, end = .9) +
-      scale_alpha_discrete(range = c(1,.2)) +
+      scale_alpha_discrete(range = c(1,.3*min(N, 2000)/N)) +
       labs(alpha = c("Bundles")) +
       makeBudgetLine(Px, Py, I) +
       geom_hline(yintercept = 0) +
@@ -991,7 +992,7 @@ function(input, output, session) {
   ###### Budget Constraints ######
   
   observeEvent(input$RunBudgetNewBundles, {
-    values$BudgetNewBundles = makeRandomBundles(input$BudgetPx, input$BudgetPy, input$BudgetI, input$BudgetXMax, input$BudgetYMax, input$BudgetN)
+    values$BudgetNewBundles = makeRandomBundles(input$BudgetXMax, input$BudgetYMax, input$BudgetN)
     values$BudgetPlot =  makeRandomFeasibilityGraphs(input$BudgetPx, input$BudgetPy, input$BudgetI, input$BudgetXMax, input$BudgetYMax, values$BudgetNewBundles[[1]], values$BudgetNewBundles[[2]])
   })
   
