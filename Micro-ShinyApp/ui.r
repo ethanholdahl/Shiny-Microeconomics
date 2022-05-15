@@ -688,13 +688,40 @@ fluidPage(
                  ),
                  div(
                    style = "display:inline-block",
+                   uiOutput(
+                     outputId = "MarketDemandSupply"
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
                    actionButton(
                      inputId = "RunMarketDemandNFuns",
                      label = "Update Number of Demand Functions"
                    )
                  ),
-                 actionButton(inputId = "RunMarketDemandPlot",
-                              label = "Draw Graph"),
+                 div(
+                   style = "display:inline-block",
+                   actionButton(
+                     inputId = "RunMarketDemandSupply",
+                     label = "Add a Supply Function"
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   actionButton(
+                     inputId = "RunMarketDemandPlot",
+                     label = "Draw Graph")
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   materialSwitch(
+                     inputId = "MarketDemandEquilibrium",
+                     label = "Plot Supply and Equilibrium",
+                     value = FALSE,
+                     status = "success",
+                     width = '200px'
+                   )
+                 ),
                  plotlyOutput("MarketDemandPlot")%>% withSpinner(color="#004623"),
                  actionButton(inputId = "RunMarketDemandPiecewise",
                               label = "Calculate Market Demand Function"),

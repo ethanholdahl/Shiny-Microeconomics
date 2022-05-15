@@ -746,12 +746,12 @@ function(input, output, session) {
     demandNList = list()
     demandNListExpanded = list()
     for (i in 1:num){
-      demadExpr = yac_expr(demandList[[i]])
+      demadExpr = Ryacas::yac_expr(demandList[[i]])
       p = 0
       chokeList[[i]] = round(optimize(solvePValue_Choke, c(0,eval(demadExpr)), Dfun = demadExpr, Q = 0)$minimum,2)
       chokeVector = c(chokeVector, chokeList[[i]])
-      demandNList[[i]] = yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
-      demandNListExpanded[[i]] = yac('Expand(%)')
+      demandNList[[i]] = Ryacas::yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
+      demandNListExpanded[[i]] = Ryacas::yac('Expand(%)')
     }
     chokes = sort(unique(c(0,chokeVector)))
     demandMarket = list()
@@ -762,23 +762,23 @@ function(input, output, session) {
       demandIndicies = (1:length(chokeVector))[chokeVector>chokes[i]]
       for (j in 1:length(demandIndicies)){
         if (j > 1){
-          demandMarket[[i]] = yac_str(paste(demandMarket[[i]], demandNList[[demandIndicies[j]]], sep = " + "))
+          demandMarket[[i]] = Ryacas::yac_str(paste(demandMarket[[i]], demandNList[[demandIndicies[j]]], sep = " + "))
         } else {
-          demandMarket[[i]] = yac_str(demandNList[[demandIndicies[j]]])
+          demandMarket[[i]] = Ryacas::yac_str(demandNList[[demandIndicies[j]]])
         }
       }
       demandMarketSimp[[i]] = demandMarket[[i]] %>%
-        yac_symbol() %>%
-        simplify() %>%
-        yac_str()
-      demandMarketExpanded[[i]] = yac('Expand(%)')
+        Ryacas::yac_symbol() %>%
+        Ryacas::simplify() %>%
+        Ryacas::yac_str()
+      demandMarketExpanded[[i]] = Ryacas::yac('Expand(%)')
     }
     return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
   }
   
-  makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket){
+  makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, supply){
     for (i in 1:length(demandNList)){
-      demadExpr = yac_expr(demandNList[[i]])
+      demadExpr = Ryacas::yac_expr(demandNList[[i]])
       p = seq(0,chokeList[[i]], .01)
       Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
       if(i == 1){
@@ -788,8 +788,9 @@ function(input, output, session) {
           bind_rows(tibble("Demand_Function" = as.factor(i), p = p, Q = Q)) 
       }
     }
+    
     for (i in 1:length(demandMarket)){
-      demadExpr = yac_expr(demandMarket[[i]])
+      demadExpr = Ryacas::yac_expr(demandMarket[[i]])
       p = seq(chokes[i],chokes[i+1], .01)
       Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
       if(i == 1){
@@ -799,12 +800,59 @@ function(input, output, session) {
           bind_rows(tibble("Demand_Function" = "Market", p = p, Q = Q)) 
       }
     }
-    plot = ggplot()+
+    supplyExpr = Ryacas::yac_expr(supply)
+    p = seq(0, chokes[length(chokes)], .01)
+    Q = sapply(p, getQValue_Choke, Dfun = supplyExpr)
+    supplyData = tibble("Supply_Function" = "Market", p = p, Q = Q)
+
+    plist = list()
+    for(i in 1:length(demandMarket)){
+      plist[[i]] = Ryacas::yac_str(paste0("Solve(", demandMarket[[i]], " == ", supply, ", p)")) %>%
+        Ryacas::y_rmvars() %>%
+        Ryacas::yac_expr() %>%
+        eval() %>%
+        round(2)
+      if(plist[[i]] < chokes[[i+1]] & plist[[i]] >= chokes[[i]]){
+        correctPiece = i
+      }
+    }
+    p = plist[[correctPiece]]
+    Q = round(eval(Ryacas::yac_expr(supply)),2)
+    equilibriumData = tibble(p = p, Q = Q, Equilibrium = "Market Equilibrium")
+    Q = seq(0, max(piecewiseDemandData$Q)*1.2, 1)
+    equilibriumPriceLine = tibble(p = p, Q = Q, Equilibrium = "Price Level")
+    Q = c()
+    Qindividual = c()
+    for (i in 1:length(chokeList)){
+      Qindividual = c(Qindividual, round(eval(Ryacas::yac_expr(demandNList[[i]])),2))
+      if(chokeList[[i]] > p){
+        Q = c(Q, Qindividual[i])
+      }
+    }
+    equilibriumIndividual = tibble(p = p, Q = Q, Equilibrium = "Group Equilibrium")
+
+    demandPlot = ggplot()+
       geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
       scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
-      geom_line(data = piecewiseDemandData, aes(x = Q, y = p, group = Demand_Function), color = "red")
-    plot = ggplotly(plot)
-    return(plot)
+      geom_line(data = piecewiseDemandData, aes(x = Q, y = p, group = Demand_Function), color = "darkgreen") + 
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      coord_cartesian(xlim = c(0,max(piecewiseDemandData$Q)), ylim = c(0,chokes[length(chokes)]))
+    demandPlot = ggplotly(demandPlot)
+
+    marketPlot = ggplot()+
+      geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
+      scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
+      geom_line(data = piecewiseDemandData, aes(x = Q, y = p, group = Demand_Function), color = "darkgreen") +
+      geom_line(data = supplyData, aes(x = Q, y = p, group = Supply_Function), color = "red") +
+      geom_point(data = equilibriumData, aes(x = Q, y = p, group = Equilibrium), size = 3) +
+      geom_line(data = equilibriumPriceLine, aes(x = Q, y = p, group = Equilibrium), linetype = "dashed") +
+      geom_point(data = equilibriumIndividual, aes(x = Q, y = p, group = Equilibrium), size = 2) +
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      coord_cartesian(xlim = c(0,max(piecewiseDemandData$Q)), ylim = c(0,chokes[length(chokes)]))
+    marketPlot = ggplotly(marketPlot)
+    return(list(demandPlot, marketPlot, plist, correctPiece, equilibriumData$Q, Qindividual))
   }
   
   ########## SHINY SERVER CODE ##########
@@ -821,7 +869,7 @@ function(input, output, session) {
                            DerivedDemandPlot = NULL,
                            IncSubEffectsPlot = NULL,
                            MarketDemandPlot = NULL,
-                           piecewiseData = NULL
+                           MarketDemandPiecewiseData = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1112,6 +1160,21 @@ function(input, output, session) {
     shinyjs::hidden(MarketDemandFunsN)
   })
   
+  output$MarketDemandSupply <- renderUI({
+    MarketDemandSupply <- lapply(1, function(i){
+      textInput(inputId = paste0("MarketDemandSupply", i), label = paste0("Supply Function: Q(p)="), value = paste0(sample(2:20,1),"*p"), width = '200px')
+    })
+    shinyjs::hidden(MarketDemandSupply)
+  })
+  
+  observeEvent(input$RunMarketDemandSupply, {
+    if(input$RunMarketDemandSupply){
+      shinyjs::show(id = paste0("MarketDemandSupply1"))
+    } else {
+      shinyjs::hide(id = paste0("MarketDemandSupply1"))
+    }
+  })
+  
   observeEvent(input$RunMarketDemandNFuns, {
     n <- seq(length.out = as.numeric(input$MarketDemandNFuns))
     lapply(seq(5), function(i) {
@@ -1132,7 +1195,7 @@ function(input, output, session) {
       demandList[[i]] =  demandList1[[i]]
       NList[[i]] = NList1[[i]]
     }
-    values$piecewiseData = makePiecewise(demandList, NList)
+    values$MarketDemandPiecewiseData = makePiecewise(demandList, NList)
   })
   
   observeEvent(input$RunMarketDemandPlot, {
@@ -1155,18 +1218,18 @@ function(input, output, session) {
       demandList[[i]] =  demandList1[[i]]
       NList[[i]] = NList1[[i]]
     }
-    values$piecewiseData = makePiecewise(demandList, NList)
-    values$MarketDemandPlot = makePiecewisePlot(values$piecewiseData[[1]], values$piecewiseData[[3]], values$piecewiseData[[4]], values$piecewiseData[[5]])
+    values$MarketDemandPiecewiseData = makePiecewise(demandList, NList)
+    values$MarketDemandPlot = makePiecewisePlot(values$MarketDemandPiecewiseData[[1]], values$MarketDemandPiecewiseData[[3]], values$MarketDemandPiecewiseData[[4]], values$MarketDemandPiecewiseData[[5]], input$MarketDemandSupply1)
   })
   
   observeEvent(input$RunMarketDemandPiecewise, {
     
-    num = length(values$piecewiseData[[7]])
+    num = length(values$MarketDemandPiecewiseData[[7]])
     str = c("$$
       Q_{Market}(p) = 
       \\begin{cases}")
     for (i in 1:num){
-      str = paste0(str, values$piecewiseData[[7]][[i]], " & \\text{if $p \\in{[", values$piecewiseData[[4]][i], ",", values$piecewiseData[[4]][i+1], ")}$} \\\\ 
+      str = paste0(str, values$MarketDemandPiecewiseData[[7]][[i]], " & \\text{if $p \\in{[", values$MarketDemandPiecewiseData[[4]][i], ",", values$MarketDemandPiecewiseData[[4]][i+1], ")}$} \\\\ 
                    ")
     }
     str = paste0(str, "0 & \\text{otherwise} 
@@ -1178,29 +1241,16 @@ function(input, output, session) {
     })
   })
   
-  output$MarketDemandPlot = renderPlotly({
-    values$MarketDemandPlot
-  })
-  output$IncSubEffectsSub = renderText({
-    if(is.null(values$IncSubEffectsPlot[[2]])){
-      "Press Draw Graph"
-    } else {
-      values$IncSubEffectsPlot[[2]]
-    }
-  })
-  output$IncSubEffectsInc = renderText({
-    if(is.null(values$IncSubEffectsPlot[[3]])){
-      "Press Draw Graph"
-    } else {
-      values$IncSubEffectsPlot[[3]]
-    }
-  })
-  output$IncSubEffectsTotal = renderText({
-    if(is.null(values$IncSubEffectsPlot[[4]])){
-      "Press Draw Graph"
-    } else {
-      values$IncSubEffectsPlot[[4]]
-    }
+  
+  observeEvent(input$MarketDemandEquilibrium, {
+    shinyjs::show(id = paste0("MarketDemandSupply1"))
   })
   
+  output$MarketDemandPlot = renderPlotly({
+    if(input$MarketDemandEquilibrium) {
+      return(values$MarketDemandPlot[[2]])
+    } else {
+      return(values$MarketDemandPlot[[1]])
+    }
+  })
 }

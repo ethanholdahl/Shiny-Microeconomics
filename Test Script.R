@@ -137,130 +137,6 @@ makePiecewise = function(demandList, NList){
   return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
 }
 
-makePiecewisePlot = function(demandNList,
-                             chokeList,
-                             chokes,
-                             demandMarket,
-                             supply = 0) {
-  for (i in 1:length(demandNList)) {
-    demadExpr = Ryacas::yac_expr(demandNList[[i]])
-    p = seq(0, chokeList[[i]], .01)
-    Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
-    if (i == 1) {
-      individualDemandData = tibble("Demand_Function" = as.factor(i),
-                                    p = p,
-                                    Q = Q)
-    } else {
-      individualDemandData = individualDemandData %>%
-        bind_rows(tibble(
-          "Demand_Function" = as.factor(i),
-          p = p,
-          Q = Q
-        ))
-    }
-  }
-  
-  for (i in 1:length(demandMarket)) {
-    demadExpr = Ryacas::yac_expr(demandMarket[[i]])
-    p = seq(chokes[i], chokes[i + 1], .01)
-    Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
-    if (i == 1) {
-      piecewiseDemandData = tibble("Demand_Function" = "Market",
-                                   p = p,
-                                   Q = Q)
-    } else {
-      piecewiseDemandData = piecewiseDemandData %>%
-        bind_rows(tibble(
-          "Demand_Function" = "Market",
-          p = p,
-          Q = Q
-        ))
-    }
-  }
-  supplyExpr = Ryacas::yac_expr(supply)
-  p = seq(0, chokes[length(chokes)], .01)
-  Q = sapply(p, getQValue_Choke, Dfun = supplyExpr)
-  supplyData = tibble("Supply_Function" = "Market",
-                      p = p,
-                      Q = Q)
-  
-  plist = list()
-  for (i in 1:length(demandMarket)) {
-    plist[[i]] = Ryacas::yac_str(paste0("Solve(", a[[7]][[i]], " == ", supply, ", p)")) %>%
-      Ryacas::y_rmvars() %>%
-      Ryacas::yac_expr() %>%
-      eval() %>%
-      round(2)
-    if (plist[[i]] < chokes[[i + 1]] & plist[[i]] >= chokes[[i]]) {
-      correctPiece = i
-    }
-  }
-  p = plist[[correctPiece]]
-  Q = round(eval(yac_expr(supply)), 2)
-  equilibriumData = tibble(p = p,
-                           Q = Q,
-                           Equilibrium = "Market Equilibrium")
-  
-  demandPlot = ggplot() +
-    geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
-    scale_color_viridis_d(
-      option = "viridis",
-      begin = 0,
-      end = .9,
-      name = "Demand Function"
-    ) +
-    geom_line(data = piecewiseDemandData,
-              aes(x = Q, y = p, group = Demand_Function),
-              color = "darkgreen")
-  demandPlot = ggplotly(demandPlot)
-  marketPlot = ggplot() +
-    geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
-    scale_color_viridis_d(
-      option = "viridis",
-      begin = 0,
-      end = .9,
-      name = "Demand Function"
-    ) +
-    geom_line(data = piecewiseDemandData,
-              aes(x = Q, y = p, group = Demand_Function),
-              color = "darkgreen") +
-    geom_line(data = supplyData,
-              aes(x = Q, y = p, group = Supply_Function),
-              color = "red") +
-    geom_point(data = equilibriumData, aes(x = Q, y = p, group = Equilibrium))
-  marketPlot = ggplotly(marketPlot)
-  return(list(demandPlot, 
-    marketPlot,
-    plist,
-    correctPiece,
-    equilibriumData$Q
-  ))
-}
-
-demand1 = "100 - 5*p"
-N1 = 6
-demand2 = "50 -5*p"
-N2 = 4
-demand3 = "60 -2*p"
-N3 = 10
-demand4 = "70 -7*p"
-N4 = 4
-demand5 = "150 -5*p"
-N5 = 6
-demand6 = "60 -6*p"
-N6 = 8
-supply = "100*p-100"
-demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
-NList = list(N1, N2, N3, N4, N5, N6)
-
-a = makePiecewise(demandList, NList)
-
-b = makePiecewisePlot(a[[1]], a[[3]], a[[4]], a[[5]], supply)
-
-b[[2]]
-
-supply = "100*p-100"
-
 makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, supply = 0){
   for (i in 1:length(demandNList)){
     demadExpr = yac_expr(demandNList[[i]])
@@ -292,7 +168,7 @@ makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, suppl
   
   plist = list()
   for(i in 1:length(demandMarket)){
-    plist[[i]] = yac_str(paste0("Solve(", a[[7]][[i]], " == ", supply, ", p)")) %>%
+    plist[[i]] = yac_str(paste0("Solve(", demandMarket[[i]], " == ", supply, ", p)")) %>%
       y_rmvars() %>% 
       yac_expr() %>% 
       eval() %>%
@@ -307,9 +183,11 @@ makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, suppl
   Q = seq(0, max(piecewiseDemandData$Q)*1.2, 1)
   equilibriumPriceLine = tibble(p = p, Q = Q, Equilibrium = "Price Level")
   Q = c()
+  Qindividual = c()
   for (i in 1:length(chokeList)){
+    Qindividual = c(Qindividual, round(eval(yac_expr(demandNList[[i]])),2))
     if(chokeList[[i]] > p){
-      Q = c(Q,round(eval(yac_expr(demandNList[[i]])),2))
+      Q = c(Q,Qindividual[i])
     }
   }
   equilibriumIndividual = tibble(p = p, Q = Q, Equilibrium = "Group Equilibrium")
@@ -335,27 +213,27 @@ makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, suppl
     geom_vline(xintercept = 0) +
     coord_cartesian(xlim = c(0,max(piecewiseDemandData$Q)), ylim = c(0,chokes[length(chokes)]))
   marketPlot = ggplotly(marketPlot)
-  return(list(demandPlot, marketPlot, plist, correctPiece, equilibriumData$Q))
+  return(list(demandPlot, marketPlot, plist, correctPiece, equilibriumData$Q, Qindividual))
 }
 
+demand1 = "100 - 5*p"
+N1 = 6
+demand2 = "50 -5*p"
+N2 = 4
+demand3 = "60 -2*p"
+N3 = 10
+demand4 = "70 -7*p"
+N4 = 4
+demand5 = "150 -5*p"
+N5 = 6
+demand6 = "60 -6*p"
+N6 = 8
+supply = "100*p-100"
+demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
+NList = list(N1, N2, N3, N4, N5, N6)
 
+a = makePiecewise(demandList, NList)
 
+b = makePiecewisePlot(a[[1]], a[[3]], a[[4]], a[[5]], supply)
 
-
-
-
-a[[7]]
-supply
-plist = list()
-for(i in 1:length(chokeList)){
-  plist[[i]] = yac_str(paste0("Solve(", a[[7]][[i]], " == ", supply, ", p)")) %>%
-  y_rmvars() %>% 
-  yac_expr() %>% 
-  eval()
-  if(plist[[i]] < chokeList[[i]]){
-    correctPiece = i
-  }
-}
-p = plist[[correctPiece]]
-Q = eval(yac_expr(supply))
-equilibriumData = tibble(p = p, Q = Q, Equilibrium = "Market Equilibrium")
+b[[2]]
