@@ -100,21 +100,6 @@ getQValue_Choke = function(Dfun, p) {
 
 solvePValue_Choke = function(Dfun, Q, p) crossprod(getQValue_Choke(Dfun, p) - Q)
 
-
-demand1 = "100 - 5*p"
-N1 = 6
-demand2 = "50 -5*p"
-N2 = 4
-demand3 = "60 -2*p"
-N3 = 10
-demand4 = "70 -7*p"
-N4 = 4
-demand5 = "150 -5*p"
-N5 = 6
-demand6 = "60 -6*p"
-N6 = 8
-demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
-NList = list(N1, N2, N3, N4, N5, N6)
 makePiecewise = function(demandList, NList){
   num = length(demandList)
   chokeList = list()
@@ -149,11 +134,8 @@ makePiecewise = function(demandList, NList){
       yac_str()
     demandMarketExpanded[[i]] = yac('Expand(%)')
   }
-return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
+  return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
 }
-
-makePiecewise(demandList, NList)
-
 
 makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket){
   for (i in 1:length(demandNList)){
@@ -183,8 +165,26 @@ makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket){
     scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
     geom_line(data = piecewiseDemandData, aes(x = Q, y = p, group = Demand_Function), color = "red")
   plot = ggplotly(plot)
-  
   return(plot)
 }
+
+demand1 = "100 - 5*p"
+N1 = 6
+demand2 = "50 -5*p"
+N2 = 4
+demand3 = "60 -2*p"
+N3 = 10
+demand4 = "70 -7*p"
+N4 = 4
+demand5 = "150 -5*p"
+N5 = 6
+demand6 = "60 -6*p"
+N6 = 8
+demandList = list(demand1, demand2, demand3, demand4, demand5, demand6)
+NList = list(N1, N2, N3, N4, N5, N6)
+
+makePiecewise(demandList, NList)
+
+
 
 
