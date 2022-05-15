@@ -152,20 +152,39 @@ makePiecewise = function(demandList, NList){
 return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
 }
 
-
-D1 = parse(text = demand1)
-D2 = parse(text = demand2)
-D3 = parse(text = demand3)
-p = 0
+makePiecewise(demandList, NList)
 
 
-
-
-choke2 = optimize(solvePValue_Choke, c(0,eval(D2)), Dfun = D2, Q = 0)$minimum
-choke3 = optimize(solvePValue_Choke, c(0,eval(D3)), Dfun = D3, Q = 0)$minimum
-
-D12 = parse(text = paste(demand1, demand2, sep = " + "))
-D12
-
+makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket){
+  for (i in 1:length(demandNList)){
+    demadExpr = yac_expr(demandNList[[i]])
+    p = seq(0,chokeList[[i]], .01)
+    Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
+    if(i == 1){
+      individualDemandData = tibble("Demand_Function" = as.factor(i), p = p, Q = Q) 
+    } else {
+      individualDemandData = individualDemandData %>%
+        bind_rows(tibble("Demand_Function" = as.factor(i), p = p, Q = Q)) 
+    }
+  }
+  for (i in 1:length(demandMarket)){
+    demadExpr = yac_expr(demandMarket[[i]])
+    p = seq(chokes[i],chokes[i+1], .01)
+    Q = sapply(p, getQValue_Choke, Dfun = demadExpr)
+    if(i == 1){
+      piecewiseDemandData = tibble("Demand_Function" = "Market", p = p, Q = Q) 
+    } else {
+      piecewiseDemandData = piecewiseDemandData %>%
+        bind_rows(tibble("Demand_Function" = "Market", p = p, Q = Q)) 
+    }
+  }
+  plot = ggplot()+
+    geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
+    scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
+    geom_line(data = piecewiseDemandData, aes(x = Q, y = p, group = Demand_Function), color = "red")
+  plot = ggplotly(plot)
+  
+  return(plot)
+}
 
 
