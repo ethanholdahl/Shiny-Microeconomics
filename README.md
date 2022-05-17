@@ -1,6 +1,6 @@
 # Shiny-Microeconomics
 
-This repository contains the code for the application [Shiny Micro](https://ethanholdahl.shinyapps.io/Intermediate_Micro/). 
+This repository contains the code for the application [Shiny Micro](https://shiny.ethanholdahl.com/micro). 
 
 It is intended as a resource both for students learning micro and for instructors teaching micro as a way to quicky generate beautiful graphs depecting the concepts covered in an Intermediate Microeconomics course.
 
