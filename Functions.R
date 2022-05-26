@@ -729,8 +729,6 @@ getQValue_Choke = function(Dfun, p) {
   return(Q)
 }
 
-solvePValue_Choke = function(Dfun, Q, p) crossprod(getQValue_Choke(Dfun, p) - Q)
-
 makePiecewise = function(demandList, NList){
   num = length(demandList)
   chokeList = list()
@@ -738,9 +736,9 @@ makePiecewise = function(demandList, NList){
   demandNList = list()
   demandNListExpanded = list()
   for (i in 1:num){
-    demadExpr = Ryacas::yac_expr(demandList[[i]])
+    demandExpr = Ryacas::yac_expr(demandList[[i]])
     p = 0
-    chokeList[[i]] = round(optimize(solvePValue_Choke, c(0,eval(demadExpr)), Dfun = demadExpr, Q = 0)$minimum,2)
+    chokeList[[i]] = yac_str(paste0("Solve(",D1,"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
     chokeVector = c(chokeVector, chokeList[[i]])
     demandNList[[i]] = Ryacas::yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
     demandNListExpanded[[i]] = Ryacas::yac('Expand(%)')

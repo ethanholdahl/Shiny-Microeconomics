@@ -738,8 +738,6 @@ function(input, output, session) {
     return(Q)
   }
   
-  solvePValue_Choke = function(Dfun, Q, p) crossprod(getQValue_Choke(Dfun, p) - Q)
-  
   makePiecewise = function(demandList, NList){
     num = length(demandList)
     chokeList = list()
@@ -747,9 +745,9 @@ function(input, output, session) {
     demandNList = list()
     demandNListExpanded = list()
     for (i in 1:num){
-      demadExpr = Ryacas::yac_expr(demandList[[i]])
+      demandExpr = Ryacas::yac_expr(demandList[[i]])
       p = 0
-      chokeList[[i]] = round(optimize(solvePValue_Choke, c(0,eval(demadExpr)), Dfun = demadExpr, Q = 0)$minimum,2)
+      chokeList[[i]] = yac_str(paste0("Solve(",D1,"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
       chokeVector = c(chokeVector, chokeList[[i]])
       demandNList[[i]] = Ryacas::yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
       demandNListExpanded[[i]] = Ryacas::yac('Expand(%)')
@@ -777,7 +775,7 @@ function(input, output, session) {
     return(list(demandNList, demandNListExpanded, chokeList, chokes, demandMarket, demandMarketSimp, demandMarketExpanded))
   }
   
-  makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, supply){
+  makePiecewisePlot = function(demandNList, chokeList, chokes, demandMarket, supply = 0){
     for (i in 1:length(demandNList)){
       demadExpr = Ryacas::yac_expr(demandNList[[i]])
       p = seq(0,chokeList[[i]], .01)
@@ -805,12 +803,12 @@ function(input, output, session) {
     p = seq(0, chokes[length(chokes)], .01)
     Q = sapply(p, getQValue_Choke, Dfun = supplyExpr)
     supplyData = tibble("Supply_Function" = "Market", p = p, Q = Q)
-
+    
     plist = list()
     for(i in 1:length(demandMarket)){
       plist[[i]] = Ryacas::yac_str(paste0("Solve(", demandMarket[[i]], " == ", supply, ", p)")) %>%
-        Ryacas::y_rmvars() %>%
-        Ryacas::yac_expr() %>%
+        Ryacas::y_rmvars() %>% 
+        Ryacas::yac_expr() %>% 
         eval() %>%
         round(2)
       if(plist[[i]] < chokes[[i+1]] & plist[[i]] >= chokes[[i]]){
@@ -827,11 +825,11 @@ function(input, output, session) {
     for (i in 1:length(chokeList)){
       Qindividual = c(Qindividual, round(eval(Ryacas::yac_expr(demandNList[[i]])),2))
       if(chokeList[[i]] > p){
-        Q = c(Q, Qindividual[i])
+        Q = c(Q,Qindividual[i])
       }
     }
     equilibriumIndividual = tibble(p = p, Q = Q, Equilibrium = "Group Equilibrium")
-
+    
     demandPlot = ggplot()+
       geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
       scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
@@ -840,7 +838,7 @@ function(input, output, session) {
       geom_vline(xintercept = 0) +
       coord_cartesian(xlim = c(0,max(piecewiseDemandData$Q)), ylim = c(0,chokes[length(chokes)]))
     demandPlot = ggplotly(demandPlot)
-
+    
     marketPlot = ggplot()+
       geom_line(data = individualDemandData, aes(x = Q, y = p, color = Demand_Function)) +
       scale_color_viridis_d(option = "viridis", begin = 0, end = .9, name = "Demand Function") +
