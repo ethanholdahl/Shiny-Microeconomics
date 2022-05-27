@@ -747,7 +747,7 @@ function(input, output, session) {
     for (i in 1:num){
       demandExpr = Ryacas::yac_expr(demandList[[i]])
       p = 0
-      chokeList[[i]] = yac_str(paste0("Solve(",D1,"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
+      chokeList[[i]] = yac_str(paste0("OldSolve(",D1,"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
       chokeVector = c(chokeVector, chokeList[[i]])
       demandNList[[i]] = Ryacas::yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
       demandNListExpanded[[i]] = Ryacas::yac('Expand(%)')
