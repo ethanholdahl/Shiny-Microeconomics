@@ -60,10 +60,12 @@ getKValues_Q = function(prodFun, L, Q){
   return(K)
 }
 
-makeIsoquantCurve = function(prodfun, Q, Lmax, precision = .01, color = "red"){
+makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
   prodFun = Ryacas::yac_expr(prodfun)
-  L = seq(0, Lmax, precision)
+  L = seq(0, LMax, length.out = smooth)
+  L = round(L, 2)
   K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
+  K = round(K, 2)
   isoquantCurve=tibble(L = L, K = K, Q = Q)
   if (class(color) == "numeric"){
     color = as.factor(color)
@@ -74,11 +76,13 @@ makeIsoquantCurve = function(prodfun, Q, Lmax, precision = .01, color = "red"){
   return(isoquantCurveGeom)
 }
 
-makeAllIsoquantCurves = function(prodfun, QList, Lmax, precision = .01){
+makeAllIsoquantCurves = function(prodfun, QList, LMax, smooth = 100){
   prodFun = Ryacas::yac_expr(prodfun)
-  L = seq(0, Lmax, precision)
+  L = seq(0, LMax, length.out = smooth)
+  L = round(L, 2)
   for (i in 1:length(QList)) {
     K = sapply(L, getKValues_Q, prodFun = prodFun, Q = QList[i])
+    K = round(K, 2)
     if (i == 1) {
       isoquantCurves = tibble(L = L, K = K, Q = QList[i])
     } else {
@@ -94,19 +98,112 @@ makeAllIsoquantCurves = function(prodfun, QList, Lmax, precision = .01){
 }
 
 
-ggplotly(ggplot()+
-  makeAllIsoquantCurves(prodfun, c(10,20,30,40,50), 20, precision = .1))
+### TEST ###
+MaxQ = 10
+NumCurves = 10
+LMax = 20
 
 
+QList = seq(from = MaxQ/NumCurves, to = MaxQ,length.out = NumCurves)
+plot = ggplot() +
+  makeAllIsoquantCurves(prodfun, QList, LMax, 100) +
+  scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
+  labs(color = "Q = f(K,L)") +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
+
+ggplotly(plot)
 
 
 ## MRTS
 
 # -> need production function
 
+makeMRTSCurve = function(prodfun, Q, LMax, smooth = 100){
+  prodFun = Ryacas::yac_expr(prodfun)
+  L = seq(0, LMax, length.out = smooth)
+  L = round(L, 2)
+  K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
+  K = round(K, 2)
+  MPL=Ryacas::yac_expr(Ryacas::yac_str(paste0("D(L) ",prodfun)))
+  MPK=Ryacas::yac_expr(Ryacas::yac_str(paste0("D(K) ",prodfun)))
+  isoquantCurve = tibble(L = L, K = K, Q = Q, MRTS_LK = eval(MPL)/eval(MPK))
+  MRTSCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = MRTS_LK))
+  MRTSPointsGeom = geom_point(data = isoquantCurve, aes(x = L, y = K, color = MRTS_LK))
+  return(list(MRTSCurveGeom, MRTSPointsGeom))
+}
+
+### TEST ###
+plot = ggplot()+
+  makeIsoquantCurve(prodfun, Q, LMax, color = "black") +
+  makeMRTSCurve(prodfun, Q, LMax, 1000)[2] +
+  makeMRTSCurve(prodfun, Q, LMax, 1000)[1] +
+  scale_color_viridis_c(option = "viridis", limits = c(0, 10), direction = -1) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
+ggplotly(plot)
+
 # Isocosts
 
 # -> need cost of inputs
+
+makeIsocostLine = function(r, w, C, color = "blue", linetype = "solid"){
+  L = seq(0, C/w, length.out = 100)
+  L = round(L, 2)
+  K = seq(C/r, 0, length.out = 100)
+  K = round(K, 2)
+  isocostLine = tibble(L = L, K = K)
+  isocostLineGeom = geom_path(data = isocostLine, aes(x=L, y=K), color = color, linetype = linetype)  
+  return(isocostLineGeom)
+}
+
+makeIsocostLines = function(wList, rList, CList, color = TRUE, linetype = "solid"){
+  #first make all lists the same length (should all be length 1 or n)
+  nLines = max(length(wList), length(rList), length(CList))
+  if(length(wList) != nLines){
+    wList = rep(wList, nLines)
+  }
+  if(length(rList) != nLines){
+    rList = rep(rList, nLines)
+  }
+  if(length(CList) != nLines){
+    CList = rep(CList, nLines)
+  }
+  L = as.vector(sapply(CList/wList, seq, from = 0, length.out = 100))
+  L = round(L, 2)
+  K = as.vector(sapply(CList/rList, seq, to = 0, length.out = 100))
+  K = round(K, 2)
+  Isocost_Lines = L
+  for(i in 0:(nLines-1)){
+    Isocost_Lines[(i*100+1):(i*100+100)] = rep(paste0(" C = ", CList[(i+1)], ", w = ", wList[(i+1)], ", r = ", rList[(i+1)]), 100)
+  }
+  isocostLineData = tibble(L = L, K = K, Isocost_Lines = Isocost_Lines)
+  isocostLineData$Isocost_Lines = factor(isocostLineData$Isocost_Lines, levels = unique(isocostLineData$Isocost_Lines))
+  if(color == TRUE){
+    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, color = Isocost_Lines), linetype = linetype)
+  } else {
+    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, group = Isocost_Lines), color = color, linetype = linetype)
+  }
+  return(isocostLinesGeom)
+}
+
+isocostLineData$Isocost_Lines = factor(isocostLineData$Isocost_Lines, levels = unique(isocostLineData$Isocost_Lines))
+
+### TEST ###
+CList = seq(10,100,10)
+rList = 2
+wList = 2
+C = 100
+
+plot = ggplot() +
+  makeIsocostLines(r, w, CList) +
+  scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7, direction = -1) +
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)
+
+ggplotly(plot)
 
 ## Cost Minimization
 
