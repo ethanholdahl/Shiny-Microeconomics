@@ -738,6 +738,60 @@ fluidPage(
                value = "DemandGraphs",
                h1("Coming Soon"))
     ),
+    
+    ###### Production ######
+    navbarMenu(
+      "Production",
+      tabPanel("Study",
+        value = "ProductionStudy",
+        h1("Chapter 6: Production"),
+        p(
+          "Class Notes and interactive content to help make the concepts more engaging"
+        ),
+      ),
+      tabPanel("Practice",
+               value = "ProductionPractice",
+               h1("Coming Soon")),
+      tabPanel("Graphs",
+               value = "ProductionGraphs",
+               h1("Coming Soon"))
+    ),
+    
+    ###### Costs ######
+    navbarMenu(
+      "Costs",
+      tabPanel("Study",
+               value = "CostsStudy",
+               h1("Chapter 7: Costs"),
+               p(
+                 "Class Notes and interactive content to help make the concepts more engaging"
+               ),
+      ),
+      tabPanel("Practice",
+               value = "CostsPractice",
+               h1("Coming Soon")),
+      tabPanel("Graphs",
+               value = "CostsGraphs",
+               h1("Coming Soon"))
+    ),
+    
+    ###### Market Structures ######
+    navbarMenu(
+      "Market Structures",
+      tabPanel("Study",
+               value = "MarketStudy",
+               h1("Chapter 8,9,11: Market Structures"),
+               p(
+                 "Class Notes and interactive content to help make the concepts more engaging"
+               ),
+      ),
+      tabPanel("Practice",
+               value = "MarketPractice",
+               h1("Coming Soon")),
+      tabPanel("Graphs",
+               value = "MarketGraphs",
+               h1("Coming Soon"))
+    ),
     tabPanel("Graphs",
              value = "Graphs",
              h1("Coming Soon")),
