@@ -43,9 +43,6 @@ N = 50
 
 # -> need production function
 
-prodfun = "K^(.5)*L^(.5)"
-prodFun = Ryacas::yac_expr(prodfun)
-
 getQValue_Q = function(prodFun, K, L) {
   Q <- eval(prodFun) 
   return(Q)
@@ -99,6 +96,8 @@ makeAllIsoquantCurves = function(prodfun, QList, LMax, smooth = 100){
 
 
 ### TEST ###
+prodfun = "K^(.5)*L^(.5)"
+prodFun = Ryacas::yac_expr(prodfun)
 MaxQ = 10
 NumCurves = 10
 LMax = 20
@@ -193,8 +192,8 @@ isocostLineData$Isocost_Lines = factor(isocostLineData$Isocost_Lines, levels = u
 
 ### TEST ###
 CList = seq(10,100,10)
-rList = 2
-wList = 2
+r = 2
+w = 2
 C = 100
 
 plot = ggplot() +
@@ -212,6 +211,91 @@ ggplotly(plot)
 # -> need production function
 
 # -> need cost of inputs
+prodfun = "K + L"
+prodfun = "K + L^3 - L^2"
+prodfun = "K^(.5)*L^(.5)"
+prodFun = Ryacas::yac_expr(prodfun)
+Q = 100
+r = 2
+w = 2
+
+makeCostMin_Point = function(prodfun, Q, w, r, color = "black", size = 3){
+  bundle = optimalBundle(Ufun, Px, Py, I)
+  x = bundle[1]
+  y = bundle[2]
+  optimalBundle_PointGeom = annotate("point", x = x, y = y, color = color, size = size)
+  return(optimalBundle_PointGeom)
+}
+
+
+costMin = function(prodfun, w, r, Q = TRUE) {
+  Qval = Q
+  K = caracas::symbol('K')
+  L = caracas::symbol('L')
+  Q = caracas::symbol('Q')
+  prodFun = caracas::as_sym(prodfun)
+  MPL = caracas::der(prodFun, L)
+  MPK = caracas::der(prodFun, K)
+  #Test if K or L do not have constant returns to scale 
+  KisVar = caracas::tex(caracas::der(MPL/MPK, K)) != 0
+  LisVar = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+  prodFunExpr = caracas::as_expr(prodfun)
+  if(!LisVar & !KisVar){
+    #Perfect substitutes
+    if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
+      #L more economical at all input levels
+      Kexpansion = 0
+      prodFunLR_L = caracas::subs(prodFun, K, 0)
+      Lexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_L, Q, L)[[1]]$L)
+    } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
+      #K more economical at all input levels
+      Lexpansion = 0
+      prodFunLR_K = caracas::subs(prodFun, L, 0)
+      Kexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K)
+    } else {
+      # L and K equally economical at all input levels
+      # Set K = L (arbitrarily)
+      prodFunLR_K = caracas::subs(prodFun, L, K)
+      Kexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K)
+      prodFunLR_L = caracas::subs(prodFun, K, L)
+      Lexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_L, Q, L)[[1]]$L)
+    }
+  }
+  if(LisVar) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
+  if(KisVar) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+  prodFunLR_K = caracas::subs(prodFun, L, Lexpansion)
+  solK = caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K
+  solL = caracas::subs(Lexpansion, K, solK)
+  if (class(MUx) == "numeric" & class(MUy) == "numeric") {
+    #linear utility function. Likely want corner Solution
+    if ((MUx / Px) > (MUy / Py)) {
+      #spend all $ on good x
+      bundle = c(I / Px, 0)
+    } else {
+      if ((MUx / Px) < (MUy / Py)) {
+        #spend all $ on good y
+        bundle = c(0, I / Py)
+      } else {
+        #equality. Any allocation works. Default to spend all $ such that x=y
+        bundle = c(I / (Px + Py), I / (Px + Py))
+      }
+    }
+  } else {
+    #not linear, use exactBundle()
+    bundle = exactBundle(Ufun, Px, Py, I)
+    #check for negatives
+    if (bundle[1] < 0){
+      #spend all $ on good y
+      bundle = c(0, I / Py)
+    } else {
+      if(bundle[2] < 0){
+        #spend all $ on good x
+        bundle = c(I / Px, 0)
+      }
+    }
+  }
+  return(bundle)
+}
 
 ## Firm's SR Expansion Path
 
@@ -266,4 +350,7 @@ ggplotly(plot)
 
 
 
-
+install.packages('caracas')
+if (!caracas::has_sympy()) {
+  caracas::install_sympy() 
+}
