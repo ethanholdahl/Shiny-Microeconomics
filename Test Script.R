@@ -212,6 +212,7 @@ ggplotly(plot)
 
 # -> need cost of inputs
 prodfun = "K + L"
+prodfun = "K + L^2"
 prodfun = "K + L^3 - L^2"
 prodfun = "K^(.5)*L^(.5)"
 prodFun = Ryacas::yac_expr(prodfun)
@@ -240,29 +241,106 @@ costMin = function(prodfun, w, r, Q = TRUE) {
   KisVar = caracas::tex(caracas::der(MPL/MPK, K)) != 0
   LisVar = caracas::tex(caracas::der(MPL/MPK, L)) != 0
   prodFunExpr = caracas::as_expr(prodfun)
+  prodFunLR = list()
+  Kexpansion = list()
+  Lexpansion = list()
   if(!LisVar & !KisVar){
     #Perfect substitutes
     if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
       #L more economical at all input levels
-      Kexpansion = 0
-      prodFunLR_L = caracas::subs(prodFun, K, 0)
-      Lexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_L, Q, L)[[1]]$L)
+      Kexpansion[[1]] = 0
+      prodFunLR[[1]] = caracas::subs(prodFun, K, 0)
+      Lexpansion[[1]] = caracas::as_expr(caracas::solve_sys(prodFunLR[[1]], Q, L)[[1]]$L)
     } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
       #K more economical at all input levels
-      Lexpansion = 0
-      prodFunLR_K = caracas::subs(prodFun, L, 0)
-      Kexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K)
+      Lexpansion[[1]] = 0
+      prodFunLR[[1]] = caracas::subs(prodFun, L, 0)
+      Kexpansion[[1]] = caracas::as_expr(caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K)
     } else {
       # L and K equally economical at all input levels
       # Set K = L (arbitrarily)
-      prodFunLR_K = caracas::subs(prodFun, L, K)
-      Kexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K)
-      prodFunLR_L = caracas::subs(prodFun, K, L)
-      Lexpansion = caracas::as_expr(caracas::solve_sys(prodFunLR_L, Q, L)[[1]]$L)
+      prodFunLR[[1]] = caracas::subs(prodFun, L, K)
+      Kexpansion[[1]] = caracas::as_expr(caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K)
+      Lexpansion[[1]] = Kexpansion[[1]]
     }
   }
   if(LisVar) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
   if(KisVar) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+  if(!LisVar | !KisVar){
+    #One input has constant, independent returns. Likely to yield a corner solution.
+    if(LisVar){
+      #K has constant returns
+      #search for critical values to test for corner solutions
+      #add 0 to critical value
+      Lcrit = c(0)
+      for(i in 1:length(Lcritical)){
+        crit = caracas::as_expr(Lcritical[[i]]$L)
+        if(crit > 0){
+          #restrict critical values to be positive
+          Lcrit = c(Lcrit, crit)
+        }
+      }
+      lenLcrit = length(Lcrit)
+      for(i in 1:lenLcrit){
+        Lexpansion[[i]] = Lcrit[i]
+        prodFunLR[[i]] = caracas::subs(prodFun, L, Lcrit[i])
+        Kexpansion[[i]] = caracas::as_expr(caracas::solve_sys(prodFunLR[[i]], Q, K)[[1]]$K)
+      }
+      #add K = 0 to critical value
+      Kexpansion[[lenLcrit+1]] = 0
+      prodFunLR[[lenLcrit+1]] = caracas::subs(prodFun, K, 0)
+      results = caracas::solve_sys(prodFunLR[[lenLcrit+1]], Q, L)
+      Q = 10
+      j = 0
+      for(i in 1:length(results)){
+        if(!is.complex(eval(caracas::as_expr(results[[i]]$L)))){
+          j = j + 1
+          Kexpansion[[lenLcrit+j]] = 0
+          prodFunLR[[lenLcrit+j]] = prodFunLR[[lenLcrit+1]]
+          Lexpansion[[lenLcrit+j]]= caracas::as_expr(results[[i]]$L)
+        }
+      }
+      Q = caracas::symbol('Q')
+    } else {
+      #L has constant returns
+      #search for critical values to test for corner solutions
+      #add 0 to critical value
+      Kcrit = c(0)
+      for(i in 1:length(Kcritical)){
+        crit = caracas::as_expr(Kcritical[[i]]$K)
+        if(crit > 0){
+          #restrict critical values to be positive
+          Kcrit = c(Kcrit, crit)
+        }
+      }
+      lenKcrit = length(Kcrit)
+      for(i in 1:lenKcrit){
+        Kexpansion[[i]] = Kcrit[i]
+        prodFunLR[[i]] = caracas::subs(prodFun, K, Kcrit[i])
+        Lexpansion[[i]] = caracas::as_expr(caracas::solve_sys(prodFunLR[[i]], Q, L)[[1]]$L)
+      }
+      #add L = 0 to critical value
+      Lexpansion[[lenKcrit+1]] = 0
+      prodFunLR[[lenKcrit+1]] = caracas::subs(prodFun, L, 0)
+      results = caracas::solve_sys(prodFunLR[[lenKcrit+1]], Q, K)
+      Q = 10
+      j = 0
+      for(i in 1:length(results)){
+        if(!is.complex(eval(caracas::as_expr(results[[i]]$K)))){
+          j = j + 1
+          Lexpansion[[lenKcrit+j]] = 0
+          prodFunLR[[lenKcrit+j]] = prodFunLR[[lenKcrit+1]]
+          Kexpansion[[lenKcrit+j]]= caracas::as_expr(results[[i]]$K)
+        }
+      }
+      Q = caracas::symbol('Q')
+    }
+  } else {
+    #Neither input has constant, independent returns. Likely interior solution
+    
+  }
+  
+  
   prodFunLR_K = caracas::subs(prodFun, L, Lexpansion)
   solK = caracas::solve_sys(prodFunLR_K, Q, K)[[1]]$K
   solL = caracas::subs(Lexpansion, K, solK)
