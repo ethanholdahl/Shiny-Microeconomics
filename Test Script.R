@@ -213,19 +213,24 @@ ggplotly(plot)
 # -> need cost of inputs
 prodfun = "K + L"
 prodfun = "K + L^2"
-prodfun = "K + L^2 + L"
+prodfun = "K + L^3 - L^2"
 prodfun = "K^.5*L^.5"
 prodfun = "K^3+K^(.5)*L^(.5)"
 Q = 100
 r = 2
 w = 2
 
-makeCostMin_Point = function(prodfun, Q, w, r, color = "black", size = 3){
-  bundle = optimalBundle(Ufun, Px, Py, I)
-  x = bundle[1]
-  y = bundle[2]
-  optimalBundle_PointGeom = annotate("point", x = x, y = y, color = color, size = size)
-  return(optimalBundle_PointGeom)
+makeCostMinPoint = function(ProductionLR, Q, color = "black", size = 3){
+  #ProductionLR may be piecewise. Need to find correct piece.
+  for(i in 1:length(ProductionLR)){
+    if(ProductionLR[[i]]$Qmin < Q && ProductionLR[[i]]$Qmax > Q) break
+  }
+  point = "Cost Minimization Solution"
+  L = eval(caracas::as_expr(ProductionLR[[i]]$Lexpansion))
+  K = eval(caracas::as_expr(ProductionLR[[i]]$Kexpansion))
+  data = tibble(L = L, K = K, point = point)
+  Point_Geom = geom_point(data = data, aes(x = L, y = K, group = point), color = color, size = size)
+  return(Point_Geom)
 }
 
 calculateProductionLR = function(prodfun, w, r) {
@@ -241,6 +246,7 @@ calculateProductionLR = function(prodfun, w, r) {
   prodFunLR = list()
   Kexpansion = list()
   Lexpansion = list()
+  j = 0
   if(!LisVar & !KisVar){
     #Perfect substitutes
     if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
@@ -261,6 +267,8 @@ calculateProductionLR = function(prodfun, w, r) {
       Lexpansion[[1]] = Kexpansion[[1]]
     }
   }
+  Lcritical = c()
+  Kcritical = c()
   if(LisVar) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
   if(KisVar) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
   if(LisVar | KisVar){
@@ -280,17 +288,12 @@ calculateProductionLR = function(prodfun, w, r) {
       prodFunLR_try = caracas::subs(prodFun, L, Lcrit[[i]])
       results = caracas::solve_sys(prodFunLR_try, Q, K)
       if(length(results)==0) next
-      Q = 10
-      j = length(prodFunLR)
       for(k in 1:length(results)){
-        if(!is.complex(eval(caracas::as_expr(results[[k]]$K)))){
-          j = j + 1
-          Lexpansion[[j]] = Lexpansion_try
-          prodFunLR[[j]] = prodFunLR_try
-          Kexpansion[[j]]= results[[k]]$K
-        }
+        j = j + 1
+        Lexpansion[[j]] = Lexpansion_try
+        prodFunLR[[j]] = prodFunLR_try
+        Kexpansion[[j]]= results[[k]]$K
       }
-      Q = caracas::symbol('Q')
     }
     #Kcrit second
     #add 0 to critical value
@@ -306,17 +309,12 @@ calculateProductionLR = function(prodfun, w, r) {
       prodFunLR_try = caracas::subs(prodFun, K, Kcrit[[i]])
       results = caracas::solve_sys(prodFunLR_try, Q, L)
       if(length(results)==0) next
-      Q = 10
-      j = length(prodFunLR)
       for(k in 1:length(results)){
-        if(!is.complex(eval(caracas::as_expr(results[[k]]$L)))){
           j = j + 1
           Kexpansion[[j]] = Kexpansion_try
           prodFunLR[[j]] = prodFunLR_try
           Lexpansion[[j]]= results[[k]]$L
-        }
       }
-      Q = caracas::symbol('Q')
     }
   }
   
@@ -417,7 +415,20 @@ calculateProductionLR = function(prodfun, w, r) {
   return(LRExpansion)
 }
 
+
+ggplotly(ggplot() + makeCostMinPoint(ProductionLR, Q))
+
+
+
+
 calculateProductionLR(prodfun, w, r)
+
+# add try()
+ProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
+if (inherits(ProductionLR, "try-error")){
+  #USE seq(), min(), and max() to graph lines
+}
+
 ## Firm's SR Expansion Path
 
 # -> need production function
