@@ -216,7 +216,6 @@ prodfun = "K + L^2"
 prodfun = "K + L^2 + L"
 prodfun = "K^.5*L^.5"
 prodfun = "K^3+K^(.5)*L^(.5)"
-prodFun = Ryacas::yac_expr(prodfun)
 Q = 100
 r = 2
 w = 2
@@ -328,7 +327,7 @@ calculateProductionLR = function(prodfun, w, r) {
   #Calculate LR cost curve under possible solutions
   for(i in 1:length(prodFunLR)){
     KinL = caracas::tex(caracas::der(Lexpansion[[i]],K))!=0
-    LinK = caracas::tex(caracas::der(Kexpansion[[i]],Q))!=0
+    LinK = caracas::tex(caracas::der(Kexpansion[[i]],L))!=0
     if(LinK) Kexpansion[[i]] = caracas::subs(Kexpansion[[i]], L, Lexpansion[[i]])
     if(KinL) Lexpansion[[i]] = caracas::subs(Lexpansion[[i]], K, Kexpansion[[i]])
     LRcost[[i]] = Lexpansion[[i]]*w + Kexpansion[[i]]*r
