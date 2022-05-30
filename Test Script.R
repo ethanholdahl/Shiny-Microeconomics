@@ -107,6 +107,7 @@ QList = seq(from = MaxQ/NumCurves, to = MaxQ,length.out = NumCurves)
 plot = ggplot() +
   makeAllIsoquantCurves(prodfun, QList, LMax, 100) +
   scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
+  #makeIsoquantCurve(prodfun, 11, LMax) +
   labs(color = "Q = f(K,L)") +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
@@ -127,13 +128,15 @@ makeMRTSCurve = function(prodfun, Q, LMax, smooth = 100){
   K = round(K, 2)
   MPL=Ryacas::yac_expr(Ryacas::yac_str(paste0("D(L) ",prodfun)))
   MPK=Ryacas::yac_expr(Ryacas::yac_str(paste0("D(K) ",prodfun)))
-  isoquantCurve = tibble(L = L, K = K, Q = Q, MRTS_LK = eval(MPL)/eval(MPK))
+  isoquantCurve = tibble(L = L, K = K, Q = Q, MRTS_LK = round(eval(MPL)/eval(MPK), 2))
   MRTSCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = MRTS_LK))
   MRTSPointsGeom = geom_point(data = isoquantCurve, aes(x = L, y = K, color = MRTS_LK))
   return(list(MRTSCurveGeom, MRTSPointsGeom))
 }
 
 ### TEST ###
+Q = 10
+
 plot = ggplot()+
   makeIsoquantCurve(prodfun, Q, LMax, color = "black") +
   makeMRTSCurve(prodfun, Q, LMax, 1000)[2] +
@@ -153,8 +156,9 @@ makeIsocostLine = function(r, w, C, color = "blue", linetype = "solid"){
   L = round(L, 2)
   K = seq(C/r, 0, length.out = 100)
   K = round(K, 2)
-  isocostLine = tibble(L = L, K = K)
-  isocostLineGeom = geom_path(data = isocostLine, aes(x=L, y=K), color = color, linetype = linetype)  
+  Isocost_Line = rep(paste0(" C = ", C, ", w = ", w, ", r = ", r))
+  isocostLine = tibble(L = L, K = K, Isocost_Line = Isocost_Line)
+  isocostLineGeom = geom_path(data = isocostLine, aes(x = L, y = K, group = Isocost_Line), color = color, linetype = linetype)  
   return(isocostLineGeom)
 }
 
@@ -188,16 +192,17 @@ makeIsocostLines = function(wList, rList, CList, color = TRUE, linetype = "solid
   return(isocostLinesGeom)
 }
 
-isocostLineData$Isocost_Lines = factor(isocostLineData$Isocost_Lines, levels = unique(isocostLineData$Isocost_Lines))
+
 
 ### TEST ###
 CList = seq(10,100,10)
 r = 2
 w = 2
-C = 100
+C = 110
 
 plot = ggplot() +
   makeIsocostLines(r, w, CList) +
+  makeIsocostLine(r, w, C) +
   scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7, direction = -1) +
   geom_hline(yintercept = 0)+
   geom_vline(xintercept = 0)
@@ -219,19 +224,6 @@ prodfun = "K^3+K^(.5)*L^(.5)"
 Q = 100
 r = 2
 w = 2
-
-makeCostMinPoint = function(ProductionLR, Q, color = "black", size = 3){
-  #ProductionLR may be piecewise. Need to find correct piece.
-  for(i in 1:length(ProductionLR)){
-    if(ProductionLR[[i]]$Qmin < Q && ProductionLR[[i]]$Qmax > Q) break
-  }
-  point = "Cost Minimization Solution"
-  L = eval(caracas::as_expr(ProductionLR[[i]]$Lexpansion))
-  K = eval(caracas::as_expr(ProductionLR[[i]]$Kexpansion))
-  data = tibble(L = L, K = K, point = point)
-  Point_Geom = geom_point(data = data, aes(x = L, y = K, group = point), color = color, size = size)
-  return(Point_Geom)
-}
 
 calculateProductionLR = function(prodfun, w, r) {
   K = caracas::symbol('K')
@@ -310,10 +302,10 @@ calculateProductionLR = function(prodfun, w, r) {
       results = caracas::solve_sys(prodFunLR_try, Q, L)
       if(length(results)==0) next
       for(k in 1:length(results)){
-          j = j + 1
-          Kexpansion[[j]] = Kexpansion_try
-          prodFunLR[[j]] = prodFunLR_try
-          Lexpansion[[j]]= results[[k]]$L
+        j = j + 1
+        Kexpansion[[j]] = Kexpansion_try
+        prodFunLR[[j]] = prodFunLR_try
+        Lexpansion[[j]]= results[[k]]$L
       }
     }
   }
@@ -370,7 +362,7 @@ calculateProductionLR = function(prodfun, w, r) {
   } else {
     Qbins = c(0, 2)
   }
-    Qtests = c()
+  Qtests = c()
   for(i in 1:(length(Qbins)-1)){
     Qtests = c(Qtests, (Qbins[i] + Qbins[i+1])/2)
   }
@@ -415,19 +407,43 @@ calculateProductionLR = function(prodfun, w, r) {
   return(LRExpansion)
 }
 
+# add try()
+ProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
+if (inherits(ProductionLR, "try-error")){
+  #USE seq(), min(), and max() to graph lines
+}
 
-ggplotly(ggplot() + makeCostMinPoint(ProductionLR, Q))
+for(i in 1:length(ProductionLR)){
+  if(ProductionLR[[i]]$Qmin < Q && ProductionLR[[i]]$Qmax > Q) break
+}
+ProductionLR_Q = ProductionLR[[i]]
+C = eval(caracas::as_expr(ProductionLR_Q$cost))
+
+
+makeCostMinPoint = function(ProductionLR_Q, Q, color = "black", size = 3){
+  #ProductionLR may be piecewise. Need to find correct piece.
+  point = "Cost Minimization Solution"
+  L = eval(caracas::as_expr(ProductionLR_Q$Lexpansion))
+  K = eval(caracas::as_expr(ProductionLR_Q$Kexpansion))
+  data = tibble(L = L, K = K, point = point)
+  Point_Geom = geom_point(data = data, aes(x = L, y = K, group = point), color = color, size = size)
+  return(Point_Geom)
+}
+
+
+LMax = 200
+
+ggplotly(ggplot() + 
+           makeIsocostLine(r, w, C) +
+           makeIsoquantCurve(prodfun, Q, LMax) +
+           makeCostMinPoint(ProductionLR_Q, Q))
 
 
 
 
 calculateProductionLR(prodfun, w, r)
 
-# add try()
-ProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
-if (inherits(ProductionLR, "try-error")){
-  #USE seq(), min(), and max() to graph lines
-}
+
 
 ## Firm's SR Expansion Path
 
