@@ -4,6 +4,11 @@ install.packages("tidyverse")
 install.packages("ggplot2")
 install.packages("plotly")
 install.packages("ggnewscale")
+install.packages('caracas')
+if (!caracas::has_sympy()) {
+  caracas::install_sympy() 
+}
+library(caracas)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
@@ -111,10 +116,8 @@ LMax = 20
 
 QList = seq(from = MaxQ/NumCurves, to = MaxQ,length.out = NumCurves)
 plot = ggplot() +
-  makeAllIsoquantCurves(prodfun, QList, LMax, 100) +
-  scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
-  #makeIsoquantCurve(prodfun, 11, LMax) +
-  labs(color = "Q = f(K,L)") +
+  makeAllIsoquantCurves(prodfun, QList, LMax, smooth = 100) +
+  scale_color_viridis_d("Q = f(K,L)", begin = .25, end = .85, option="plasma") +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
   coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
@@ -184,16 +187,16 @@ makeAllIsocostLines = function(wList, rList, CList, color = TRUE, linetype = "so
   L = round(L, 2)
   K = as.vector(sapply(CList/rList, seq, to = 0, length.out = 100))
   K = round(K, 2)
-  Isocost_Lines = L
+  Isocost_Line = L
   for(i in 0:(nLines-1)){
-    Isocost_Lines[(i*100+1):(i*100+100)] = rep(paste0(" C = ", CList[(i+1)], ", w = ", wList[(i+1)], ", r = ", rList[(i+1)]), 100)
+    Isocost_Line[(i*100+1):(i*100+100)] = rep(paste0(" C = ", CList[(i+1)], ", w = ", wList[(i+1)], ", r = ", rList[(i+1)]), 100)
   }
-  isocostLineData = tibble(L = L, K = K, Isocost_Lines = Isocost_Lines)
-  isocostLineData$Isocost_Lines = factor(isocostLineData$Isocost_Lines, levels = unique(isocostLineData$Isocost_Lines))
+  isocostLineData = tibble(L = L, K = K, Isocost_Line = Isocost_Line)
+  isocostLineData$Isocost_Line = factor(isocostLineData$Isocost_Line, levels = unique(isocostLineData$Isocost_Line))
   if(color == TRUE){
-    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, color = Isocost_Lines), linetype = linetype)
+    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, color = Isocost_Line), linetype = linetype)
   } else {
-    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, group = Isocost_Lines), color = color, linetype = linetype)
+    isocostLinesGeom = geom_line(data = isocostLineData, aes(x = L, y = K, group = Isocost_Line), color = color, linetype = linetype)
   }
   return(isocostLinesGeom)
 }
@@ -207,9 +210,9 @@ w = 2
 C = 110
 
 plot = ggplot() +
-  makeIsocostLines(r, w, CList) +
-  makeIsocostLine(r, w, C) +
-  scale_color_viridis_d("Budget Lines", option = "mako", begin = .3, end = .7, direction = -1) +
+  makeAllIsocostLines(r, w, CList) +
+  #makeIsocostLine(r, w, C) +
+  scale_color_viridis_d("Isocost Lines", option = "mako", begin = .3, end = .7, direction = 1) +
   geom_hline(yintercept = 0)+
   geom_vline(xintercept = 0)
 
@@ -226,7 +229,6 @@ prodfun = "K + L"
 prodfun = "K + L^2"
 prodfun = "K + L^3 - L^2"
 prodfun = "K^.5*L^.5"
-prodfun = "K^3+K^(.5)*L^(.5)"
 Q = 100
 r = 2
 w = 2
@@ -452,8 +454,8 @@ ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
 C = findVarsQ(ProductionLR, Q)[[2]]
 L = findVarsQ(ProductionLR, Q)[[3]]
 K = findVarsQ(ProductionLR, Q)[[4]]
-LMax = 2*C/w
-KMax = 2*C/r
+LMax = 1.5*C/w
+KMax = 1.5*C/r
 
 ggplotly(ggplot() + 
            makeIsocostLine(r, w, C) +
@@ -544,7 +546,8 @@ makeLRExpansion = function(ProductionLR, QMax, color = "darkgreen"){
   rProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
   if (inherits(ProductionLR, "try-error")){
     #USE seq(), min(), and max() to graph lines
-  }esult = sapply(Q, findVarsQ, ProductionLR = ProductionLR)
+  }
+  result = sapply(Q, findVarsQ, ProductionLR = ProductionLR)
   L = round(unlist(result[3,]),2)
   K = round(unlist(result[4,]),2)
   Line = "Long Run Expansion Path"
@@ -566,8 +569,8 @@ ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
 C = findVarsQ(ProductionLR, Q)[[2]]
 L = findVarsQ(ProductionLR, Q)[[3]]
 K = findVarsQ(ProductionLR, Q)[[4]]
-LMax = 2*C/w
-KMax = 2*C/r
+LMax = 1.5*C/w
+KMax = 1.5*C/r
 
 ggplotly(ggplot() + 
            makeIsocostLine(r, w, C) +
@@ -623,14 +626,58 @@ ggplotly(ggplot() +
 )
 
 
+makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
+  QList = seq(QMax/QNum, QMax, length.out = QNum)
+  ProductionLR = calculateProductionLR(prodfun, w, r)
+  results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
+  CList = unlist(results[2,])
+  LMax = max(CList)/w
+  KMax = max(CList)/r
+  plotly = ggplotly(ggplot() +
+    makeAllIsocostLines(r, w, CList, color = "blue") +
+    makeAllIsoquantCurves(prodfun, QList, LMax*1.5, smooth = smooth) +
+    scale_color_viridis_d("Q = f(K,L)", begin = .25, end = .85, option="plasma") +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    makeLRExpansion(ProductionLR, QMax*2) +
+    coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+  )
+  plot = ggplot() +
+    makeAllIsocostLines(r, w, CList) +
+    scale_color_viridis_d("Isocost Lines", option = "mako", begin = .3, end = .7, direction = 1) +
+    new_scale("color") +
+    makeAllIsoquantCurves(prodfun, QList, LMax*1.5, smooth = smooth) +
+    scale_color_viridis_d("Q = f(K,L)", begin = .25, end = .85, option="plasma") +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    makeLRExpansion(ProductionLR, QMax*2) +
+    coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+  return(list(plotly, plot))
+}
 
+test = makeFirmExpansionGraph(prodfun, 200, 10, 2, 2)
+test[[1]]
+test[[2]]
 
+QMax = 200
+QNum = 10
+QList = seq(QMax/QNum, QMax, length.out = QNum)
+results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
+CList = unlist(results[2,])
+LMax = max(CList)/w
+KMax = max(CList)/r
+smooth = 1000
 
+ggplotly(ggplot() +
+           makeAllIsocostLines(r, w, CList, color = "blue") +
+           makeAllIsoquantCurves(prodfun, QList, LMax*2, smooth = smooth) +
+           scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
+           geom_hline(yintercept = 0) +
+           geom_vline(xintercept = 0) +
+           makeLRExpansion(ProductionLR, QMax*2) +
+           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+)
 
-
-## Returns to Scale
-
-# -> need production function
 
 ######### COSTS ###########
 # Total Cost Curve (TC = VC + FC)
@@ -665,13 +712,3 @@ ggplotly(ggplot() +
 
 ######### OLIGOPOLY ##########
 
-
-
-
-
-
-
-install.packages('caracas')
-if (!caracas::has_sympy()) {
-  caracas::install_sympy() 
-}
