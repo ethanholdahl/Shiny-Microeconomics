@@ -1,14 +1,14 @@
 #Fix bug that occurs when eliminated game is 1x2 or 2x1
 
-install.packages("tidyverse")
-install.packages("ggplot2")
-install.packages("plotly")
-install.packages("ggnewscale")
-install.packages('caracas')
+#install.packages("tidyverse")
+#install.packages("ggplot2")
+#install.packages("plotly")
+#install.packages("ggnewscale")
+#install.packages('caracas')
+library(caracas)
 if (!caracas::has_sympy()) {
   caracas::install_sympy() 
 }
-library(caracas)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
@@ -69,17 +69,18 @@ makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
   L = round(L, 2)
   K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
   K = round(K, 2)
-  isoquantCurve=tibble(L = L, K = K, Q = Q)
+  isoquantCurve=tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", Q))
   if (class(color) == "numeric"){
     color = as.factor(color)
-    isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = color))
+    isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = Isoquant_Line))
   } else {
-    isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Q), color = color)
+    isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Isoquant_Line), color = color)
   }
   return(isoquantCurveGeom)
 }
 
 makeAllIsoquantCurves = function(prodfun, QList, LMax, color = TRUE, smooth = 100){
+  QList = sort(QList)
   prodFun = Ryacas::yac_expr(prodfun)
   L = seq(0, LMax, length.out = smooth)
   L = round(L, 2)
@@ -87,20 +88,21 @@ makeAllIsoquantCurves = function(prodfun, QList, LMax, color = TRUE, smooth = 10
     K = sapply(L, getKValues_Q, prodFun = prodFun, Q = QList[i])
     K = round(K, 2)
     if (i == 1) {
-      isoquantCurves = tibble(L = L, K = K, Q = QList[i])
+      isoquantCurves = tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", QList[i]))
     } else {
-      new_q = tibble(L = L, K = K, Q = QList[i])
+      new_q = tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", QList[i]))
       isoquantCurves = isoquantCurves %>%
         bind_rows(new_q, id = NULL)
     }
   }
+  isoquantCurves$Isoquant_Line = factor(isoquantCurves$Isoquant_Line, levels = unique(isoquantCurves$Isoquant_Line))
   isoquantCurves = isoquantCurves %>%
     arrange(as.numeric(Q)) %>%
     mutate(Q = as.factor(Q))
   if(color == TRUE){
-    isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, color = Q))
+    isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, color = Isoquant_Line))
   } else {
-    isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, group = Q), color = color)
+    isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, group = Isoquant_Line), color = color)
   }
   return(isoquantCurvesGeom)
 }
@@ -144,17 +146,26 @@ makeMRTSCurve = function(prodfun, Q, LMax, smooth = 100){
 }
 
 ### TEST ###
+
+makeMRTSCurveGraph = function(prodfun, Q, LMax, smooth = 1000){
+  MRTSCurve = makeMRTSCurve(prodfun, Q, LMax, smooth = smooth)
+  plotly = ggplotly(ggplot() +
+                      makeIsoquantCurve(prodfun, Q, LMax, color = "black") +
+                      MRTSCurve[[2]] +
+                      MRTSCurve[[1]] +
+                      scale_color_viridis_c(option = "viridis", limits = c(0, 10), direction = -1) +
+                      geom_hline(yintercept = 0) +
+                      geom_vline(xintercept = 0) +
+                      coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
+  )
+  return(plotly)
+}
+
+prodfun = "K^(.5)*L^(.5)"
+LMax = 40
 Q = 10
 
-plot = ggplot()+
-  makeIsoquantCurve(prodfun, Q, LMax, color = "black") +
-  makeMRTSCurve(prodfun, Q, LMax, 1000)[2] +
-  makeMRTSCurve(prodfun, Q, LMax, 1000)[1] +
-  scale_color_viridis_c(option = "viridis", limits = c(0, 10), direction = -1) +
-  geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0) +
-  coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
-ggplotly(plot)
+makeMRTSCurveGraph(prodfun, Q, LMax, smooth = 1000)
 
 # Isocosts
 
@@ -449,23 +460,27 @@ if (inherits(ProductionLR, "try-error")){
 }
 
 
+makeCostMinGraph = function(prodfun, w, r, smooth = 100){
+  ProductionLR = calculateProductionLR(prodfun, w, r)
+  ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
+  C = findVarsQ(ProductionLR, Q)[[2]]
+  L = findVarsQ(ProductionLR, Q)[[3]]
+  K = findVarsQ(ProductionLR, Q)[[4]]
+  LMax = 1.5*C/w
+  KMax = 1.5*C/r
+  
+  plotly = ggplotly(ggplot() + 
+             makeIsocostLine(r, w, C) +
+             makeIsoquantCurve(prodfun, Q, LMax, smooth = smooth) +
+             makeCostMinPoints(ProductionLR, Q) +
+             geom_hline(yintercept = 0) +
+             geom_vline(xintercept = 0) +
+             coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+  )
+  return(plotly)
+}
 
-ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
-C = findVarsQ(ProductionLR, Q)[[2]]
-L = findVarsQ(ProductionLR, Q)[[3]]
-K = findVarsQ(ProductionLR, Q)[[4]]
-LMax = 1.5*C/w
-KMax = 1.5*C/r
-
-ggplotly(ggplot() + 
-           makeIsocostLine(r, w, C) +
-           makeIsoquantCurve(prodfun, Q, LMax) +
-           makeCostMinPoints(ProductionLR, Q) +
-           geom_hline(yintercept = 0) +
-           geom_vline(xintercept = 0) +
-           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
-           )
-
+makeCostMinGraph(prodfun, w, r)
 
 
 ## Firm's SR Expansion Path
@@ -517,20 +532,31 @@ makeSRCostMinPoints = function(ProductionSR, QList, color = "black", size = 3){
 }
 
 ### test ###
+
+makeSRExpansionGraph = function(prodfun, K, w, r, LMax, color = "orange", smooth = 100){
+  prodFunSR = calculateSRExpansion(prodfun, K, w, r)$prodFunSR
+  L = seq(0, LMax, length.out = smooth) %>%
+    round(2)
+  Q = eval(caracas::as_expr(prodFunSR)) %>%
+    round(2)
+  Line = "Short Run Production"
+  data = tibble(L = L, Q = Q, Line = Line)
+  plotly = ggplotly(ggplot() +
+                      geom_line(data = data, aes(x = L, y = Q, group = Line), color = color) +
+                      geom_hline(yintercept = 0) +
+                      geom_vline(xintercept = 0) +
+                      coord_cartesian(xlim = c(0, NA), ylim = c(0, NA))
+  )
+  return(plotly)
+}
+
+K = 10
 w = 2
 r = 2
 prodfun = "K^.5*L^.5"
-calculateSRExpansion(prodfun, K, w, r)
+LMax = 40
 
-ggplotly(ggplot() + 
-           makeIsocostLine(r, w, C) +
-           makeIsoquantCurve(prodfun, Q, LMax) +
-           makeSRExpansion(K, LMax) +
-           makeCostMinPoints(ProductionLR, Q) +
-           geom_hline(yintercept = 0) +
-           geom_vline(xintercept = 0) +
-           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
-)
+makeSRExpansionGraph(prodfun, K, w, r, LMax)
 
 
 ## Firm's LR Expansion Path
@@ -556,74 +582,72 @@ makeLRExpansion = function(ProductionLR, QMax, color = "darkgreen"){
   return(geom)
 }
 
+
+makeLRvSRExpansionGraph = function(prodfun, w, r, Q, smooth = 100){
+  ProductionLR = calculateProductionLR(prodfun, w, r)
+  result = findVarsQ(ProductionLR, Q)
+  ProductionLR_Q = result[[1]]
+  C = result[[2]]
+  L = result[[3]]
+  K = result[[4]]
+  LMax = 1.5*C/w
+  KMax = 1.5*C/r
+  QMax = Q*4
+  
+  plotly = ggplotly(ggplot() + 
+                      makeIsocostLine(r, w, C) +
+                      makeIsoquantCurve(prodfun, Q, LMax, smooth = smooth) +
+                      geom_hline(yintercept = 0) +
+                      geom_vline(xintercept = 0) +
+                      makeSRExpansion(K, LMax) +
+                      makeLRExpansion(ProductionLR, QMax) +
+                      makeCostMinPoints(ProductionLR, Q) +
+                      coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+  )
+  return(plotly)
+}
+
 prodfun = "L^.5*K^.5"
 r = 2
 w = 2
-ProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
-if (inherits(ProductionLR, "try-error")){
-  #USE seq(), min(), and max() to graph lines
-}
-QMax = 100
 Q = 10
-ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
-C = findVarsQ(ProductionLR, Q)[[2]]
-L = findVarsQ(ProductionLR, Q)[[3]]
-K = findVarsQ(ProductionLR, Q)[[4]]
-LMax = 1.5*C/w
-KMax = 1.5*C/r
-
-ggplotly(ggplot() + 
-           makeIsocostLine(r, w, C) +
-           makeIsoquantCurve(prodfun, Q, LMax) +
-           geom_hline(yintercept = 0) +
-           geom_vline(xintercept = 0) +
-           makeSRExpansion(K, LMax) +
-           makeLRExpansion(ProductionLR, QMax) +
-           makeCostMinPoints(ProductionLR, Q) +
-           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
-)
+makeLRvSRExpansionGraph(prodfun, w, r, Q, smooth = 100)
 
 
-prodfun = "L^.5*K^.5"
-r = 2
-w = 2
-ProductionLR = try(calculateProductionLR(prodfun, w, r), silent = TRUE)
-if (inherits(ProductionLR, "try-error")){
-  #USE seq(), min(), and max() to graph lines
+makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
+  ProductionLR = calculateProductionLR(prodfun, w, r)
+  result = findVarsQ(ProductionLR, Q)
+  ProductionLR_Q = result[[1]]
+  C = result[[2]]
+  L = result[[3]]
+  K = result[[4]]
+  LMax = 1.5*C/w
+  KMax = 1.5*C/r
+  QList = c(QList, Q)
+  results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
+  CList = unlist(results[2,])
+  ProductionSR = calculateSRExpansion(prodfun, K, w, r)
+  costSR = ProductionSR$costSR[[1]]
+  for(q in QList){
+    Q = q
+    CList = c(CList, round(eval(caracas::as_expr(costSR)),2))
+  }
+  CList = unique(CList)
+  plotly = ggplotly(ggplot() + 
+             makeAllIsocostLines(r, w, CList, color = "blue") +
+             makeAllIsoquantCurves(prodfun, QList, LMax, color = "red", smooth = smooth) +
+             geom_hline(yintercept = 0) +
+             geom_vline(xintercept = 0) +
+             makeSRExpansion(K, LMax) +
+             makeLRExpansion(ProductionLR, QMax) +
+             makeSRCostMinPoints(ProductionSR, QList) +
+             makeCostMinPoints(ProductionLR, QList) + 
+             coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+  )
+  return(plotly)
 }
-QMax = 100
-Q = 20
-Qo = Q
-ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
-C = findVarsQ(ProductionLR, Q)[[2]]
-L = findVarsQ(ProductionLR, Q)[[3]]
-K = findVarsQ(ProductionLR, Q)[[4]]
-LMax = 2*C/w
-KMax = 2*C/r
-QList = c(10,30)
-QList = c(QList, Qo)
-results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
-CList = unlist(results[2,])
-ProductionSR = calculateSRExpansion(prodfun, K, w, r)
-costSR = ProductionSR$costSR[[1]]
-for(q in QList){
-  Q = q
-  CList = c(CList, round(eval(caracas::as_expr(costSR)),2))
-}
-CList = unique(CList)
-Q = Qo
 
-ggplotly(ggplot() + 
-           makeAllIsocostLines(r, w, CList, color = "blue") +
-           makeAllIsoquantCurves(prodfun, QList, LMax, color = "red") +
-           geom_hline(yintercept = 0) +
-           geom_vline(xintercept = 0) +
-           makeSRExpansion(K, LMax) +
-           makeLRExpansion(ProductionLR, QMax) +
-           makeSRCostMinPoints(ProductionSR, QList) +
-           makeCostMinPoints(ProductionLR, QList) + 
-           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
-)
+makeLRvSRCostExpansionGraph(prodfun, 2, 2, 16, c(8, 24), smooth = 100)
 
 
 makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
@@ -655,28 +679,10 @@ makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
   return(list(plotly, plot))
 }
 
-test = makeFirmExpansionGraph(prodfun, 200, 10, 2, 2)
+test = makeFirmExpansionGraph(prodfun, 200, 10, 2, 2, smooth = 200)
 test[[1]]
 test[[2]]
 
-QMax = 200
-QNum = 10
-QList = seq(QMax/QNum, QMax, length.out = QNum)
-results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
-CList = unlist(results[2,])
-LMax = max(CList)/w
-KMax = max(CList)/r
-smooth = 1000
-
-ggplotly(ggplot() +
-           makeAllIsocostLines(r, w, CList, color = "blue") +
-           makeAllIsoquantCurves(prodfun, QList, LMax*2, smooth = smooth) +
-           scale_color_viridis_d(begin = .25, end = .85, option="plasma") +
-           geom_hline(yintercept = 0) +
-           geom_vline(xintercept = 0) +
-           makeLRExpansion(ProductionLR, QMax*2) +
-           coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
-)
 
 
 ######### COSTS ###########
