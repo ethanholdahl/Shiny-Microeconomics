@@ -869,7 +869,46 @@ fluidPage(
                              src = "MRTS.pdf"),
           ),
           column(6,
-          )
+                 textInput(
+                   inputId = "MRTSProdfun",
+                   label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                   value = "K^.5*L^.5",
+                   width = '600px'
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "MRTSQ",
+                     label = "Production Level (Q)",
+                     value = 10,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "MRTSLMax",
+                     label = "Maximum L value of plot",
+                     value = 30,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "MRTSSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 1000,
+                     min = 100,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunMRTSPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("MRTSPlot")%>% withSpinner(color="#004623")          )
         ),
         fluidRow(
           column(6,

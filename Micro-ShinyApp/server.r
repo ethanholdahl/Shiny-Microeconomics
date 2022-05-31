@@ -1403,7 +1403,8 @@ function(input, output, session) {
                            MarketDemandPlot = NULL,
                            MarketDemandPiecewiseData = NULL,
                            IsoquantsPlot = NULL,
-                           IsocostsPlot = NULL
+                           IsocostsPlot = NULL,
+                           MRTSPlot = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1500,7 +1501,7 @@ function(input, output, session) {
     values$IndifferencePlot
   })
   
-  ###### MRS Curves ######
+  ###### MRS Curve ######
   
   observeEvent(input$RunMRSPlot, {
     Ufun = parse(text = input$MRSFunction)
@@ -1788,6 +1789,8 @@ function(input, output, session) {
     }
   })
   
+  ########## Production - Study ##########
+  
   ###### Isoquant Curves ######
   
   observeEvent(input$RunIsoquantsPlot, {
@@ -1833,4 +1836,20 @@ function(input, output, session) {
   output$IsocostsPlot = renderPlotly({
     values$IsocostsPlot
   })
+  
+  ###### MRTS Curve ######
+  
+  observeEvent(input$RunMRTSPlot, {
+    prodfun = input$MRTSProdfun
+    Q = input$MRTSQ
+    LMax = input$MRTSLMax
+    smooth = input$MRTSSmooth
+    
+    values$MRTSPlot = makeMRTSCurveGraph(prodfun, Q, LMax, smooth = smooth)
+  })
+  
+  output$MRTSPlot = renderPlotly({
+    values$MRTSPlot
+  })
+  
 }

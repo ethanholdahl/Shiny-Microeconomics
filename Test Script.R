@@ -165,6 +165,7 @@ makeMRTSCurveGraph = function(prodfun, Q, LMax, smooth = 1000){
 prodfun = "K^(.5)*L^(.5)"
 LMax = 40
 Q = 10
+smooth = 100
 
 makeMRTSCurveGraph(prodfun, Q, LMax, smooth = 1000)
 
