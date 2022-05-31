@@ -1266,7 +1266,7 @@ function(input, output, session) {
     return(Point_Geom)
   }
   
-  makeSRExpansionGraph = function(prodfun, K, w, r, LMax, color = "orange", smooth = 100){
+  makeSRProductionGraph = function(prodfun, K, w, r, LMax, color = "orange", smooth = 100){
     prodFunSR = calculateSRExpansion(prodfun, K, w, r)$prodFunSR
     L = seq(0, LMax, length.out = smooth) %>%
       round(2)

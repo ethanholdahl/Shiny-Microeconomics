@@ -533,7 +533,7 @@ makeSRCostMinPoints = function(ProductionSR, QList, color = "black", size = 3){
 
 ### test ###
 
-makeSRExpansionGraph = function(prodfun, K, w, r, LMax, color = "orange", smooth = 100){
+makeSRProductionGraph = function(prodfun, K, w, r, LMax, color = "orange", smooth = 100){
   prodFunSR = calculateSRExpansion(prodfun, K, w, r)$prodFunSR
   L = seq(0, LMax, length.out = smooth) %>%
     round(2)
@@ -556,7 +556,7 @@ r = 2
 prodfun = "K^.5*L^.5"
 LMax = 40
 
-makeSRExpansionGraph(prodfun, K, w, r, LMax)
+makeSRProductionGraph(prodfun, K, w, r, LMax)
 
 
 ## Firm's LR Expansion Path
