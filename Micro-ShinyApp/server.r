@@ -1401,7 +1401,8 @@ function(input, output, session) {
                            DerivedDemandPlot = NULL,
                            IncSubEffectsPlot = NULL,
                            MarketDemandPlot = NULL,
-                           MarketDemandPiecewiseData = NULL
+                           MarketDemandPiecewiseData = NULL,
+                           IsoquantsPlot = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1785,4 +1786,29 @@ function(input, output, session) {
       return(values$MarketDemandPlot[[1]])
     }
   })
+  
+  ###### Isoquant Curves ######
+  
+  observeEvent(input$RunIsoquantsPlot, {
+    prodfun = input$IsoquantsProdfun
+    QMax = input$IsoquantsQMax
+    QNum = input$IsoquantsQNum
+    LMax = input$IsoquantsLMax
+    smooth = input$IsoquantsSmooth
+    QList = seq(from = QMax/QNum, to = QMax, length.out = QNum)
+    
+    plot = ggplot() +
+      makeAllIsoquantCurves(prodfun, QList, LMax, smooth = smooth) +
+      scale_color_viridis_d("Q = f(K,L)", begin = .25, end = .85, option="plasma") +
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = 0) +
+      coord_cartesian(xlim = c(0, LMax), ylim = c(0, LMax))
+    
+    values$IsoquantsPlot =  ggplotly(plot)
+  })
+  
+  output$IsoquantsPlot = renderPlotly({
+    values$IsoquantsPlot
+  })
+  
 }

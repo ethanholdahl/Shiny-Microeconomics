@@ -110,13 +110,14 @@ makeAllIsoquantCurves = function(prodfun, QList, LMax, color = TRUE, smooth = 10
 
 ### TEST ###
 prodfun = "K^(.5)*L^(.5)"
-prodFun = Ryacas::yac_expr(prodfun)
-MaxQ = 10
+QMax = 10
 NumCurves = 10
 LMax = 20
+smooth = 100
 
+prodFun = Ryacas::yac_expr(prodfun)
+QList = seq(from = QMax/NumCurves, to = QMax, length.out = NumCurves)
 
-QList = seq(from = MaxQ/NumCurves, to = MaxQ,length.out = NumCurves)
 plot = ggplot() +
   makeAllIsoquantCurves(prodfun, QList, LMax, smooth = 100) +
   scale_color_viridis_d("Q = f(K,L)", begin = .25, end = .85, option="plasma") +

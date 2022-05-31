@@ -9,6 +9,7 @@ library(ggnewscale)
 library(shinyWidgets)
 library(shinycssloaders)
 library(Ryacas)
+library(caracas)
 
 # Define UI for the application
 fluidPage(
@@ -747,6 +748,108 @@ fluidPage(
         h1("Chapter 6: Production"),
         p(
           "Class Notes and interactive content to help make the concepts more engaging"
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "Isoquants.pdf"),
+          ),
+          column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "IsoquantsProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsoquantsQMax",
+                     label = "Maximum Q value of isoquant curves",
+                     value = 120,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsoquantsQNum",
+                     label = "Number of isoquant Curves",
+                     value = 8,
+                     min = 1,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsoquantsLMax",
+                     label = "Maximum L value to plot curve's points",
+                     value = 200,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsoquantsSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunIsoquantsPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("IsoquantsPlot")%>% withSpinner(color="#004623"),
+          )
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "Isocosts.pdf"),
+          ),
+          column(6,
+          )
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "MRTS.pdf"),
+          ),
+          column(6,
+          )
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "Firms_SR_Production.pdf"),
+          ),
+          column(6,
+          )
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "Cost_Minimization.pdf"),
+          ),
+          column(6,
+          )
+        ),
+        fluidRow(
+          column(6,
+                 tags$iframe(style = "height:600px; width:100%; scrolling=yes",
+                             src = "Firm_LR_vs_SR_Expansion.pdf"),
+          ),
+          column(6,
+          )
         ),
       ),
       tabPanel("Practice",
