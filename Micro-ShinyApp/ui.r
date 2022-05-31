@@ -817,6 +817,50 @@ fluidPage(
                              src = "Isocosts.pdf"),
           ),
           column(6,
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsocostsR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 20,
+                     min = 1,
+                     width = '250px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsocostsW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 15,
+                     min = 1,
+                     width = '250px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsocostsCMax",
+                     label = "Maximum Cost",
+                     value = 10000,
+                     min = 1,
+                     width = '150px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "IsocostsCNum",
+                     label = "Number of isocost Curves",
+                     value = 10,
+                     min = 1,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunIsocostsPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("IsocostsPlot")%>% withSpinner(color="#004623"),
           )
         ),
         fluidRow(

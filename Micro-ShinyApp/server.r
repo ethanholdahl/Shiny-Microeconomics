@@ -1402,7 +1402,8 @@ function(input, output, session) {
                            IncSubEffectsPlot = NULL,
                            MarketDemandPlot = NULL,
                            MarketDemandPiecewiseData = NULL,
-                           IsoquantsPlot = NULL
+                           IsoquantsPlot = NULL,
+                           IsocostsPlot = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1811,4 +1812,25 @@ function(input, output, session) {
     values$IsoquantsPlot
   })
   
+  ###### Isoquant Curves ######
+  
+  observeEvent(input$RunIsocostsPlot, {
+    r = input$IsocostsR
+    w = input$IsocostsW
+    CMax = input$IsocostsCMax
+    CNum = input$IsocostsCNum
+    CList = seq(from = CMax/CNum, to = CMax, length.out = CNum)
+    
+    plot = ggplot() +
+      makeAllIsocostLines(r, w, CList) +
+      scale_color_viridis_d("Isocost Lines", option = "mako", begin = .3, end = .7, direction = 1) +
+      geom_hline(yintercept = 0)+
+      geom_vline(xintercept = 0)
+    
+    values$IsocostsPlot =  ggplotly(plot)
+  })
+  
+  output$IsocostsPlot = renderPlotly({
+    values$IsocostsPlot
+  })
 }
