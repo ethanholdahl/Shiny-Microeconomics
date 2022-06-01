@@ -898,9 +898,6 @@ makeAllIsoquantCurves = function(prodfun, QList, LMax, color = TRUE, smooth = 10
     }
   }
   isoquantCurves$Isoquant_Line = factor(isoquantCurves$Isoquant_Line, levels = unique(isoquantCurves$Isoquant_Line))
-  isoquantCurves = isoquantCurves %>%
-    arrange(as.numeric(Q)) %>%
-    mutate(Q = as.factor(Q))
   if(color == TRUE){
     isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, color = Isoquant_Line))
   } else {
@@ -952,7 +949,7 @@ makeIsocostLine = function(r, w, C, color = "blue", linetype = "solid"){
   return(isocostLineGeom)
 }
 
-makeAllIsocostLines = function(wList, rList, CList, color = TRUE, linetype = "solid"){
+makeAllIsocostLines = function(rList, wlist, CList, color = TRUE, linetype = "solid"){
   #first make all lists the same length (should all be length 1 or n)
   nLines = max(length(wList), length(rList), length(CList))
   if(length(wList) != nLines){
@@ -1192,7 +1189,7 @@ findVarsQ = function(ProductionLR, Q){
   return(list(ProductionLR_Q = ProductionLR_Q, C = C, L = L, K = K))
 }
 
-makeCostMinGraph = function(prodfun, w, r, smooth = 100){
+makeCostMinGraph = function(prodfun, w, r, Q, smooth = 100){
   ProductionLR = calculateProductionLR(prodfun, w, r)
   ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
   C = findVarsQ(ProductionLR, Q)[[2]]
@@ -1326,6 +1323,7 @@ makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
   LMax = 1.5*C/w
   KMax = 1.5*C/r
   QList = c(QList, Q)
+  QMax = max(QList)
   results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
   CList = unlist(results[2,])
   ProductionSR = calculateSRExpansion(prodfun, K, w, r)
@@ -1341,7 +1339,7 @@ makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
                       geom_hline(yintercept = 0) +
                       geom_vline(xintercept = 0) +
                       makeSRExpansion(K, LMax) +
-                      makeLRExpansion(ProductionLR, QMax) +
+                      makeLRExpansion(ProductionLR, QMax*2) +
                       makeSRCostMinPoints(ProductionSR, QList) +
                       makeCostMinPoints(ProductionLR, QList) + 
                       coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))

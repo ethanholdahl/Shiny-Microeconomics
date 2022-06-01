@@ -906,9 +906,6 @@ function(input, output, session) {
       }
     }
     isoquantCurves$Isoquant_Line = factor(isoquantCurves$Isoquant_Line, levels = unique(isoquantCurves$Isoquant_Line))
-    isoquantCurves = isoquantCurves %>%
-      arrange(as.numeric(Q)) %>%
-      mutate(Q = as.factor(Q))
     if(color == TRUE){
       isoquantCurvesGeom = geom_path(data = isoquantCurves, aes(x = L, y = K, color = Isoquant_Line))
     } else {
@@ -960,7 +957,7 @@ function(input, output, session) {
     return(isocostLineGeom)
   }
   
-  makeAllIsocostLines = function(wList, rList, CList, color = TRUE, linetype = "solid"){
+  makeAllIsocostLines = function(rList, wList, CList, color = TRUE, linetype = "solid"){
     #first make all lists the same length (should all be length 1 or n)
     nLines = max(length(wList), length(rList), length(CList))
     if(length(wList) != nLines){
@@ -1200,7 +1197,7 @@ function(input, output, session) {
     return(list(ProductionLR_Q = ProductionLR_Q, C = C, L = L, K = K))
   }
   
-  makeCostMinGraph = function(prodfun, w, r, smooth = 100){
+  makeCostMinGraph = function(prodfun, w, r, Q, smooth = 100){
     ProductionLR = calculateProductionLR(prodfun, w, r)
     ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
     C = findVarsQ(ProductionLR, Q)[[2]]
@@ -1334,6 +1331,7 @@ function(input, output, session) {
     LMax = 1.5*C/w
     KMax = 1.5*C/r
     QList = c(QList, Q)
+    QMax = max(QList)
     results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
     CList = unlist(results[2,])
     ProductionSR = calculateSRExpansion(prodfun, K, w, r)
@@ -1349,7 +1347,7 @@ function(input, output, session) {
                         geom_hline(yintercept = 0) +
                         geom_vline(xintercept = 0) +
                         makeSRExpansion(K, LMax) +
-                        makeLRExpansion(ProductionLR, QMax) +
+                        makeLRExpansion(ProductionLR, QMax*2) +
                         makeSRCostMinPoints(ProductionSR, QList) +
                         makeCostMinPoints(ProductionLR, QList) + 
                         coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
@@ -1409,6 +1407,7 @@ function(input, output, session) {
                            CostMinPlot = NULL,
                            LRExpansionPlot = NULL,
                            SRLRExpansionPlot = NULL,
+                           SRLRExpansionCPlot = NULL,
                            )
   
   # url navigation code from Dean Attali
@@ -1896,11 +1895,12 @@ function(input, output, session) {
   
   observeEvent(input$RunCostMinPlot, {
     prodfun = input$CostMinProdfun
+    Q = input$CostMinQ
     w = input$CostMinW
     r = input$CostMinR
     smooth = input$CostMinSmooth
     
-    values$CostMinPlot =  makeCostMinGraph(prodfun, w, r, smooth = smooth)
+    values$CostMinPlot =  makeCostMinGraph(prodfun, w, r, Q, smooth = smooth)
   })
   
   output$CostMinPlot = renderPlotly({
@@ -1918,7 +1918,7 @@ function(input, output, session) {
     r = input$LRExpansionR
     smooth = input$LRExpansionSmooth
     
-    values$LRExpansionPlot =  makeFirmExpansionGraph(prodfun, QMax, QNum, w, r, smooth = 100)[[1]]
+    values$LRExpansionPlot =  makeFirmExpansionGraph(prodfun, QMax, QNum, w, r, smooth = smooth)[[1]]
   })
   
   output$LRExpansionPlot = renderPlotly({
@@ -1927,7 +1927,7 @@ function(input, output, session) {
   
   ###### SR vs LR Expansion ######
   
-  observeEvent(input$SRLRExpansionPlot, {
+  observeEvent(input$RunSRLRExpansionPlot, {
     prodfun = input$SRLRExpansionProdfun
     w = input$SRLRExpansionW
     r = input$SRLRExpansionR
@@ -1943,7 +1943,7 @@ function(input, output, session) {
   
   ###### SR vs LR Expansion - Costs ######
   
-  observeEvent(input$SRLRExpansionCPlot, {
+  observeEvent(input$RunSRLRExpansionCPlot, {
     prodfun = input$SRLRExpansionCProdfun
     w = input$SRLRExpansionCW
     r = input$SRLRExpansionCR

@@ -879,7 +879,7 @@ fluidPage(
                    style = "display:inline-block",
                    numericInput(
                      inputId = "MRTSQ",
-                     label = "Production Level (Q)",
+                     label = "Q: Level of Production",
                      value = 10,
                      min = 1,
                      width = '200px'
@@ -930,7 +930,7 @@ fluidPage(
                    style = "display:inline-block",
                    numericInput(
                      inputId = "SRProductionK",
-                     label = "Level of fixed capital (K)",
+                     label = "K: Level of fixed capital",
                      value = 48,
                      min = 1,
                      width = '200px'
@@ -1000,6 +1000,16 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
+                     inputId = "CostMinQ",
+                     label = "Q: Level of production",
+                     value = 15,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
                      inputId = "CostMinW",
                      label = "w: wages, the price of labor (L)",
                      value = 15,
@@ -1055,7 +1065,7 @@ fluidPage(
                      label = "Maximum Q level of isoquant curve",
                      value = 100,
                      min = 1,
-                     width = '150px'
+                     width = '200px'
                    )
                  ),
                  div(
@@ -1120,10 +1130,10 @@ fluidPage(
                    style = "display:inline-block",
                    numericInput(
                      inputId = "SRLRExpansionQ",
-                     label = "Level of production (Q)",
+                     label = "Q: Level of production",
                      value = 100,
                      min = 1,
-                     width = '150px'
+                     width = '200px'
                    )
                  ),
                  div(
@@ -1161,12 +1171,6 @@ fluidPage(
                               label = "Draw Graph"),
                  plotlyOutput("SRLRExpansionPlot")%>% withSpinner(color="#004623"),
           ),
-          prodfun = input$SRLRExpansionCProdfun
-          w = input$SRLRExpansionCW
-          r = input$SRLRExpansionCR
-          Q = input$SRLRExpansionCQ
-          QList = as.numeric(unlist(strsplit(input$SRLRExpansionCQList, ",")))
-          smooth = input$SRLRExpansionCSmooth
           column(6,
                  div(
                    style = "display:inline-block",
@@ -1181,10 +1185,10 @@ fluidPage(
                    style = "display:inline-block",
                    numericInput(
                      inputId = "SRLRExpansionCQ",
-                     label = "Level of production (Q)",
+                     label = "Q: Level of production",
                      value = 100,
                      min = 1,
-                     width = '150px'
+                     width = '200px'
                    )
                  ),
                  div(
@@ -1192,16 +1196,14 @@ fluidPage(
                    textInput(
                      inputId = "SRLRExpansionCQList",
                      label = "Comma seperated list of Q to transition to",
-                     value = 10,
-                     min = 1,
-                     step = 1,
+                     value = "50, 150",
                      width = '200px'
                    )
                  ),
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionW",
+                     inputId = "SRLRExpansionCW",
                      label = "w: wages, the price of labor (L)",
                      value = 2,
                      min = 1,
@@ -1211,7 +1213,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionR",
+                     inputId = "SRLRExpansionCR",
                      label = "r: rental rate, the price of capital (K)",
                      value = 4,
                      min = 1,
@@ -1221,7 +1223,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionSmooth",
+                     inputId = "SRLRExpansionCSmooth",
                      label = "Smoothnes Paramater (number of points in each curve)",
                      value = 100,
                      min = 20,
@@ -1229,9 +1231,9 @@ fluidPage(
                      width = '200px'
                    )
                  ),
-                 actionButton(inputId = "RunLRExpansionPlot",
+                 actionButton(inputId = "RunSRLRExpansionCPlot",
                               label = "Draw Graph"),
-                 plotlyOutput("LRExpansionPlot")%>% withSpinner(color="#004623"),
+                 plotlyOutput("SRLRExpansionCPlot")%>% withSpinner(color="#004623"),
           )
         ),
       ),
