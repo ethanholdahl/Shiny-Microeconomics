@@ -557,8 +557,9 @@ w = 2
 r = 2
 prodfun = "K^.5*L^.5"
 LMax = 40
+smooth = 100
 
-makeSRProductionGraph(prodfun, K, w, r, LMax)
+makeSRProductionGraph(prodfun, K, w, r, LMax, smooth = smooth)
 
 
 ## Firm's LR Expansion Path

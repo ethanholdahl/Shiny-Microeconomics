@@ -908,7 +908,8 @@ fluidPage(
                  ),
                  actionButton(inputId = "RunMRTSPlot",
                               label = "Draw Graph"),
-                 plotlyOutput("MRTSPlot")%>% withSpinner(color="#004623")          )
+                 plotlyOutput("MRTSPlot")%>% withSpinner(color="#004623")          
+                 )
         ),
         fluidRow(
           column(6,
@@ -916,6 +917,69 @@ fluidPage(
                              src = "Firms_SR_Production.pdf"),
           ),
           column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "SRProductionProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "SRProductionK",
+                     label = "Level of fixed capital (K)",
+                     value = 48,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "SRProductionW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 10,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "SRProductionR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 15,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "SRProductionLMax",
+                     label = "Maximum L value to plot curve's points",
+                     value = 200,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "SRProductionSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunSRProductionPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("SRProductionPlot")%>% withSpinner(color="#004623"),
           )
         ),
         fluidRow(

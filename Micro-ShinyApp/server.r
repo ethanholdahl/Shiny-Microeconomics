@@ -747,7 +747,7 @@ function(input, output, session) {
     for (i in 1:num){
       demandExpr = Ryacas::yac_expr(demandList[[i]])
       p = 0
-      chokeList[[i]] = yac_str(paste0("OldSolve(",D1,"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
+      chokeList[[i]] = yac_str(paste0("OldSolve(",demandList[[i]],"==0, p)")) %>% y_rmvars() %>% yac_expr() %>% eval()
       chokeVector = c(chokeVector, chokeList[[i]])
       demandNList[[i]] = Ryacas::yac_str(paste0(NList[[i]], "*(", demandList[[i]], ")"))
       demandNListExpanded[[i]] = Ryacas::yac('Expand(%)')
@@ -1404,7 +1404,8 @@ function(input, output, session) {
                            MarketDemandPiecewiseData = NULL,
                            IsoquantsPlot = NULL,
                            IsocostsPlot = NULL,
-                           MRTSPlot = NULL
+                           MRTSPlot = NULL,
+                           SRProductionPlot = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1758,7 +1759,26 @@ function(input, output, session) {
   })
   
   observeEvent(input$RunMarketDemandPiecewise, {
-    
+    n <- seq(length.out = as.numeric(input$MarketDemandNFuns))
+    lapply(seq(5), function(i) {
+      if(i %in% n) {
+        shinyjs::show(id = paste0("MarketDemandFunN", i))
+        shinyjs::show(id = paste0("MarketDemandFun", i))
+      } else {
+        shinyjs::hide(id = paste0("MarketDemandFunN", i))
+        shinyjs::hide(id = paste0("MarketDemandFun", i))
+      }
+    })
+    num = input$MarketDemandNFuns
+    demandList1 = list(input$MarketDemandFun1, input$MarketDemandFun2, input$MarketDemandFun3, input$MarketDemandFun4, input$MarketDemandFun5)
+    NList1 = list (input$MarketDemandFunN1, input$MarketDemandFunN2, input$MarketDemandFunN3, input$MarketDemandFunN4, input$MarketDemandFunN5)
+    demandList = list()
+    NList = list()
+    for (i in 1:num){
+      demandList[[i]] =  demandList1[[i]]
+      NList[[i]] = NList1[[i]]
+    }
+    values$MarketDemandPiecewiseData = makePiecewise(demandList, NList)
     num = length(values$MarketDemandPiecewiseData[[7]])
     str = c("$$
       Q_{Market}(p) = 
@@ -1815,7 +1835,7 @@ function(input, output, session) {
     values$IsoquantsPlot
   })
   
-  ###### Isoquant Curves ######
+  ###### Isocost Curves ######
   
   observeEvent(input$RunIsocostsPlot, {
     r = input$IsocostsR
@@ -1850,6 +1870,23 @@ function(input, output, session) {
   
   output$MRTSPlot = renderPlotly({
     values$MRTSPlot
+  })
+  
+  ###### MRTS Curve ######
+  
+  observeEvent(input$RunSRProductionPlot, {
+    prodfun = input$SRProductionProdfun
+    K = input$SRProductionK
+    w = input$SRProductionW
+    r = input$SRProductionR
+    LMax = input$SRProductionLMax
+    smooth = input$SRProductionSmooth
+    
+    values$SRProductionPlot =  makeSRProductionGraph(prodfun, K, w, r, LMax, smooth = smooth)
+  })
+  
+  output$SRProductionPlot = renderPlotly({
+    values$SRProductionPlot
   })
   
 }
