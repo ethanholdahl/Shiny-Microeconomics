@@ -1405,7 +1405,8 @@ function(input, output, session) {
                            IsoquantsPlot = NULL,
                            IsocostsPlot = NULL,
                            MRTSPlot = NULL,
-                           SRProductionPlot = NULL
+                           SRProductionPlot = NULL,
+                           CostMinPlot = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1872,7 +1873,7 @@ function(input, output, session) {
     values$MRTSPlot
   })
   
-  ###### MRTS Curve ######
+  ###### SR Production Curve ######
   
   observeEvent(input$RunSRProductionPlot, {
     prodfun = input$SRProductionProdfun
@@ -1887,6 +1888,38 @@ function(input, output, session) {
   
   output$SRProductionPlot = renderPlotly({
     values$SRProductionPlot
+  })
+  
+  ###### Cost Min Plot ######
+  
+  observeEvent(input$RunCostMinPlot, {
+    prodfun = input$CostMinProdfun
+    w = input$CostMinW
+    r = input$CostMinR
+    smooth = input$CostMinSmooth
+    
+    values$CostMinPlot =  makeCostMinGraph(prodfun, w, r, smooth = smooth)
+  })
+  
+  output$CostMinPlot = renderPlotly({
+    values$CostMinPlot
+  })
+  
+  
+  ###### SR Production Curve ######
+  
+  observeEvent(input$RunCostMinPlot, {
+    prodfun = "L^.5*K^.5"
+    r = 2
+    w = 2
+    Q = 10
+    smooth = 
+    
+    values$CostMinPlot =  makeLRvSRExpansionGraph(prodfun, w, r, Q, smooth = smooth)
+  })
+  
+  output$CostMinPlot = renderPlotly({
+    values$CostMinPlot
   })
   
 }

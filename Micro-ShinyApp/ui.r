@@ -988,6 +988,49 @@ fluidPage(
                              src = "Cost_Minimization.pdf"),
           ),
           column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "CostMinProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "CostMinW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 15,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "CostMinR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 12,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "CostMinSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunCostMinPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("CostMinPlot")%>% withSpinner(color="#004623"),
           )
         ),
         fluidRow(
