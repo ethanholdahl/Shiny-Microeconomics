@@ -949,7 +949,7 @@ makeIsocostLine = function(r, w, C, color = "blue", linetype = "solid"){
   return(isocostLineGeom)
 }
 
-makeAllIsocostLines = function(rList, wlist, CList, color = TRUE, linetype = "solid"){
+makeAllIsocostLines = function(rList, wList, CList, color = TRUE, linetype = "solid"){
   #first make all lists the same length (should all be length 1 or n)
   nLines = max(length(wList), length(rList), length(CList))
   if(length(wList) != nLines){
@@ -981,7 +981,7 @@ makeAllIsocostLines = function(rList, wlist, CList, color = TRUE, linetype = "so
 
 ########### COST MINIMIZATION ##############
 
-calculateProductionLR = function(prodfun, w, r) {
+calculateProductionLR = function(prodfun, w, r, steps = FALSE) {
   K = caracas::symbol('K')
   L = caracas::symbol('L')
   Q = caracas::symbol('Q')
@@ -989,14 +989,17 @@ calculateProductionLR = function(prodfun, w, r) {
   MPL = caracas::der(prodFun, L)
   MPK = caracas::der(prodFun, K)
   #Test if K or L do not have constant returns to scale 
-  KisVar = caracas::tex(caracas::der(MPL/MPK, K)) != 0
-  LisVar = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+  KisVar1 = caracas::tex(caracas::der(MPL/MPK, K)) != 0
+  LisVar1 = caracas::tex(caracas::der(MPL/MPK, L)) != 0
   prodFunLR = list()
   Kexpansion = list()
   Lexpansion = list()
   j = 0
-  if(!LisVar & !KisVar){
+  perfectsSubs = FALSE
+  perfectsSubsInterior = FALSE
+  if(!LisVar1 & !KisVar1){
     #Perfect substitutes
+    perfectsSubs = TRUE
     if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
       #L more economical at all input levels
       Kexpansion[[1]] = caracas::as_sym(0)
@@ -1010,6 +1013,7 @@ calculateProductionLR = function(prodfun, w, r) {
     } else {
       # L and K equally economical at all input levels
       # Set K = L (arbitrarily)
+      perfectsSubsInterior = TRUE
       prodFunLR[[1]] = caracas::subs(prodFun, L, K)
       Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
       Lexpansion[[1]] = Kexpansion[[1]]
@@ -1017,9 +1021,9 @@ calculateProductionLR = function(prodfun, w, r) {
   }
   Lcritical = c()
   Kcritical = c()
-  if(LisVar) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
-  if(KisVar) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
-  if(LisVar | KisVar){
+  if(LisVar1) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
+  if(KisVar1) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+  if(LisVar1 | KisVar1){
     #Not perfect substitutes. Possible interior solution
     #search for critical values to test for corner solutions
     #Lcrit first
@@ -1160,7 +1164,11 @@ calculateProductionLR = function(prodfun, w, r) {
   for(i in 1:length(minLRcostIndex)){
     LRExpansion[[i]] = list(cost = LRcost[[minLRcostIndex[[i]]]], prodFun = prodFunLR[[minLRcostIndex[[i]]]], Lexpansion = Lexpansion[[minLRcostIndex[[i]]]], Kexpansion = Kexpansion[[minLRcostIndex[[i]]]], Qmin = Qbins[i], Qmax = Qbins[i+1])
   }
-  return(LRExpansion)
+  if (steps){
+    return(list(LRExpansion = LRExpansion, MPL = MPL, MPK = MPK, perfectsSubs = perfectsSubs, perfectsSubsInterior = perfectsSubsInterior, LisVar1 = LisVar1, KisVar1 = KisVar1, Lcritical = Lcritical, Kcritical = Kcritical, Lexpansion = Lexpansion, Kexpansion = Kexpansion, prodFunLR = prodFunLR, minLRcostIndex = minLRcostIndex, Qbins = Qbins, LRcost = LRcost))
+  } else {
+    return(LRExpansion)
+  }
 }
 
 makeCostMinPoints = function(ProductionLR, QList, color = "black", size = 3){
@@ -1320,8 +1328,6 @@ makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
   C = result[[2]]
   L = result[[3]]
   K = result[[4]]
-  LMax = 1.5*C/w
-  KMax = 1.5*C/r
   QList = c(QList, Q)
   QMax = max(QList)
   results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
@@ -1333,13 +1339,16 @@ makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
     CList = c(CList, round(eval(caracas::as_expr(costSR)),2))
   }
   CList = unique(CList)
+  CMax = max(CList)
+  LMax = 1.2*CMax/w
+  KMax = 1.2*CMax/r
   plotly = ggplotly(ggplot() + 
                       makeAllIsocostLines(r, w, CList, color = "blue") +
                       makeAllIsoquantCurves(prodfun, QList, LMax, color = "red", smooth = smooth) +
                       geom_hline(yintercept = 0) +
                       geom_vline(xintercept = 0) +
                       makeSRExpansion(K, LMax) +
-                      makeLRExpansion(ProductionLR, QMax*2) +
+                      makeLRExpansion(ProductionLR, QMax*4) +
                       makeSRCostMinPoints(ProductionSR, QList) +
                       makeCostMinPoints(ProductionLR, QList) + 
                       coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))

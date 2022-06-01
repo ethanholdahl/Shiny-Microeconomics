@@ -989,7 +989,7 @@ function(input, output, session) {
   
   ########### COST MINIMIZATION ##############
   
-  calculateProductionLR = function(prodfun, w, r) {
+  calculateProductionLR = function(prodfun, w, r, steps = FALSE) {
     K = caracas::symbol('K')
     L = caracas::symbol('L')
     Q = caracas::symbol('Q')
@@ -997,14 +997,17 @@ function(input, output, session) {
     MPL = caracas::der(prodFun, L)
     MPK = caracas::der(prodFun, K)
     #Test if K or L do not have constant returns to scale 
-    KisVar = caracas::tex(caracas::der(MPL/MPK, K)) != 0
-    LisVar = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+    KisVar1 = caracas::tex(caracas::der(MPL/MPK, K)) != 0
+    LisVar1 = caracas::tex(caracas::der(MPL/MPK, L)) != 0
     prodFunLR = list()
     Kexpansion = list()
     Lexpansion = list()
     j = 0
-    if(!LisVar & !KisVar){
+    perfectsSubs = FALSE
+    perfectsSubsInterior = FALSE
+    if(!LisVar1 & !KisVar1){
       #Perfect substitutes
+      perfectsSubs = TRUE
       if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
         #L more economical at all input levels
         Kexpansion[[1]] = caracas::as_sym(0)
@@ -1018,6 +1021,7 @@ function(input, output, session) {
       } else {
         # L and K equally economical at all input levels
         # Set K = L (arbitrarily)
+        perfectsSubsInterior = TRUE
         prodFunLR[[1]] = caracas::subs(prodFun, L, K)
         Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
         Lexpansion[[1]] = Kexpansion[[1]]
@@ -1025,9 +1029,9 @@ function(input, output, session) {
     }
     Lcritical = c()
     Kcritical = c()
-    if(LisVar) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
-    if(KisVar) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
-    if(LisVar | KisVar){
+    if(LisVar1) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
+    if(KisVar1) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+    if(LisVar1 | KisVar1){
       #Not perfect substitutes. Possible interior solution
       #search for critical values to test for corner solutions
       #Lcrit first
@@ -1168,7 +1172,11 @@ function(input, output, session) {
     for(i in 1:length(minLRcostIndex)){
       LRExpansion[[i]] = list(cost = LRcost[[minLRcostIndex[[i]]]], prodFun = prodFunLR[[minLRcostIndex[[i]]]], Lexpansion = Lexpansion[[minLRcostIndex[[i]]]], Kexpansion = Kexpansion[[minLRcostIndex[[i]]]], Qmin = Qbins[i], Qmax = Qbins[i+1])
     }
-    return(LRExpansion)
+    if (steps){
+      return(list(LRExpansion = LRExpansion, MPL = MPL, MPK = MPK, perfectsSubs = perfectsSubs, perfectsSubsInterior = perfectsSubsInterior, LisVar1 = LisVar1, KisVar1 = KisVar1, Lcritical = Lcritical, Kcritical = Kcritical, Lexpansion = Lexpansion, Kexpansion = Kexpansion, prodFunLR = prodFunLR, minLRcostIndex = minLRcostIndex, Qbins = Qbins, LRcost = LRcost))
+    } else {
+      return(LRExpansion)
+    }
   }
   
   makeCostMinPoints = function(ProductionLR, QList, color = "black", size = 3){
@@ -1328,8 +1336,6 @@ function(input, output, session) {
     C = result[[2]]
     L = result[[3]]
     K = result[[4]]
-    LMax = 1.5*C/w
-    KMax = 1.5*C/r
     QList = c(QList, Q)
     QMax = max(QList)
     results = sapply(QList, findVarsQ, ProductionLR = ProductionLR)
@@ -1341,13 +1347,16 @@ function(input, output, session) {
       CList = c(CList, round(eval(caracas::as_expr(costSR)),2))
     }
     CList = unique(CList)
+    CMax = max(CList)
+    LMax = 1.2*CMax/w
+    KMax = 1.2*CMax/r
     plotly = ggplotly(ggplot() + 
                         makeAllIsocostLines(r, w, CList, color = "blue") +
                         makeAllIsoquantCurves(prodfun, QList, LMax, color = "red", smooth = smooth) +
                         geom_hline(yintercept = 0) +
                         geom_vline(xintercept = 0) +
                         makeSRExpansion(K, LMax) +
-                        makeLRExpansion(ProductionLR, QMax*2) +
+                        makeLRExpansion(ProductionLR, QMax*4) +
                         makeSRCostMinPoints(ProductionSR, QList) +
                         makeCostMinPoints(ProductionLR, QList) + 
                         coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
@@ -1408,6 +1417,9 @@ function(input, output, session) {
                            LRExpansionPlot = NULL,
                            SRLRExpansionPlot = NULL,
                            SRLRExpansionCPlot = NULL,
+                           CostMinStepsPlot = NULL,
+                           CostMinStepsAnswers = NULL,
+                           CostMinStepsSolutions = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -1957,5 +1969,99 @@ function(input, output, session) {
   output$SRLRExpansionCPlot = renderPlotly({
     values$SRLRExpansionCPlot
   })
+  
+  ###### Production - Practice ######
+  
+  observeEvent(input$CostMinStepsQ, {
+    updateNumericInput(session, inputId = "CostMinStepsAnswerC",
+                       label = paste0("How much does the production of ", input$CostMinStepsQ ," units cost?"))
+  })
+  
+  observeEvent(input$RunCostMinStepsPlot, {
+    prodfun = input$CostMinStepsProdfun
+    Q = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    smooth = input$CostMinStepsSmooth
+    
+    values$CostMinStepsPlot =  makeCostMinGraph(prodfun, w, r, Q, smooth = smooth)
+  })
+  
+  output$CostMinStepsPlot = renderPlotly({
+    values$CostMinStepsPlot
+  })
+  
+  observeEvent(input$RunCostMinStepsAnswers, {
+    prodfun = input$CostMinStepsProdfun
+    Q = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    CAns = input$CostMinStepsAnswerC
+    LAns = input$CostMinStepsAnswerL
+    KAns = input$CostMinStepsAnswerK
+    
+    ProductionLR = calculateProductionLR(prodfun, w, r)
+    ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
+    C = findVarsQ(ProductionLR, Q)[[2]]
+    L = findVarsQ(ProductionLR, Q)[[3]]
+    K = findVarsQ(ProductionLR, Q)[[4]]
+    
+    if(CAns == C && LAns == L && KAns == K){
+      values$CostMinStepsAnswers = h3("Well Done! All your answers are correct!")
+    } else {
+      values$CostMinStepsAnswers = h4("There is atleast one answer that is not correct.")
+    }
+  })
+  
+  output$CostMinStepsAnswers = renderUI({
+    values$CostMinStepsAnswers
+  })
+  
+  observeEvent(input$RunCostMinStepsSolutions, {
+    prodfun = input$CostMinStepsProdfun
+    Q = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    ProductionLR = calculateProductionLR(prodfun, w, r)
+    ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
+    C = findVarsQ(ProductionLR, Q)[[2]]
+    L = findVarsQ(ProductionLR, Q)[[3]]
+    K = findVarsQ(ProductionLR, Q)[[4]]
+    results = calculateProductionLR(prodfun, w, r, steps = TRUE)
+    MPL = caracas::tex(results$MPL)
+    MPK = caracas::tex(results$MPK)
+    MRTS = caracas::tex(results$MPL/results$MPK)
+    Kcritical = caracas::tex(results$Kcritical[[1]]$K)
+    prodfunL = caracas::tex(results$prodFunLR[[2]])
+    values$CostMinStepsSolutions = withMathJax(HTML(paste0("
+      <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+      <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+      <h4>Step 2: Find ratio of prices</h4>
+      <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+      <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+      <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+      <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+      <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+      <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
+      <p>$$ K = ", Kcritical, "$$</p>
+      <h4>Step 4: Solve system of equations with target quantity</h4>
+      <p>$$", Q," = ", prodfun,"$$</p>
+      <p>$$ K = ", Kcritical, "$$</p>
+      <p>$$", Q," = ", prodfunL,"$$</p>
+      <p>$$", L," = L $$</p>
+      <p>$$", K," = K $$</p>
+      <p>$$ C = L*w + K*r $$</p>
+      <p>$$ C = ", L,"*", w,"+", K,"*", r, "$$</p>
+      <p>$$ C = ", C, "$$</p>
+    ")))
+  })
+  
+  output$CostMinStepsSolutions = renderUI({
+    values$CostMinStepsSolutions
+  })
+  
+  
+  
+
   
 }

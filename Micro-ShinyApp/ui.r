@@ -26,10 +26,12 @@ fluidPage(
     tabPanel(
       "Home",
       value = "Home",
+      withMathJax(),
       h1("More Content Coming Soon"),
       p(
         "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can."
-      )
+      ),
+      p("$$\\frac{\\frac{0.5 L^{0.5}}{K^{0.5}}}{\\frac{0.5 L^{0.5}}{K^{0.5}}}$$")
     ),
     ###### Consumer Behavior ######
     navbarMenu(
@@ -761,7 +763,7 @@ fluidPage(
                      inputId = "IsoquantsProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
@@ -873,7 +875,7 @@ fluidPage(
                    inputId = "MRTSProdfun",
                    label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                    value = "K^.5*L^.5",
-                   width = '600px'
+                   width = '400px'
                  ),
                  div(
                    style = "display:inline-block",
@@ -923,14 +925,14 @@ fluidPage(
                      inputId = "SRProductionProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
                    style = "display:inline-block",
                    numericInput(
                      inputId = "SRProductionK",
-                     label = "K: Level of fixed capital",
+                     label = span("\\(\\overline{K}\\): Fixed level of capital"),
                      value = 48,
                      min = 1,
                      width = '200px'
@@ -994,7 +996,7 @@ fluidPage(
                      inputId = "CostMinProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
@@ -1055,7 +1057,7 @@ fluidPage(
                      inputId = "LRExpansionProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
@@ -1123,7 +1125,7 @@ fluidPage(
                      inputId = "SRLRExpansionProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
@@ -1178,7 +1180,7 @@ fluidPage(
                      inputId = "SRLRExpansionCProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
-                     width = '600px'
+                     width = '400px'
                    )
                  ),
                  div(
@@ -1239,7 +1241,106 @@ fluidPage(
       ),
       tabPanel("Practice",
                value = "ProductionPractice",
-               h1("Coming Soon")),
+               fluidRow(
+                 column(6,
+                        div(
+                          style = "display:inline-block",
+                          textInput(
+                            inputId = "CostMinStepsProdfun",
+                            label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                            value = "K^.5*L^.5",
+                            width = '400px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsQ",
+                            label = "Q: Level of production",
+                            value = 15,
+                            min = 1,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsW",
+                            label = "w: wages, the price of labor (L)",
+                            value = 15,
+                            min = 1,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsR",
+                            label = "r: rental rate, the price of capital (K)",
+                            value = 12,
+                            min = 1,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsSmooth",
+                            label = "Smoothnes Paramater (number of points in each curve)",
+                            value = 100,
+                            min = 20,
+                            step = 1,
+                            width = '200px'
+                          )
+                        ),
+                        actionButton(inputId = "RunCostMinStepsPlot",
+                                     label = "Draw Graph"),
+                        plotlyOutput("CostMinStepsPlot")%>% withSpinner(color="#004623"),
+                         ),
+                 column(6,
+                        h4("Type your answers to the question in the field below, rounding to the nearest hundredth"),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsAnswerC",
+                            label = "How much does the production of 15 units cost?",
+                            min = 0,
+                            value = NULL,
+                            step = .01,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsAnswerL",
+                            label = "How much labor (L) is used?",
+                            min = 1,
+                            value = NULL,
+                            step = .01,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsAnswerK",
+                            label = "How much capital (K) is used?",
+                            min = 1,
+                            value = NULL,
+                            step = .01,
+                            width = '200px'
+                          )
+                        ),
+                        actionButton(inputId = "RunCostMinStepsAnswers",
+                                     label = "Submit Solutions"),
+                        actionButton(inputId = "RunCostMinStepsSolutions",
+                                     label = "Reveal Step-by-Step Solutions"),
+                        htmlOutput("CostMinStepsAnswers"),
+                        htmlOutput("CostMinStepsSolutions")
+                        )
+                 ),
+               ),
       tabPanel("Graphs",
                value = "ProductionGraphs",
                h1("Coming Soon"))
