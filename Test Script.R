@@ -650,7 +650,7 @@ makeLRvSRCostExpansionGraph = function(prodfun, w, r, Q, QList, smooth = 100){
   return(plotly)
 }
 
-makeLRvSRCostExpansionGraph(prodfun, 2, 2, 16, c(8, 24), smooth = 100)
+makeLRvSRCostExpansionGraph(prodfun, w, r, Q, QList, smooth = 100)
 
 
 makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
@@ -682,7 +682,7 @@ makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
   return(list(plotly, plot))
 }
 
-test = makeFirmExpansionGraph(prodfun, 200, 10, 2, 2, smooth = 200)
+test = makeFirmExpansionGraph(prodfun, QMax, QNum, w, r, smooth = 100)
 test[[1]]
 test[[2]]
 

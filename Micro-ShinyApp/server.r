@@ -1906,20 +1906,54 @@ function(input, output, session) {
   })
   
   
-  ###### SR Production Curve ######
+  ###### LR Expansion ######
   
-  observeEvent(input$RunCostMinPlot, {
-    prodfun = "L^.5*K^.5"
-    r = 2
-    w = 2
-    Q = 10
-    smooth = 
+  observeEvent(input$RunLRExpansionPlot, {
+    prodfun = input$LRExpansionProdfun
+    QMax = input$LRExpansionQMax
+    QNum = input$LRExpansionQNum
+    w = input$LRExpansionW
+    r = input$LRExpansionR
+    smooth = input$LRExpansionSmooth
     
-    values$CostMinPlot =  makeLRvSRExpansionGraph(prodfun, w, r, Q, smooth = smooth)
+    values$LRExpansionPlot =  makeFirmExpansionGraph(prodfun, QMax, QNum, w, r, smooth = 100)[[1]]
   })
   
-  output$CostMinPlot = renderPlotly({
-    values$CostMinPlot
+  output$LRExpansionPlot = renderPlotly({
+    values$LRExpansionPlot
+  })
+  
+  ###### SR vs LR Expansion ######
+  
+  observeEvent(input$SRLRExpansionPlot, {
+    prodfun = input$SRLRExpansionProdfun
+    w = input$SRLRExpansionW
+    r = input$SRLRExpansionR
+    Q = input$SRLRExpansionQ
+    smooth = input$SRLRExpansionSmooth
+    
+    values$SRLRExpansionPlot =  makeLRvSRExpansionGraph(prodfun, w, r, Q, smooth = smooth)
+  })
+  
+  output$SRLRExpansionPlot = renderPlotly({
+    values$SRLRExpansionPlot
+  })
+  
+  ###### SR vs LR Expansion - Costs ######
+  
+  observeEvent(input$SRLRExpansionCPlot, {
+    prodfun = input$SRLRExpansionCProdfun
+    w = input$SRLRExpansionCW
+    r = input$SRLRExpansionCR
+    Q = input$SRLRExpansionCQ
+    QList = as.numeric(unlist(strsplit(input$SRLRExpansionCQList, ",")))
+    smooth = input$SRLRExpansionCSmooth
+    
+    values$SRLRExpansionCPlot =  makeLRvSRCostExpansionGraph(prodfun, w, r, Q, QList, smooth = smooth)
+  })
+  
+  output$SRLRExpansionCPlot = renderPlotly({
+    values$SRLRExpansionCPlot
   })
   
 }

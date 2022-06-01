@@ -1039,6 +1039,204 @@ fluidPage(
                              src = "Firm_LR_vs_SR_Expansion.pdf"),
           ),
           column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "LRExpansionProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQMax",
+                     label = "Maximum Q level of isoquant curve",
+                     value = 100,
+                     min = 1,
+                     width = '150px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQNum",
+                     label = "Number of isoquant curves",
+                     value = 10,
+                     min = 1,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 2,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 4,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunLRExpansionPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("LRExpansionPlot")%>% withSpinner(color="#004623"),
+          )
+        ),
+        fluidRow(
+          column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "LRExpansionProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQMax",
+                     label = "Maximum Q level of isoquant curve",
+                     value = 100,
+                     min = 1,
+                     width = '150px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQNum",
+                     label = "Number of isoquant curves",
+                     value = 10,
+                     min = 1,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 2,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 4,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunLRExpansionPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("LRExpansionPlot")%>% withSpinner(color="#004623"),
+          ),
+          column(6,
+                 div(
+                   style = "display:inline-block",
+                   textInput(
+                     inputId = "LRExpansionProdfun",
+                     label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+                     value = "K^.5*L^.5",
+                     width = '600px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQMax",
+                     label = "Maximum Q level of isoquant curve",
+                     value = 100,
+                     min = 1,
+                     width = '150px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionQNum",
+                     label = "Number of isoquant curves",
+                     value = 10,
+                     min = 1,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionW",
+                     label = "w: wages, the price of labor (L)",
+                     value = 2,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionR",
+                     label = "r: rental rate, the price of capital (K)",
+                     value = 4,
+                     min = 1,
+                     width = '200px'
+                   )
+                 ),
+                 div(
+                   style = "display:inline-block",
+                   numericInput(
+                     inputId = "LRExpansionSmooth",
+                     label = "Smoothnes Paramater (number of points in each curve)",
+                     value = 100,
+                     min = 20,
+                     step = 1,
+                     width = '200px'
+                   )
+                 ),
+                 actionButton(inputId = "RunLRExpansionPlot",
+                              label = "Draw Graph"),
+                 plotlyOutput("LRExpansionPlot")%>% withSpinner(color="#004623"),
           )
         ),
       ),
