@@ -1406,7 +1406,9 @@ function(input, output, session) {
                            IsocostsPlot = NULL,
                            MRTSPlot = NULL,
                            SRProductionPlot = NULL,
-                           CostMinPlot = NULL
+                           CostMinPlot = NULL,
+                           LRExpansionPlot = NULL,
+                           SRLRExpansionPlot = NULL,
                            )
   
   # url navigation code from Dean Attali

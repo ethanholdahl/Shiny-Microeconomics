@@ -1110,7 +1110,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    textInput(
-                     inputId = "LRExpansionProdfun",
+                     inputId = "SRLRExpansionProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
                      width = '600px'
@@ -1119,8 +1119,8 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionQMax",
-                     label = "Maximum Q level of isoquant curve",
+                     inputId = "SRLRExpansionQ",
+                     label = "Level of production (Q)",
                      value = 100,
                      min = 1,
                      width = '150px'
@@ -1129,18 +1129,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionQNum",
-                     label = "Number of isoquant curves",
-                     value = 10,
-                     min = 1,
-                     step = 1,
-                     width = '200px'
-                   )
-                 ),
-                 div(
-                   style = "display:inline-block",
-                   numericInput(
-                     inputId = "LRExpansionW",
+                     inputId = "SRLRExpansionW",
                      label = "w: wages, the price of labor (L)",
                      value = 2,
                      min = 1,
@@ -1150,7 +1139,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionR",
+                     inputId = "SRLRExpansionR",
                      label = "r: rental rate, the price of capital (K)",
                      value = 4,
                      min = 1,
@@ -1160,7 +1149,7 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionSmooth",
+                     inputId = "SRLRExpansionSmooth",
                      label = "Smoothnes Paramater (number of points in each curve)",
                      value = 100,
                      min = 20,
@@ -1168,15 +1157,21 @@ fluidPage(
                      width = '200px'
                    )
                  ),
-                 actionButton(inputId = "RunLRExpansionPlot",
+                 actionButton(inputId = "RunSRLRExpansionPlot",
                               label = "Draw Graph"),
-                 plotlyOutput("LRExpansionPlot")%>% withSpinner(color="#004623"),
+                 plotlyOutput("SRLRExpansionPlot")%>% withSpinner(color="#004623"),
           ),
+          prodfun = input$SRLRExpansionCProdfun
+          w = input$SRLRExpansionCW
+          r = input$SRLRExpansionCR
+          Q = input$SRLRExpansionCQ
+          QList = as.numeric(unlist(strsplit(input$SRLRExpansionCQList, ",")))
+          smooth = input$SRLRExpansionCSmooth
           column(6,
                  div(
                    style = "display:inline-block",
                    textInput(
-                     inputId = "LRExpansionProdfun",
+                     inputId = "SRLRExpansionCProdfun",
                      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                      value = "K^.5*L^.5",
                      width = '600px'
@@ -1185,8 +1180,8 @@ fluidPage(
                  div(
                    style = "display:inline-block",
                    numericInput(
-                     inputId = "LRExpansionQMax",
-                     label = "Maximum Q level of isoquant curve",
+                     inputId = "SRLRExpansionCQ",
+                     label = "Level of production (Q)",
                      value = 100,
                      min = 1,
                      width = '150px'
@@ -1194,9 +1189,9 @@ fluidPage(
                  ),
                  div(
                    style = "display:inline-block",
-                   numericInput(
-                     inputId = "LRExpansionQNum",
-                     label = "Number of isoquant curves",
+                   textInput(
+                     inputId = "SRLRExpansionCQList",
+                     label = "Comma seperated list of Q to transition to",
                      value = 10,
                      min = 1,
                      step = 1,
