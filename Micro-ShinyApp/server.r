@@ -2233,21 +2233,21 @@ function(input, output, session) {
     if(perfectSubs){
       if(perfectSubsInterior){
         values$CostMinStepsSolutions = withMathJax(HTML(paste0("
-                                                               <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                               <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
                                                                <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
                                                                <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
                                                                <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
-                                                               <h4>Step 2: Find ratio of prices</h4>
+                                                               <h3>Step 2: Find ratio of prices</h4>
                                                                <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
                                                                <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
-                                                               <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                               <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
                                                                <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
                                                                <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
                                                                <p> We just found that \\(MRTS_{LK} = -slope Isocost line\\), that \\(\\frac{MP_L}{w} = \\frac{MP_K}{r}\\) for all values of L and K.</p>
                                                                <p> This means that <i>any combination</i> of inputs that produces ", Q," units of quantity is equally cost efficient, even interior solutions!</p>
                                                                <p> So, technically there are infinite solutions here. The following set contains them all.</p>
                                                                <p>$$ K = \\alpha * \\frac{", Q, "}{", MPK,"} \\qquad L = (1-\\alpha) * \\frac{", Q, "}{", MPL,"} \\qquad \\text{where} \\quad \\alpha \\in [0,1] $$</p>
-                                                               <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                               <h3>Step 4: Solve system of equations with target quantity</h4>
                                                                <p>$$", Q," = ", prodfun,"$$</p>
                                                                <p>$$ C = K * r + L * w $$</p>
                                                                <p>$$ C = \\alpha * \\frac{", Q, "}{", MPK,"} * ", r," + (1-\\alpha) * \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
@@ -2257,14 +2257,14 @@ function(input, output, session) {
       } else {
         if(perfectSubsCornerL){
           values$CostMinStepsSolutions = withMathJax(HTML(paste0("
-                                                                 <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                                 <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
                                                                  <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
                                                                  <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
                                                                  <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
-                                                                 <h4>Step 2: Find ratio of prices</h4>
+                                                                 <h3>Step 2: Find ratio of prices</h4>
                                                                  <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
                                                                  <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
-                                                                 <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                                 <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
                                                                  <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
                                                                  <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
                                                                  <p> We just found that \\(MRTS_{LK} \\neq -slope Isocost line\\), that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
@@ -2272,7 +2272,7 @@ function(input, output, session) {
                                                                  <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
                                                                  <p> Since \\(\\frac{MP_L}{w} > \\frac{MP_K}{r}\\), we should only use L in production. </p>
                                                                  <p>$$ K = 0 \\qquad L = \\frac{", Q, "}{", MPL,"} $$</p>
-                                                                 <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                                 <h3>Step 4: Solve system of equations with target quantity</h4>
                                                                  <p>$$", Q," = ", prodfun,"$$</p>
                                                                  <p>$$ C = K * r + L * w $$</p>
                                                                  <p>$$ C = 0 * ", r," + \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
@@ -2280,14 +2280,14 @@ function(input, output, session) {
                                                                  ")))
         } else {
           values$CostMinStepsSolutions = withMathJax(HTML(paste0("
-                                                                 <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                                 <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
                                                                  <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
                                                                  <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
                                                                  <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
-                                                                 <h4>Step 2: Find ratio of prices</h4>
+                                                                 <h3>Step 2: Find ratio of prices</h4>
                                                                  <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
                                                                  <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
-                                                                 <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                                 <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
                                                                  <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
                                                                  <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
                                                                  <p> We just found that \\(MRTS_{LK} \\neq -slope Isocost line\\), that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
@@ -2295,7 +2295,7 @@ function(input, output, session) {
                                                                  <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
                                                                  <p> Since \\(\\frac{MP_L}{w} < \\frac{MP_K}{r}\\), we should only use K in production. </p>
                                                                  <p>$$ K = \\frac{", Q, "}{", MPK,"} \\qquad L = 0 $$</p>
-                                                                 <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                                 <h3>Step 4: Solve system of equations with target quantity</h4>
                                                                  <p>$$", Q," = ", prodfun,"$$</p>
                                                                  <p>$$ C = K * r + L * w $$</p>
                                                                  <p>$$ C = \\frac{", Q, "}{", MPK,"} * ", r," + 0 *", w, "$$</p>
@@ -2307,17 +2307,17 @@ function(input, output, session) {
       Kcritical = caracas::tex(results$Kcritical[[1]]$K)
       prodfunL = caracas::tex(results$prodFunLR[[2]])
       values$CostMinStepsSolutions = withMathJax(HTML(paste0("
-      <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+      <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
       <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
-      <h4>Step 2: Find ratio of prices</h4>
+      <h3>Step 2: Find ratio of prices</h4>
       <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
-      <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+      <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
       <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
       <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
       <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
       <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
       <p>$$ K = ", Kcritical, "$$</p>
-      <h4>Step 4: Solve system of equations with target quantity</h4>
+      <h3>Step 4: Solve system of equations with target quantity</h4>
       <p>$$", Q," = ", prodfun,"$$</p>
       <p>$$ K = ", Kcritical, "$$</p>
       <p>$$", Q," = ", prodfunL,"$$</p>
