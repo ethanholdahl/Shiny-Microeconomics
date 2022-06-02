@@ -29,9 +29,8 @@ fluidPage(
       withMathJax(),
       h1("More Content Coming Soon"),
       p(
-        "Please allow a short time for the interactive assets to load into your browser. Currently available are the study pages under the Consumer Behavior and Individual and Market Demand tabs. I will be adding content as quickly as I can."
+        "Please allow a short time for the interactive assets to load into your browser. Currently available are: The study pages under the Consumer Behavior, Individual and Market Demand, and Production tabs, and the practice page under the production tab. I will be adding content as quickly as I can."
       ),
-      p("$$\\frac{\\frac{0.5 L^{0.5}}{K^{0.5}}}{\\frac{0.5 L^{0.5}}{K^{0.5}}}$$")
     ),
     ###### Consumer Behavior ######
     navbarMenu(

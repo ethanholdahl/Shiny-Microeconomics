@@ -1972,6 +1972,202 @@ function(input, output, session) {
   
   ###### Production - Practice ######
   
+  
+  ###### TEST FUN #######
+  
+  stepsCostMin = function(prodfun, w, r, Q){
+    K = caracas::symbol('K')
+    L = caracas::symbol('L')
+    Q = caracas::symbol('Q')
+    prodFun = caracas::as_sym(prodfun)
+    MPL = caracas::der(prodFun, L)
+    MPK = caracas::der(prodFun, K)
+    #Test if K or L do not have constant returns to scale 
+    KisVar1 = caracas::tex(caracas::der(MPL/MPK, K)) != 0
+    LisVar1 = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+    prodFunLR = list()
+    Kexpansion = list()
+    Lexpansion = list()
+    j = 0
+    perfectSubs = FALSE
+    perfectSubsInterior = FALSE
+    perfectSubsCornerL = FALSE
+    if(!LisVar1 & !KisVar1){
+      #Perfect substitutes
+      perfectSubs = TRUE
+      if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
+        perfectSubsCornerL = TRUE
+        #L more economical at all input levels
+        Kexpansion[[1]] = caracas::as_sym(0)
+        prodFunLR[[1]] = caracas::subs(prodFun, K, 0)
+        Lexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, L)[[1]]$L
+      } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
+        perfectSubsCornerL = FALSE
+        #K more economical at all input levels
+        Lexpansion[[1]] = caracas::as_sym(0)
+        prodFunLR[[1]] = caracas::subs(prodFun, L, 0)
+        Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
+      } else {
+        # L and K equally economical at all input levels
+        # Set K = L (arbitrarily)
+        perfectSubsInterior = TRUE
+        prodFunLR[[1]] = caracas::subs(prodFun, L, K)
+        Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
+        Lexpansion[[1]] = Kexpansion[[1]]
+      }
+    }
+    Lcritical = c()
+    Kcritical = c()
+    if(LisVar1) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
+    if(KisVar1) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+    if(LisVar1 | KisVar1){
+      #Not perfect substitutes. Possible interior solution
+      #search for critical values to test for corner solutions
+      #Lcrit first
+      #add 0 to critical value
+      Lcrit = list(caracas::as_sym(0))
+      if(length(Lcritical>0)){
+        for(i in 1:length(Lcritical)){
+          Lcrit[[i+1]] = (Lcritical[[i]]$L)
+        }
+      }
+      lenLcrit = length(Lcrit)
+      for(i in 1:lenLcrit){
+        Lexpansion_try = Lcrit[[i]]
+        prodFunLR_try = caracas::subs(prodFun, L, Lcrit[[i]])
+        results = caracas::solve_sys(prodFunLR_try, Q, K)
+        if(length(results)==0) next
+        for(k in 1:length(results)){
+          j = j + 1
+          Lexpansion[[j]] = Lexpansion_try
+          prodFunLR[[j]] = prodFunLR_try
+          Kexpansion[[j]]= results[[k]]$K
+        }
+      }
+      #Kcrit second
+      #add 0 to critical value
+      Kcrit = list(caracas::as_sym(0))
+      if(length(Kcritical>0)){
+        for(i in 1:length(Kcritical)){
+          Kcrit[[i+1]] = (Kcritical[[i]]$K)
+        }
+      }
+      lenKcrit = length(Kcrit)
+      for(i in 1:lenKcrit){
+        Kexpansion_try = Kcrit[[i]]
+        prodFunLR_try = caracas::subs(prodFun, K, Kcrit[[i]])
+        results = caracas::solve_sys(prodFunLR_try, Q, L)
+        if(length(results)==0) next
+        for(k in 1:length(results)){
+          j = j + 1
+          Kexpansion[[j]] = Kexpansion_try
+          prodFunLR[[j]] = prodFunLR_try
+          Lexpansion[[j]]= results[[k]]$L
+        }
+      }
+    }
+    
+    #LR expansion Path
+    LRcost = list()
+    Qcrit = c()
+    
+    #Calculate LR cost curve under possible solutions
+    for(i in 1:length(prodFunLR)){
+      KinL = caracas::tex(caracas::der(Lexpansion[[i]],K))!=0
+      LinK = caracas::tex(caracas::der(Kexpansion[[i]],L))!=0
+      if(LinK) Kexpansion[[i]] = caracas::subs(Kexpansion[[i]], L, Lexpansion[[i]])
+      if(KinL) Lexpansion[[i]] = caracas::subs(Lexpansion[[i]], K, Kexpansion[[i]])
+      LRcost[[i]] = Lexpansion[[i]]*w + Kexpansion[[i]]*r
+    }
+    
+    #Identify all critical points for LR cost curve
+    if(length(prodFunLR) > 1){
+      for(i in 1:(length(prodFunLR)-1)){
+        for(j in (i+1):length(prodFunLR)){
+          Qcritical = caracas::solve_sys(LRcost[[i]], LRcost[[j]], Q)
+          if (length(Qcritical) == 0) next
+          for(k in length(Qcritical)){
+            Qcrit = c(Qcrit, caracas::as_expr(Qcritical[[k]]$Q))
+          }
+        }
+        #add Qcrit for levels of Q at which levels of L or K is 0
+        LisVar = caracas::tex(caracas::der(Lexpansion[[i]],Q))!=0
+        KisVar = caracas::tex(caracas::der(Kexpansion[[i]],Q))!=0
+        if(LisVar){
+          result = caracas::solve_sys(Lexpansion[[i]], Q)
+          if(length(result)>0){
+            for(j in length(result)){
+              Qcrit = c(Qcrit, caracas::as_expr(result[[j]]$Q))
+            }
+          }
+        }
+        if(KisVar){
+          result = caracas::solve_sys(Kexpansion[[i]], Q)
+          if(length(result)>0){
+            for(j in length(result)){
+              Qcrit = c(Qcrit, caracas::as_expr(result[[j]]$Q))
+            }
+          }
+        }
+      }
+    }
+    
+    #Test which LR cost curve is positive and least expensive for all levels of output
+    if(!is.null(Qcrit)){
+      Qcrit = sort(unique(Qcrit[Qcrit>0]))
+      Qbins = c(0, Qcrit, max(0, Qcrit)+2)
+    } else {
+      Qbins = c(0, 2)
+    }
+    Qtests = c()
+    for(i in 1:(length(Qbins)-1)){
+      Qtests = c(Qtests, (Qbins[i] + Qbins[i+1])/2)
+    }
+    
+    minLRcostIndex = list()
+    for(i in 1:length(Qtests)){
+      costTest = c()
+      Q = Qtests[i]
+      for(j in 1:length(LRcost)){
+        Klevel = eval(caracas::as_expr(Kexpansion[[j]]))
+        Llevel = eval(caracas::as_expr(Lexpansion[[j]]))
+        if(Klevel >= 0 && Llevel >=0){
+          costTest = c(costTest, eval(caracas::as_expr(LRcost[[j]])))
+        } else {
+          costTest = c(costTest, Inf)
+        }
+      }
+      minC = min(costTest[costTest>0])
+      minLRcostIndex[[i]] = match(minC, costTest)
+    }
+    
+    #Test if cost function is piecewise
+    if (length(minLRcostIndex) > 1){
+      #Piecewise. consolidate pieces
+      remove = c()
+      for(i in 1:(length(minLRcostIndex)-1)){
+        if(minLRcostIndex[[i]] == minLRcostIndex[[i+1]]){
+          remove = c(remove, i)
+        }
+      }
+      Qcrit = Qcrit[-remove]
+      Qbins = Qbins[-(remove+1)]
+      minLRcostIndex = minLRcostIndex[-remove]
+    }
+    Qbins[length(Qbins)] = Inf
+    
+    #return LR cost function, LR expansion paths, LR prodFun, Piecewise Bounds
+    LRExpansion = list()
+    for(i in 1:length(minLRcostIndex)){
+      LRExpansion[[i]] = list(cost = LRcost[[minLRcostIndex[[i]]]], prodFun = prodFunLR[[minLRcostIndex[[i]]]], Lexpansion = Lexpansion[[minLRcostIndex[[i]]]], Kexpansion = Kexpansion[[minLRcostIndex[[i]]]], Qmin = Qbins[i], Qmax = Qbins[i+1])
+    }
+    
+    return(list(LRExpansion = LRExpansion, MPL = MPL, MPK = MPK, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, LisVar1 = LisVar1, KisVar1 = KisVar1, Lcritical = Lcritical, Kcritical = Kcritical, Lexpansion = Lexpansion, Kexpansion = Kexpansion, prodFunLR = prodFunLR, minLRcostIndex = minLRcostIndex, Qbins = Qbins, LRcost = LRcost))
+  }
+  
+  ###### END TEST FUN ######
+  
+  
   observeEvent(input$CostMinStepsQ, {
     updateNumericInput(session, inputId = "CostMinStepsAnswerC",
                        label = paste0("How much does the production of ", input$CostMinStepsQ ," units cost?"))
@@ -2027,13 +2223,90 @@ function(input, output, session) {
     C = findVarsQ(ProductionLR, Q)[[2]]
     L = findVarsQ(ProductionLR, Q)[[3]]
     K = findVarsQ(ProductionLR, Q)[[4]]
-    results = calculateProductionLR(prodfun, w, r, steps = TRUE)
+    results = stepsCostMin(prodfun, w, r, Q)
     MPL = caracas::tex(results$MPL)
     MPK = caracas::tex(results$MPK)
     MRTS = caracas::tex(results$MPL/results$MPK)
-    Kcritical = caracas::tex(results$Kcritical[[1]]$K)
-    prodfunL = caracas::tex(results$prodFunLR[[2]])
-    values$CostMinStepsSolutions = withMathJax(HTML(paste0("
+    perfectSubs = results$perfectSubs
+    perfectSubsInterior = results$perfectSubsInterior
+    perfectSubsCornerL = results$perfectSubsCornerL
+    if(perfectSubs){
+      if(perfectSubsInterior){
+        values$CostMinStepsSolutions = withMathJax(HTML(paste0("
+                                                               <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                               <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                                               <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                                               <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                                               <h4>Step 2: Find ratio of prices</h4>
+                                                               <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                                               <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                                               <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                               <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                                               <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
+                                                               <p> We just found that \\(MRTS_{LK} = -slope Isocost line\\), that \\(\\frac{MP_L}{w} = \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                                               <p> This means that <i>any combination</i> of inputs that produces ", Q," units of quantity is equally cost efficient, even interior solutions!</p>
+                                                               <p> So, technically there are infinite solutions here. The following set contains them all.</p>
+                                                               <p>$$ K = \\alpha * \\frac{", Q, "}{", MPK,"} \\qquad L = (1-\\alpha) * \\frac{", Q, "}{", MPL,"} \\qquad \\text{where} \\quad \\alpha \\in [0,1] $$</p>
+                                                               <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                               <p>$$", Q," = ", prodfun,"$$</p>
+                                                               <p>$$ C = K * r + L * w $$</p>
+                                                               <p>$$ C = \\alpha * \\frac{", Q, "}{", MPK,"} * ", r," + (1-\\alpha) * \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
+                                                               <p>$$ C = \\alpha *", C, " + (1-\\alpha) *", C," $$</p>
+                                                               <p>$$ C = ", C, "$$</p>
+                                                               ")))
+      } else {
+        if(perfectSubsCornerL){
+          values$CostMinStepsSolutions = withMathJax(HTML(paste0("
+                                                                 <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                                 <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                                                 <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                                                 <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                                                 <h4>Step 2: Find ratio of prices</h4>
+                                                                 <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                                                 <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                                                 <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                                 <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                                                 <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
+                                                                 <p> We just found that \\(MRTS_{LK} \\neq -slope Isocost line\\), that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                                                 <p> This means we must have a corner solution! Now we must figue out if we want to only employ K or L.</p>
+                                                                 <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
+                                                                 <p> Since \\(\\frac{MP_L}{w} > \\frac{MP_K}{r}\\), we should only use L in production. </p>
+                                                                 <p>$$ K = 0 \\qquad L = \\frac{", Q, "}{", MPL,"} $$</p>
+                                                                 <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                                 <p>$$", Q," = ", prodfun,"$$</p>
+                                                                 <p>$$ C = K * r + L * w $$</p>
+                                                                 <p>$$ C = 0 * ", r," + \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
+                                                                 <p>$$ C = ", C, "$$</p>
+                                                                 ")))
+        } else {
+          values$CostMinStepsSolutions = withMathJax(HTML(paste0("
+                                                                 <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
+                                                                 <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                                                 <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                                                 <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                                                 <h4>Step 2: Find ratio of prices</h4>
+                                                                 <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                                                 <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                                                 <h4>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h4>
+                                                                 <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                                                 <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
+                                                                 <p> We just found that \\(MRTS_{LK} \\neq -slope Isocost line\\), that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                                                 <p> This means we must have a corner solution! Now we must figue out if we want to only employ K or L.</p>
+                                                                 <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
+                                                                 <p> Since \\(\\frac{MP_L}{w} < \\frac{MP_K}{r}\\), we should only use K in production. </p>
+                                                                 <p>$$ K = \\frac{", Q, "}{", MPK,"} \\qquad L = 0 $$</p>
+                                                                 <h4>Step 4: Solve system of equations with target quantity</h4>
+                                                                 <p>$$", Q," = ", prodfun,"$$</p>
+                                                                 <p>$$ C = K * r + L * w $$</p>
+                                                                 <p>$$ C = \\frac{", Q, "}{", MPK,"} * ", r," + 0 *", w, "$$</p>
+                                                                 <p>$$ C = ", C, "$$</p>
+                                                                ")))
+        }
+      }
+    } else {
+      Kcritical = caracas::tex(results$Kcritical[[1]]$K)
+      prodfunL = caracas::tex(results$prodFunLR[[2]])
+      values$CostMinStepsSolutions = withMathJax(HTML(paste0("
       <h4>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h4>
       <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
       <h4>Step 2: Find ratio of prices</h4>
@@ -2054,6 +2327,7 @@ function(input, output, session) {
       <p>$$ C = ", L,"*", w,"+", K,"*", r, "$$</p>
       <p>$$ C = ", C, "$$</p>
     ")))
+    }
   })
   
   output$CostMinStepsSolutions = renderUI({

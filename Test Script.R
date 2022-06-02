@@ -695,6 +695,214 @@ test[[1]]
 test[[2]]
 
 
+prodfun = "L^.5*K^.5"
+prodfun = "K + L"
+w = 8
+r = 4
+Q = 10
+
+stepsCostMin = function(prodfun, w, r, Q){
+  K = caracas::symbol('K')
+  L = caracas::symbol('L')
+  Q = caracas::symbol('Q')
+  prodFun = caracas::as_sym(prodfun)
+  MPL = caracas::der(prodFun, L)
+  MPK = caracas::der(prodFun, K)
+  #Test if K or L do not have constant returns to scale 
+  KisVar1 = caracas::tex(caracas::der(MPL/MPK, K)) != 0
+  LisVar1 = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+  prodFunLR = list()
+  Kexpansion = list()
+  Lexpansion = list()
+  j = 0
+  perfectsSubs = FALSE
+  perfectsSubsInterior = FALSE
+  perfectSubsCornerL = FALSE
+  if(!LisVar1 & !KisVar1){
+    #Perfect substitutes
+    perfectsSubs = TRUE
+    if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
+      perfectSubsCornerL = TRUE
+      #L more economical at all input levels
+      Kexpansion[[1]] = caracas::as_sym(0)
+      prodFunLR[[1]] = caracas::subs(prodFun, K, 0)
+      Lexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, L)[[1]]$L
+    } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
+      perfectSubsCornerL = FALSE
+      #K more economical at all input levels
+      Lexpansion[[1]] = caracas::as_sym(0)
+      prodFunLR[[1]] = caracas::subs(prodFun, L, 0)
+      Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
+    } else {
+      # L and K equally economical at all input levels
+      # Set K = L (arbitrarily)
+      perfectsSubsInterior = TRUE
+      prodFunLR[[1]] = caracas::subs(prodFun, L, K)
+      Kexpansion[[1]] = caracas::solve_sys(prodFunLR[[1]], Q, K)[[1]]$K
+      Lexpansion[[1]] = Kexpansion[[1]]
+    }
+  }
+  Lcritical = c()
+  Kcritical = c()
+  if(LisVar1) Lcritical = try(caracas::solve_sys(MPL/MPK, w/r, L))
+  if(KisVar1) Kcritical = try(caracas::solve_sys(MPL/MPK, w/r, K))
+  if(LisVar1 | KisVar1){
+    #Not perfect substitutes. Possible interior solution
+    #search for critical values to test for corner solutions
+    #Lcrit first
+    #add 0 to critical value
+    Lcrit = list(caracas::as_sym(0))
+    if(length(Lcritical>0)){
+      for(i in 1:length(Lcritical)){
+        Lcrit[[i+1]] = (Lcritical[[i]]$L)
+      }
+    }
+    lenLcrit = length(Lcrit)
+    for(i in 1:lenLcrit){
+      Lexpansion_try = Lcrit[[i]]
+      prodFunLR_try = caracas::subs(prodFun, L, Lcrit[[i]])
+      results = caracas::solve_sys(prodFunLR_try, Q, K)
+      if(length(results)==0) next
+      for(k in 1:length(results)){
+        j = j + 1
+        Lexpansion[[j]] = Lexpansion_try
+        prodFunLR[[j]] = prodFunLR_try
+        Kexpansion[[j]]= results[[k]]$K
+      }
+    }
+    #Kcrit second
+    #add 0 to critical value
+    Kcrit = list(caracas::as_sym(0))
+    if(length(Kcritical>0)){
+      for(i in 1:length(Kcritical)){
+        Kcrit[[i+1]] = (Kcritical[[i]]$K)
+      }
+    }
+    lenKcrit = length(Kcrit)
+    for(i in 1:lenKcrit){
+      Kexpansion_try = Kcrit[[i]]
+      prodFunLR_try = caracas::subs(prodFun, K, Kcrit[[i]])
+      results = caracas::solve_sys(prodFunLR_try, Q, L)
+      if(length(results)==0) next
+      for(k in 1:length(results)){
+        j = j + 1
+        Kexpansion[[j]] = Kexpansion_try
+        prodFunLR[[j]] = prodFunLR_try
+        Lexpansion[[j]]= results[[k]]$L
+      }
+    }
+  }
+  
+  #LR expansion Path
+  LRcost = list()
+  Qcrit = c()
+  
+  #Calculate LR cost curve under possible solutions
+  for(i in 1:length(prodFunLR)){
+    KinL = caracas::tex(caracas::der(Lexpansion[[i]],K))!=0
+    LinK = caracas::tex(caracas::der(Kexpansion[[i]],L))!=0
+    if(LinK) Kexpansion[[i]] = caracas::subs(Kexpansion[[i]], L, Lexpansion[[i]])
+    if(KinL) Lexpansion[[i]] = caracas::subs(Lexpansion[[i]], K, Kexpansion[[i]])
+    LRcost[[i]] = Lexpansion[[i]]*w + Kexpansion[[i]]*r
+  }
+  
+  #Identify all critical points for LR cost curve
+  if(length(prodFunLR) > 1){
+    for(i in 1:(length(prodFunLR)-1)){
+      for(j in (i+1):length(prodFunLR)){
+        Qcritical = caracas::solve_sys(LRcost[[i]], LRcost[[j]], Q)
+        if (length(Qcritical) == 0) next
+        for(k in length(Qcritical)){
+          Qcrit = c(Qcrit, caracas::as_expr(Qcritical[[k]]$Q))
+        }
+      }
+      #add Qcrit for levels of Q at which levels of L or K is 0
+      LisVar = caracas::tex(caracas::der(Lexpansion[[i]],Q))!=0
+      KisVar = caracas::tex(caracas::der(Kexpansion[[i]],Q))!=0
+      if(LisVar){
+        result = caracas::solve_sys(Lexpansion[[i]], Q)
+        if(length(result)>0){
+          for(j in length(result)){
+            Qcrit = c(Qcrit, caracas::as_expr(result[[j]]$Q))
+          }
+        }
+      }
+      if(KisVar){
+        result = caracas::solve_sys(Kexpansion[[i]], Q)
+        if(length(result)>0){
+          for(j in length(result)){
+            Qcrit = c(Qcrit, caracas::as_expr(result[[j]]$Q))
+          }
+        }
+      }
+    }
+  }
+  
+  #Test which LR cost curve is positive and least expensive for all levels of output
+  if(!is.null(Qcrit)){
+    Qcrit = sort(unique(Qcrit[Qcrit>0]))
+    Qbins = c(0, Qcrit, max(0, Qcrit)+2)
+  } else {
+    Qbins = c(0, 2)
+  }
+  Qtests = c()
+  for(i in 1:(length(Qbins)-1)){
+    Qtests = c(Qtests, (Qbins[i] + Qbins[i+1])/2)
+  }
+  
+  minLRcostIndex = list()
+  for(i in 1:length(Qtests)){
+    costTest = c()
+    Q = Qtests[i]
+    for(j in 1:length(LRcost)){
+      Klevel = eval(caracas::as_expr(Kexpansion[[j]]))
+      Llevel = eval(caracas::as_expr(Lexpansion[[j]]))
+      if(Klevel >= 0 && Llevel >=0){
+        costTest = c(costTest, eval(caracas::as_expr(LRcost[[j]])))
+      } else {
+        costTest = c(costTest, Inf)
+      }
+    }
+    minC = min(costTest[costTest>0])
+    minLRcostIndex[[i]] = match(minC, costTest)
+  }
+  
+  #Test if cost function is piecewise
+  if (length(minLRcostIndex) > 1){
+    #Piecewise. consolidate pieces
+    remove = c()
+    for(i in 1:(length(minLRcostIndex)-1)){
+      if(minLRcostIndex[[i]] == minLRcostIndex[[i+1]]){
+        remove = c(remove, i)
+      }
+    }
+    Qcrit = Qcrit[-remove]
+    Qbins = Qbins[-(remove+1)]
+    minLRcostIndex = minLRcostIndex[-remove]
+  }
+  Qbins[length(Qbins)] = Inf
+  
+  #return LR cost function, LR expansion paths, LR prodFun, Piecewise Bounds
+  LRExpansion = list()
+  for(i in 1:length(minLRcostIndex)){
+    LRExpansion[[i]] = list(cost = LRcost[[minLRcostIndex[[i]]]], prodFun = prodFunLR[[minLRcostIndex[[i]]]], Lexpansion = Lexpansion[[minLRcostIndex[[i]]]], Kexpansion = Kexpansion[[minLRcostIndex[[i]]]], Qmin = Qbins[i], Qmax = Qbins[i+1])
+  }
+  
+  return(list(LRExpansion = LRExpansion, MPL = MPL, MPK = MPK, perfectsSubs = perfectsSubs, perfectsSubsInterior = perfectsSubsInterior, perfectSubsCornerL = perfectSubsCornerL, LisVar1 = LisVar1, KisVar1 = KisVar1, Lcritical = Lcritical, Kcritical = Kcritical, Lexpansion = Lexpansion, Kexpansion = Kexpansion, prodFunLR = prodFunLR, minLRcostIndex = minLRcostIndex, Qbins = Qbins, LRcost = LRcost))
+}
+
+
+results = stepsCostMin(prodfun, w, r, Q)
+
+results$perfectsSubs
+results$perfectsSubsInterior
+results$perfectSubsCornerL
+results$MPL
+results$MPK
+results$MRTS
+
+results$MPL/results$MPK
+
 stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
   ProductionLRsteps = calculateProductionLR(prodfun, w, r, steps = TRUE)
   result = findVarsQ(ProductionLRsteps[[1]], Q)
