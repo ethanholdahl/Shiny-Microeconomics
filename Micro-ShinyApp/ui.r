@@ -1335,8 +1335,8 @@ fluidPage(
                                      label = "Submit Solutions"),
                         actionButton(inputId = "RunCostMinStepsSolutions",
                                      label = "Reveal Step-by-Step Solutions"),
-                        htmlOutput("CostMinStepsAnswers"),
-                        htmlOutput("CostMinStepsSolutions")
+                        htmlOutput("CostMinStepsAnswers") %>% withSpinner(color="#004623"),
+                        htmlOutput("CostMinStepsSolutions") %>% withSpinner(color="#004623")
                         )
                  ),
                ),

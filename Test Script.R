@@ -697,7 +697,7 @@ test[[2]]
 
 prodfun = "L^.5*K^.5"
 prodfun = "K^2 + K*L"
-prodfun = "K*L - 10*L"
+prodfun = "K^2 + 10*L"
 w = 4
 r = 4
 Q = 10
