@@ -708,9 +708,10 @@ stepsCostMin = function(prodfun, w, r, Q){
   prodFun = caracas::as_sym(prodfun)
   MPL = caracas::der(prodFun, L)
   MPK = caracas::der(prodFun, K)
+  MRTS = MPL/MPK
   #Test if K or L do not have constant returns to scale 
-  KisVar1 = caracas::tex(caracas::der(MPL/MPK, K)) != 0
-  LisVar1 = caracas::tex(caracas::der(MPL/MPK, L)) != 0
+  KisVar1 = caracas::tex(caracas::der(MRTS, K)) != 0
+  LisVar1 = caracas::tex(caracas::der(MRTS, L)) != 0
   KprodFunSolutions = list()
   LprodFunSolutions = list()
   Ksolutions_K1 = list()
@@ -725,8 +726,6 @@ stepsCostMin = function(prodfun, w, r, Q){
   Lpossible = list()
   Kpositive = list()
   Lpositive = list()
-  Kpositive_worngsol = list()
-  Lpositive_wrongsol = list()
   Kpositive_0 = list()
   Lpositive_0 = list()
   prodFunSolution = list()
@@ -804,10 +803,18 @@ stepsCostMin = function(prodfun, w, r, Q){
         }
       }
       if(FALSE %in% unlist(Lpositive)[startj:j] && TRUE %in% unlist(Lpositive)[startj:j]){
-        for(k in startj:j){
+        for(k in j:startj){
           if(!Lpositive[[k]]){
             #delete these!
-            Lpositive_wrongsol[[k]] = TRUE
+            Lpossible = Lpossible[-k]
+            Lpositive_0 = Lpositive_0[-k]
+            Lpositive = Lpositive[-k]
+            Lsolutions_L1 = Lsolutions_L1[-k]
+            Lsolutions_K = Lsolutions_K[-k]
+            Lsolutions_L2 = Lsolutions_L2[-k]
+            LprodFunSolutions = LprodFunSolutions[-k]
+            Lsolutions_C = Lsolutions_C[-k]
+            j = j - 1
           }
         }
       }
@@ -825,11 +832,14 @@ stepsCostMin = function(prodfun, w, r, Q){
     for(i in 1:lenKcrit){
       Ksolutions_try = Kcrit[[i]]
       prodFunSolutions_try = caracas::subs(prodFun, K, Ksolutions_try)
+      L = caracas::symbol('L', positive = TRUE)
       results = caracas::solve_sys(prodFunSolutions_try, Q, L)
+      L = caracas::symbol('L')
       if(length(results)==0){
         #not possible
         j = j + 1
         Kpossible[[j]] = FALSE
+        Kpositive[[j]] = FALSE
         Ksolutions_K1[[j]] = Ksolutions_try
         Ksolutions_L[[j]] = NULL
         Ksolutions_K2[[j]] = NULL
@@ -837,9 +847,11 @@ stepsCostMin = function(prodfun, w, r, Q){
         Ksolutions_C[[j]] = NULL
         next
       }
+      startj = j + 1
       for(k in 1:length(results)){
         j = j + 1
         Kpossible[[j]] = TRUE
+        Kpositive[[j]] = TRUE
         Ksolutions_K1[[j]] = Ksolutions_try
         Ksolutions_L[[j]] = results[[k]]$L
         LinKsol = caracas::tex(caracas::der(Ksolutions_try, L)) != 0
@@ -850,6 +862,26 @@ stepsCostMin = function(prodfun, w, r, Q){
         }
         KprodFunSolutions[[j]] = prodFunSolutions_try
         Ksolutions_C[[j]] = Ksolutions_L[[j]] * w + Ksolutions_K2[[j]] * r
+        if(caracas::as_expr(Ksolutions_L[[j]]) < 0 || caracas::as_expr(Ksolutions_K2[[j]]) < 0){
+          Kpositive[[j]] = FALSE
+          Kpositive_0[[j]] = TRUE 
+        }
+      }
+      if(FALSE %in% unlist(Kpositive)[startj:j] && TRUE %in% unlist(Kpositive)[startj:j]){
+        for(k in j:startj){
+          if(!Kpositive[[k]]){
+            #delete these!
+            Kpossible = Kpossible[-k]
+            Kpositive_0 = Kpositive_0[-k]
+            Kpositive = Kpositive[-k]
+            Ksolutions_K1 = Ksolutions_K1[-k]
+            Ksolutions_L = Ksolutions_L[-k]
+            Ksolutions_K2 = Ksolutions_K2[-k]
+            KprodFunSolutions = KprodFunSolutions[-k]
+            Ksolutions_C = Ksolutions_C[-k]
+            j = j - 1
+          }
+        }
       }
     }
   }
@@ -876,8 +908,16 @@ stepsCostMin = function(prodfun, w, r, Q){
   KcostMin= min(Kcost)
   KSol = which(Kcost %in% KcostMin)
   
+  KcostMin = round(KcostMin, 2)
+  LcostMin = round(LcostMin, 2)
   
-  return(list())
+  Equal = KcostMin == LcostMin
+  Kbetter = KcostMin < LcostMin
+  
+  return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
+              Lcritical = Lcritical, Lsolutions_L1 = Lsolutions_L1, LprodFunSolutions = LprodFunSolutions, Lsolutions_K = Lsolutions_K, Lsolutions_L2 = Lsolutions_L2, Lsolutions_C = Lsolutions_C, Lpossible = Lpossible, Lpositive = Lpositive,
+              Kcritical = Kcritical, Ksolutions_K1 = Ksolutions_K1, KprodFunSolutions = KprodFunSolutions, Ksolutions_L = Ksolutions_L, Ksolutions_K2 = Ksolutions_K2, Ksolutions_C = Ksolutions_C, Kpossible = Kpossible, Kpositive = Kpositive,
+              Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter))
 }
 
 
