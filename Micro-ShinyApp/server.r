@@ -873,21 +873,21 @@ function(input, output, session) {
     return(K)
   }
   
-  makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
-    prodFun = Ryacas::yac_expr(prodfun)
-    L = seq(0, LMax, length.out = smooth)
-    L = round(L, 2)
-    K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
-    K = round(K, 2)
-    isoquantCurve=tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", Q))
-    if (class(color) == "numeric"){
-      color = as.factor(color)
-      isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = Isoquant_Line))
-    } else {
-      isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Isoquant_Line), color = color)
-    }
-    return(isoquantCurveGeom)
-  }
+  # makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
+  #   prodFun = Ryacas::yac_expr(prodfun)
+  #   L = seq(0, LMax, length.out = smooth)
+  #   L = round(L, 2)
+  #   K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
+  #   K = round(K, 2)
+  #   isoquantCurve=tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", Q))
+  #   if (class(color) == "numeric"){
+  #     color = as.factor(color)
+  #     isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = Isoquant_Line))
+  #   } else {
+  #     isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Isoquant_Line), color = color)
+  #   }
+  #   return(isoquantCurveGeom)
+  # }
   
   makeAllIsoquantCurves = function(prodfun, QList, LMax, color = TRUE, smooth = 100){
     QList = sort(QList)
@@ -2012,15 +2012,21 @@ function(input, output, session) {
       if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
         perfectSubsCornerL = TRUE
         #L more economical at all input levels
+        C = Q/MPL*w
+        L = Q/MPL
+        K = 0
       } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
         perfectSubsCornerL = FALSE
         #K more economical at all input levels
+        C = Q/MPK*r
+        L = 0
+        K = Q/MPK
       } else {
         # L and K equally economical at all input levels
-        # Set K = L (arbitrarily)
         perfectSubsInterior = TRUE
+        C = Q/MPL*w
       }
-      return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL))
+      return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, L = L, K = K, C = C))
     }
     Lcritical = c()
     Kcritical = c()
@@ -2038,8 +2044,8 @@ function(input, output, session) {
     }
     lenLcrit = length(Lcrit)
     for(i in 1:lenLcrit){
-      Lsolutions_try = Lcrit[[i]]
-      prodFunSolutions_try = caracas::subs(prodFun, L, Lsolutions_try) %>% N(4)
+      Lsolutions_try = Lcrit[[i]]  %>% N(6)
+      prodFunSolutions_try = caracas::subs(prodFun, L, Lsolutions_try) %>% N(6)
       K = caracas::symbol('K', positive = TRUE)
       results = caracas::solve_sys(prodFunSolutions_try, Q, K)
       K = caracas::symbol('K')
@@ -2060,16 +2066,16 @@ function(input, output, session) {
         j = j + 1
         Lpossible[[j]] = TRUE
         Lpositive[[j]] = TRUE
-        Lsolutions_L1[[j]] = Lsolutions_try %>% N(4)
-        Lsolutions_K[[j]] = results[[k]]$K %>% N(4)
+        Lsolutions_L1[[j]] = Lsolutions_try
+        Lsolutions_K[[j]] = results[[k]]$K %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         KinLsol = caracas::tex(caracas::der(Lsolutions_try, K)) != 0
         if(KinLsol){
-          Lsolutions_L2[[j]] = caracas::subs(Lsolutions_L1[[j]], K, Lsolutions_K[[j]]) %>% N(4)
+          Lsolutions_L2[[j]] = caracas::subs(Lsolutions_L1[[j]], K, Lsolutions_K[[j]]) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         } else {
-          Lsolutions_L2[[j]] = Lsolutions_L1[[j]]
+          Lsolutions_L2[[j]] = Lsolutions_L1[[j]] %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         }
         LprodFunSolutions[[j]] = prodFunSolutions_try
-        Lsolutions_C[[j]] = (Lsolutions_L2[[j]] * w + Lsolutions_K[[j]] * r) %>% N(4)
+        Lsolutions_C[[j]] = (Lsolutions_L2[[j]] * w + Lsolutions_K[[j]] * r) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         if(!is.complex(caracas::as_expr(Lsolutions_K[[j]])) || !is.complex(caracas::as_expr(Lsolutions_L2[[j]]))){
           if(caracas::as_expr(Lsolutions_K[[j]]) < 0 || caracas::as_expr(Lsolutions_L2[[j]]) < 0){
             Lpositive[[j]] = FALSE
@@ -2109,8 +2115,8 @@ function(input, output, session) {
     }
     lenKcrit = length(Kcrit)
     for(i in 1:lenKcrit){
-      Ksolutions_try = Kcrit[[i]] %>% N(4)
-      prodFunSolutions_try = caracas::subs(prodFun, K, Ksolutions_try) %>% N(4)
+      Ksolutions_try = Kcrit[[i]] %>% N(6)
+      prodFunSolutions_try = caracas::subs(prodFun, K, Ksolutions_try) %>% N(6)
       L = caracas::symbol('L', positive = TRUE)
       results = caracas::solve_sys(prodFunSolutions_try, Q, L)
       L = caracas::symbol('L')
@@ -2132,15 +2138,15 @@ function(input, output, session) {
         Kpossible[[j]] = TRUE
         Kpositive[[j]] = TRUE
         Ksolutions_K1[[j]] = Ksolutions_try
-        Ksolutions_L[[j]] = results[[k]]$L %>% N(4)
+        Ksolutions_L[[j]] = results[[k]]$L %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         LinKsol = caracas::tex(caracas::der(Ksolutions_try, L)) != 0
         if(LinKsol){
-          Ksolutions_K2[[j]] = caracas::subs(Ksolutions_K1[[j]], L, Ksolutions_L[[j]]) %>% N(4)
+          Ksolutions_K2[[j]] = caracas::subs(Ksolutions_K1[[j]], L, Ksolutions_L[[j]]) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         } else {
-          Ksolutions_K2[[j]] = Ksolutions_K1[[j]]
+          Ksolutions_K2[[j]] = Ksolutions_K1[[j]] %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         }
         KprodFunSolutions[[j]] = prodFunSolutions_try
-        Ksolutions_C[[j]] = (Ksolutions_L[[j]] * w + Ksolutions_K2[[j]] * r) %>% N(4)
+        Ksolutions_C[[j]] = (Ksolutions_L[[j]] * w + Ksolutions_K2[[j]] * r) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         if(!is.complex(caracas::as_expr(Ksolutions_L[[j]])) || !is.complex(caracas::as_expr(Ksolutions_K2[[j]]))){
           if(caracas::as_expr(Ksolutions_L[[j]]) < 0 || caracas::as_expr(Ksolutions_K2[[j]]) < 0){
             Kpositive[[j]] = FALSE
@@ -2197,14 +2203,43 @@ function(input, output, session) {
     Equal = KcostMin == LcostMin
     Kbetter = KcostMin < LcostMin
     
-    costMin = min(KcostMin, LcostMin)
-    
     return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
                 Lcritical = Lcritical, Lsolutions_L1 = Lsolutions_L1, LprodFunSolutions = LprodFunSolutions, Lsolutions_K = Lsolutions_K, Lsolutions_L2 = Lsolutions_L2, Lsolutions_C = Lsolutions_C, Lpossible = Lpossible, Lpositive = Lpositive,
                 Kcritical = Kcritical, Ksolutions_K1 = Ksolutions_K1, KprodFunSolutions = KprodFunSolutions, Ksolutions_L = Ksolutions_L, Ksolutions_K2 = Ksolutions_K2, Ksolutions_C = Ksolutions_C, Kpossible = Kpossible, Kpositive = Kpositive,
-                Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter, costMin = costMin))
+                Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter))
   }
   
+  
+  makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
+    L = caracas::symbol('L')
+    K = caracas::symbol('K')
+    prodFun = caracas::as_sym(prodfun)
+    sols = prodFun %>% caracas::subs(K, 0) %>% caracas::solve_sys(Q, L)
+    if(length(sols)>0){
+      LMax = c()
+      for(i in 1:length(sols)){
+        LMax = c(LMax, caracas::as_expr(sols[[i]]$L))
+      }
+      LMax = max(LMax)
+    }
+    prodFun = Ryacas::yac_expr(prodfun)
+    L = seq(0, LMax, length.out = smooth)
+    L = round(L, 2)
+    K = sapply(L, getKValues_Q, prodFun = prodFun, Q = Q)
+    K = round(K, 2)
+    if(length(sols)>0){
+      L = c(L, round(LMax,2))
+      K = c(K, 0)
+    }
+    isoquantCurve=tibble(L = L, K = K, Isoquant_Line = paste0("Q= ", Q))
+    if (class(color) == "numeric"){
+      color = as.factor(color)
+      isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, color = Isoquant_Line))
+    } else {
+      isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Isoquant_Line), color = color)
+    }
+    return(isoquantCurveGeom)
+  }
   
   ###### END TEST FUN ######
   
@@ -2221,7 +2256,54 @@ function(input, output, session) {
     r = input$CostMinStepsR
     smooth = input$CostMinStepsSmooth
     
-    values$CostMinStepsPlot =  makeCostMinGraph(prodfun, w, r, Q, smooth = smooth)
+    results = stepsCostMin(prodfun, w, r, Q)
+    if(results$perfectSubs){
+      if(results$perfectSubsInterior){
+        C = results$C %>% caracas::as_expr()
+      } else {
+        C = results$C %>% caracas::as_expr()
+        L = results$L %>% caracas::as_expr()
+        K = results$K %>% caracas::as_expr() 
+      }
+    } else {
+      if(results$Kbetter){
+        C = results$Ksolutions_C[[results$KSol]] %>% caracas::as_expr()
+        L = results$Ksolutions_L[[results$KSol]] %>% caracas::as_expr()
+        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::as_expr()
+      } else {
+        C = results$Lsolutions_C[[results$LSol]] %>% caracas::as_expr()
+        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::as_expr()
+        K = results$Lsolutions_K[[results$LSol]] %>% caracas::as_expr()
+      }
+    }
+    LMax = 1.5*C/w
+    KMax = 1.5*C/r
+    point = "Cost Minimization Solution"
+    if(results$perfectSubsInterior){
+      L = seq(0, C/w, length.out = 100)
+      L = round(L, 2)
+      K = seq(C/r, 0, length.out = 100)
+      K = round(K, 2)
+      solution = point
+      data = tibble(L = L, K = K, solution = solution)
+      solution_geom = geom_path(data = data, aes(x = L, y = K, solution = solution), color = "black")  
+    } else {
+      data = tibble(L = L, K = K, point = point)
+      solution_geom = geom_point(data = data, aes(x = L, y = K, group = point), color = "black", size = 3)
+    }
+
+    values$CostMinStepsPlot =  ggplotly(ggplot() + 
+                                          makeIsocostLine(r, w, C) +
+                                          makeIsoquantCurve(prodfun, Q, LMax, smooth = smooth, color = "red") +
+                                          solution_geom +
+                                          geom_hline(yintercept = 0) +
+                                          geom_vline(xintercept = 0) +
+                                          coord_cartesian(xlim = c(0, LMax), ylim = c(0, KMax))
+                                        )
+  })
+  
+  observeEvent(input$ClearCostMinStepsPlot, {
+    values$CostMinStepsPlot = NULL
   })
   
   output$CostMinStepsPlot = renderPlotly({
@@ -2237,16 +2319,38 @@ function(input, output, session) {
     LAns = input$CostMinStepsAnswerL
     KAns = input$CostMinStepsAnswerK
     
-    ProductionLR = calculateProductionLR(prodfun, w, r)
-    ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
-    C = findVarsQ(ProductionLR, Q)[[2]]
-    L = findVarsQ(ProductionLR, Q)[[3]]
-    K = findVarsQ(ProductionLR, Q)[[4]]
-    
-    if(CAns == C && LAns == L && KAns == K){
-      values$CostMinStepsAnswers = h3("Well Done! All your answers are correct!")
+    results = stepsCostMin(prodfun, w, r, Q)
+    if(results$perfectSubs){
+      if(results$perfectSubsInterior){
+        C = results$C %>% caracas::as_expr()
+      } else {
+        C = results$C %>% caracas::as_expr()
+        L = results$L %>% caracas::as_expr()
+        K = results$K %>% caracas::as_expr() 
+      }
     } else {
-      values$CostMinStepsAnswers = h4("There is atleast one answer that is not correct.")
+      if(results$Kbetter){
+        C = results$Ksolutions_C[[results$KSol]] %>% caracas::as_expr()
+        L = results$Ksolutions_L[[results$KSol]] %>% caracas::as_expr()
+        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::as_expr()
+      } else {
+        C = results$Lsolutions_C[[results$LSol]] %>% caracas::as_expr()
+        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::as_expr()
+        K = results$Lsolutions_K[[results$LSol]] %>% caracas::as_expr()
+      }
+    }
+    if (results$perfectSubsInterior){
+      if(CAns == C && (LAns*w + KAns*r) == C){
+        values$CostMinStepsAnswers = h3("Well Done! All your answers are correct!")
+      } else {
+        values$CostMinStepsAnswers = h4("There is atleast one answer that is not correct.")
+      }
+    } else{
+      if(CAns == C && LAns == L && KAns == K){
+        values$CostMinStepsAnswers = h3("Well Done! All your answers are correct!")
+      } else {
+        values$CostMinStepsAnswers = h4("There is atleast one answer that is not correct.")
+      }
     }
   })
   
@@ -2259,13 +2363,7 @@ function(input, output, session) {
     Q = input$CostMinStepsQ
     w = input$CostMinStepsW
     r = input$CostMinStepsR
-    ProductionLR = calculateProductionLR(prodfun, w, r)
-    ProductionLR_Q = findVarsQ(ProductionLR, Q)[[1]]
-    C = findVarsQ(ProductionLR, Q)[[2]]
-    L = findVarsQ(ProductionLR, Q)[[3]]
-    K = findVarsQ(ProductionLR, Q)[[4]]
     #correct solutions
-    #adjust width for solutions
     results = stepsCostMin(prodfun, w, r, Q)
     MPL = caracas::tex(results$MPL)
     MPK = caracas::tex(results$MPK)
@@ -2274,6 +2372,7 @@ function(input, output, session) {
     perfectSubsInterior = results$perfectSubsInterior
     perfectSubsCornerL = results$perfectSubsCornerL
     if(perfectSubs){
+      C = caracas::tex(results$C)
       if(perfectSubsInterior){
         values$CostMinStepsSolutions = withMathJax(HTML(paste0("
                                                                <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
@@ -2347,6 +2446,15 @@ function(input, output, session) {
         }
       }
     } else {
+      if(results$Kbetter){
+        C = results$Ksolutions_C[[results$KSol]] %>% caracas::tex()
+        L = results$Ksolutions_L[[results$KSol]] %>% caracas::tex()
+        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::tex()
+      } else {
+        C = results$Lsolutions_C[[results$LSol]] %>% caracas::tex()
+        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::tex()
+        K = results$Lsolutions_K[[results$LSol]] %>% caracas::tex()
+      }
       solutionMessage = paste0("
                                <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
                                <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
@@ -2360,9 +2468,8 @@ function(input, output, session) {
                                <h3>Step 4: Solve system of equations with target quantity</h3>
                                <p>$$", Q," = ", prodfun,"$$</p>
                                ")
-
+      addLMessage = list()
       if(length(results$Lcritical) > 0){
-        addLMessage = list()
         for(i in 2:(1+length(results$Lcritical))){
           addLMessage[[i]] = ""
           Lcritical = caracas::tex(results$Lsolutions_L1[[i]])
@@ -2395,9 +2502,8 @@ function(input, output, session) {
           }
         }
       }
-
+      addKMessage = list()
       if(length(results$Kcritical) > 0){
-        addKMessage = list()
         for(i in 2:(1+length(results$Kcritical))){
           addKMessage[[i]] = ""
           Kcritical = caracas::tex(results$Ksolutions_K1[[i]])
@@ -2424,7 +2530,7 @@ function(input, output, session) {
             }
             addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
                                       <p>$$ C = L*w + K*r $$</p>
-                                      <p>$$ C = ", Ksolutions_K,"*", w,"+", Ksolutions_L,"*", r, "$$</p>
+                                      <p>$$ C = ", Ksolutions_L,"*", w,"+", Ksolutions_K,"*", r, "$$</p>
                                       <p>$$ C = ", Ksolutions_C, "$$</p>
                                       ")
           }
@@ -2480,7 +2586,7 @@ function(input, output, session) {
                                       ")
           addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
                                       <p>$$ C = L*w + K*r $$</p>
-                                      <p>$$ C = ", Ksolutions_K,"*", w,"+", Ksolutions_L,"*", r, "$$</p>
+                                      <p>$$ C = ", Ksolutions_L,"*", w,"+", Ksolutions_K,"*", r, "$$</p>
                                       <p>$$ C = ", Ksolutions_C, "$$</p>
                                       ")
         }
@@ -2565,15 +2671,20 @@ function(input, output, session) {
                                    ")
       #Solution
       solutionMessage = paste0(solutionMessage, "<h3>Step 6: Select the lowest cost solution from the set of solutions above</h3>
-                               <h3>The solution is: \\(C = ", C, " \\qquad L = ", L, " \\qquad K = ", K, "\\)</h3>")
+                               <h3>$$ \\text{The solution is:} \\qquad C = ", C, " \\qquad L = ", L, " \\qquad K = ", K, "$$</h3>")
 
       values$CostMinStepsSolutions = withMathJax(HTML(solutionMessage))
     }
   })
   
+  observeEvent(input$ClearCostMinStepsSolutions, {
+    values$CostMinStepsSolutions = NULL
+  })
+  
   output$CostMinStepsSolutions = renderUI({
     values$CostMinStepsSolutions
   })
+  
   
   
   

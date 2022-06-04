@@ -1242,14 +1242,13 @@ fluidPage(
       tabPanel("Practice",
                value = "ProductionPractice",
                fluidRow(
-                 column(6,
+                 column(4,
                         div(
                           style = "display:inline-block",
                           textInput(
                             inputId = "CostMinStepsProdfun",
                             label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
                             value = "K^.5*L^.5",
-                            width = '400px'
                           )
                         ),
                         div(
@@ -1295,9 +1294,11 @@ fluidPage(
                         ),
                         actionButton(inputId = "RunCostMinStepsPlot",
                                      label = "Draw Graph"),
+                        actionButton(inputId = "ClearCostMinStepsPlot",
+                                     label = "Clear Plot"),
                         plotlyOutput("CostMinStepsPlot")%>% withSpinner(color="#004623"),
                          ),
-                 column(6,
+                 column(8,
                         h4("Type your answers to the question in the field below, rounding to the nearest hundredth"),
                         div(
                           style = "display:inline-block",
@@ -1305,7 +1306,7 @@ fluidPage(
                             inputId = "CostMinStepsAnswerC",
                             label = "How much does the production of 15 units cost?",
                             min = 0,
-                            value = NULL,
+                            value = 0,
                             step = .01,
                             width = '200px'
                           )
@@ -1315,8 +1316,8 @@ fluidPage(
                           numericInput(
                             inputId = "CostMinStepsAnswerL",
                             label = "How much labor (L) is used?",
-                            min = 1,
-                            value = NULL,
+                            min = 0,
+                            value = 0,
                             step = .01,
                             width = '200px'
                           )
@@ -1326,8 +1327,8 @@ fluidPage(
                           numericInput(
                             inputId = "CostMinStepsAnswerK",
                             label = "How much capital (K) is used?",
-                            min = 1,
-                            value = NULL,
+                            min = 0,
+                            value = 0,
                             step = .01,
                             width = '200px'
                           )
@@ -1336,6 +1337,8 @@ fluidPage(
                                      label = "Submit Solutions"),
                         actionButton(inputId = "RunCostMinStepsSolutions",
                                      label = "Reveal Step-by-Step Solutions"),
+                        actionButton(inputId = "ClearCostMinStepsSolutions",
+                                     label = "Clear Step-by-Step Solutions"),
                         htmlOutput("CostMinStepsAnswers") %>% withSpinner(color="#004623"),
                         htmlOutput("CostMinStepsSolutions") %>% withSpinner(color="#004623")
                         )
