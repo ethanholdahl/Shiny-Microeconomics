@@ -2310,6 +2310,14 @@ function(input, output, session) {
     values$CostMinStepsPlot
   })
   
+  output$CostMinStepsQuestion = renderUI({
+    h4(paste0("A firm has the production function Q = f(K, L) = ", input$CostMinStepsProdfun, ".
+              The cost of labor (L) is w = ", w, " and the cost of capital (K) is r = ", r, ".
+              The firm wants to produce Q = ", Q, " units of output at the lowest cost possible.
+              What is the solution to their constrained optimization problem?"))
+  })
+  
+  
   observeEvent(input$RunCostMinStepsAnswers, {
     prodfun = input$CostMinStepsProdfun
     Q = input$CostMinStepsQ

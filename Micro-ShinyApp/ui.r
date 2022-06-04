@@ -1299,6 +1299,9 @@ fluidPage(
                         plotlyOutput("CostMinStepsPlot")%>% withSpinner(color="#004623"),
                          ),
                  column(8,
+                        uiOutput(
+                          outputId = "CostMinStepsQuestion"
+                        ),
                         h4("Type your answers to the question in the field below, rounding to the nearest hundredth"),
                         div(
                           style = "display:inline-block",
