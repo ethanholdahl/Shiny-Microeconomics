@@ -15,6 +15,7 @@ library(caracas)
 fluidPage(
   #theme = shinytheme("sandstone"),
   tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custom_css.css"),
     HTML("<title>Intermediate Microeconomics by Ethan Holdahl </title>")
   ),
   navbarPage(
