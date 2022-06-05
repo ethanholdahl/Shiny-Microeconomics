@@ -1655,7 +1655,7 @@ makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
 ################### PRACTICE - PERFECT COMPETITION ####################
 
 stepsPerfectCompetition = function(TCfun, demandfun){
-  Q = caracas::as_sym('Q')
+  Q = caracas::symbol('Q')
   Q_i = caracas::symbol('Q_i')
   P = caracas::symbol('P')
   TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
@@ -1688,4 +1688,52 @@ stepsPerfectCompetitionSR = function(TCfun, demandfun, N){
   SRATC = caracas::subs(ATC, Q_i, SRQ_i)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
   SRpi_i = (SRP-SRATC)*SRQ_i  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
   return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRATC = SRATC, SRpi_i = SRpi_i))
+}
+
+################## PRACTICE - MONOPOLY #####################
+
+stepsMonopoly = function(TCfun, demandfun){
+  #Profit Max
+  Q = caracas::symbol('Q')
+  P = caracas::symbol('P')
+  demandFun = caracas::as_sym(demandfun)
+  demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P
+  TR = demandFunP*Q
+  MR = caracas::der(TR, Q)
+  TC = caracas::as_sym(TCfun)
+  MC = caracas::der(TC, Q)
+  QSol = caracas::solve_sys(MR, MC, Q)[[1]]$Q %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  PSol = caracas::subs(demandFunP, Q, QSol) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  TCSol = caracas::subs(TC, Q, QSol) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  PiSol = (PSol*QSol - TCSol) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+  
+  #DWL Assuming linear MC, Demand Curves
+  SolvePC = TRUE
+  ATC = TC/Q
+  Q = caracas::symbol('Q', positive = TRUE)
+  result = caracas::solve_sys(MC, ATC, Q)
+  if(length(result) == 0){
+    SolvePC = FALSE
+    TCPC = caracas::as_sym("fill")
+    ATCPC = caracas::as_sym("fill")
+    LRQ_i = caracas::as_sym("fill")
+    PPC = MC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    QPC = caracas::subs(demandFun, P, EqPPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  } else {
+    Q = caracas::symbol('Q')
+    Q_i = caracas::symbol('Q_i')
+    TCPC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+    MCPC = caracas::der(TCPC, Q_i)
+    ATCPC = TCPC/Q_i
+    Q_i = caracas::symbol('Q_i', positive = TRUE)
+    LRQ_i = caracas::solve_sys(MCPC, ATCPC, Q_i)[[1]]$Q_i %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    Q_i = caracas::symbol('Q_i')
+    PPC = caracas::subs(MCPC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  }
+  DWLQ = QPC-QSol
+  DWLP = PSol - PPC
+  DWL = DWLQ*DWLP/2
+  return(list(demandFun = demandFun, demandFunP = demandFunP, TR = TR, MR = MR, TC = TC, MC = MC, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol,
+              SolvePC = SolvePC, TCPC = TCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
 }
