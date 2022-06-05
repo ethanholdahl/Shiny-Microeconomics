@@ -31,22 +31,24 @@ fluidPage(
       HTML("<h3>More Content Coming Soon</h3>
       <p>Please allow a short time for the interactive assets to load into your browser.</p>
       <p>List of currently published content:</p>
+      <h4>
       <ul>
       <li> Study Pages (notes and accompanying interactive graphs)</li>
       <ul>
-      <li> Consumer Behavior </li>
-      <li> Individual and Market Demand </li>
-      <li> Production </li>
+      <li><a href='https://shiny.ethanholdahl.com/Micro/?url=ConsumerStudy' style='color:darkgreen'>Consumer Behavior</a></li>
+      <li><a href='https://shiny.ethanholdahl.com/Micro/?url=DemandStudy' style='color:darkgreen'>Individual and Market Demand</a></li>
+      <li><a href='https://shiny.ethanholdahl.com/Micro/?url=ProductionStudy' style='color:darkgreen'>Production</a></li>
       </ul>
       <li> Practice Pages (user defined test-like questions with an answer validator and step by step solutions) </li>
       <ul>
-      <li> Production </li>
-      <li> Market Structures </li>
+      <li><a href='https://shiny.ethanholdahl.com/Micro/?url=ProductionPractice' style='color:darkgreen'>Production</a></li>
+      <li><a href='https://shiny.ethanholdahl.com/Micro/?url=MarketPractice' style='color:darkgreen'>Market Structures</a></li>
       <ul>
       <li> Perfect Competition </li>
       </ul>
       </ul>
       </ul>
+      </h4>
       ")
     ),
     ###### Consumer Behavior ######
