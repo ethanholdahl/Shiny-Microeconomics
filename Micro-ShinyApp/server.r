@@ -3038,9 +3038,9 @@ function(input, output, session) {
     DWL = caracas::as_expr(results$DWL)
     DWLAns = input$MonopolyStepsDWLAnswerDWL
     if(DWL == DWLAns){
-      values$MonopolyStepsSRAnswer = h3("Well Done! Your answer is correct!")
+      values$MonopolyStepsDWLAnswer = h3("Well Done! Your answer is correct!")
     } else {
-      values$MonopolyStepsSRAnswer = h4("Your solution is incorrect")
+      values$MonopolyStepsDWLAnswer = h4("Your solution is incorrect")
     }
   })
   
