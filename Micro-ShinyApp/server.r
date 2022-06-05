@@ -1687,14 +1687,15 @@ function(input, output, session) {
     MC = caracas::der(TC, Q_i)
     ATC = TC/Q_i
     demandFun = caracas::as_sym(demandfun)
-    SRQ_i = caracas::subs(demandFun, P, MC)
+    demandQ_i = caracas::subs(demandFun, P, MC)
     Q_itoQ = Q/N
-    SRQ_Q = caracas::subs(SRQ_i, Q_i, Q_itoQ)
+    SRQ_Q = caracas::subs(demandQ_i, Q_i, Q_itoQ)
     SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q
     SRQ_i = SRQ/N
     SRP = caracas::subs(MC, Q_i, SRQ_i)
-    SRpi_i = (SRP-ATC)*SRQ_i
-    return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, SRQ_i = SRQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRpi_i = SRpi_i))
+    SRATC = caracas::subs(ATC, Q_i, SRQ_i)
+    SRpi_i = (SRP-SRATC)*SRQ_i
+    return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRATC = SRATC, SRpi_i = SRpi_i))
   }
   
   ########## SHINY SERVER CODE ##########
@@ -1724,7 +1725,9 @@ function(input, output, session) {
                            CostMinStepsAnswers = NULL,
                            CostMinStepsSolutions = NULL,
                            PerfectCompetitionStepsAnswer = NULL,
-                           PerfectCompetitionStepsSolution = NULL
+                           PerfectCompetitionStepsSolution = NULL,
+                           PerfectCompetitionStepsSRAnswer = NULL,
+                           PerfectCompetitionStepsSRSolution = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -2728,12 +2731,37 @@ function(input, output, session) {
   
   ###### Market Structures - Practice ######
   
+  observeEvent(input$PerfectCompetitionStepsSRChoice, {
+    if(input$PerfectCompetitionStepsSRChoice == "Demand"){
+      updateTextInput(session, inputId = "PerfectCompetitionStepsSRfun",
+                      label = "New Market demand function Q(P):",
+                      value = "200000-2500*P")
+    } else {
+      updateTextInput(session, inputId = "PerfectCompetitionStepsSRfun",
+                      label = "New Firms' total cost function TC(Q):",
+                      value = "64 + Q^2 + 8*Q")
+    }
+  })
+  
   output$PerfectCompetitionStepsQuestion = renderUI({
-    h4(paste0("All firms in a perfectly competitive market have the total cost function: TC(Q) = ", input$PerfectCompetitionStepsCostfun, ". 
+    h4(paste0("a.) All firms in a perfectly competitive market have the total cost function TC(Q) = ", input$PerfectCompetitionStepsCostfun, ". 
               The demand function in this market is given by Q(P) = ", input$PerfectCompetitionStepsDemandfun, ".
               In the long run, how many firms will be in this perfectly competitve market?"))
   })
   
+  output$PerfectCompetitionStepsSRQuestion = renderUI({
+    if(input$PerfectCompetitionStepsSRChoice == "Demand"){
+      h4(paste0("b.) Say the demand function changes to Q(P) = ", input$PerfectCompetitionStepsSRfun,". 
+                The total cost function is sill given by TC(Q) = ", input$PerfectCompetitionStepsCostfun, ". 
+                The number of firms in this market has not yet adjusted to the change in demand. 
+                In the short run, how much profit (or losses) are made by each firm?"))
+    } else {
+      h4(paste0("b.) Say the total cost function changes to TC(Q) = ", input$PerfectCompetitionStepsSRfun,". 
+                The demand function is sill given by Q(P) = ", input$PerfectCompetitionStepsDemandfun, ". 
+                The number of firms in this market has not yet adjusted to the change in the cost of production. 
+                In the short run, how much profit (or losses) are made by each firm?"))
+    }
+  })
   
   observeEvent(input$RunPerfectCompetitionStepsAnswer, {
     TCfun = input$PerfectCompetitionStepsCostfun
@@ -2796,6 +2824,84 @@ function(input, output, session) {
     values$PerfectCompetitionStepsSolution
   })
   
-
+  observeEvent(input$RunPerfectCompetitionStepsSRAnswer, {
+    TCfun = input$PerfectCompetitionStepsCostfun
+    demandfun = input$PerfectCompetitionStepsDemandfun
+    results = stepsPerfectCompetition(TCfun, demandfun)
+    N = round(caracas::as_expr(results$EqN), 0)
+    if(input$PerfectCompetitionStepsSRChoice == "Demand"){
+      demandfun = input$PerfectCompetitionStepsSRfun
+    } else {
+      TCfun = input$PerfectCompetitionStepsSRfun
+    }
+    results = stepsPerfectCompetitionSR(TCfun, demandfun, N)
+    Pi = caracas::as_expr(results$SRpi_i) %>% round(2)
+    PiAns = input$PerfectCompetitionStepsSRAnswerPi
+    if(Pi == PiAns){
+      values$PerfectCompetitionStepsSRAnswer = h3("Well Done! Your answer is correct!")
+    } else {
+      values$PerfectCompetitionStepsSRAnswer = h4("Your solution is incorrect")
+    }
+  })
+  
+  output$PerfectCompetitionStepsSRAnswer = renderUI({
+    values$PerfectCompetitionStepsSRAnswer
+  })
+  
+  observeEvent(input$RunPerfectCompetitionStepsSRSolution, {
+    TCfun = input$PerfectCompetitionStepsCostfun
+    demandfun = input$PerfectCompetitionStepsDemandfun
+    results = stepsPerfectCompetition(TCfun, demandfun)
+    N = round(caracas::as_expr(results$EqN), 0)
+    if(input$PerfectCompetitionStepsSRChoice == "Demand"){
+      demandfun = input$PerfectCompetitionStepsSRfun
+    } else {
+      TCfun = input$PerfectCompetitionStepsSRfun
+    }
+    results = stepsPerfectCompetitionSR(TCfun, demandfun, N)
+    TC = caracas::tex(results$TC)
+    MC = caracas::tex(results$MC)
+    ATC = caracas::tex(results$ATC)
+    demandFun = caracas::tex(results$demandFun)
+    demandQ_i = caracas::tex(results$demandQ_i)
+    Q_itoQ = caracas::tex(results$Q_itoQ)
+    SRQ_Q = caracas::tex(results$SRQ_Q)
+    SRQ = caracas::tex(results$SRQ)
+    SRQ_i = caracas::tex(results$SRQ_i)
+    SRP = caracas::tex(results$SRP)
+    SRATC = caracas::tex(results$SRATC)
+    SRpi_i = caracas::tex(results$SRpi_i)
+    values$PerfectCompetitionStepsSRSolution = withMathJax(HTML(paste0("
+                                                                     <h3> Step 1: Solve for the firm's profit miximizing condition: \\(MC = MR = P\\) </h3>
+                                                                     <p>$$ TC = ", TC, "$$</p>
+                                                                     <p>$$ MC = \\frac{dTC}{dQ_i} = \\frac{d(", TC, ")}{dQ_i} = ", MC, " $$</p>
+                                                                     <p>$$ MC = P $$</p>
+                                                                     <p>$$ ", MC, " = P $$</p>
+                                                                     <h3> Step 2: Plug the price equation above into the demand function </h3>
+                                                                     <p>$$ Q = ", demandFun, " $$</p>
+                                                                     <p>$$ Q = ", demandQ_i, " $$</p>
+                                                                     <h3> Step 3: Knowing that all firms are identical, solve for the market and firm's quantity </h3>
+                                                                     <p>$$ Q_i * N = Q \\longrightarrow Q_i = \\frac{Q}{N} =", Q_itoQ, " $$</p>
+                                                                     <p>$$ Q = ", SRQ_Q, " $$</p>
+                                                                     <p>$$ Q = ", SRQ, " $$</p>
+                                                                     <p>$$ \\frac{Q}{N} = Q_i \\longrightarrow \\frac{", SRQ,"}{", N,"} = ", SRQ_i, " = Q_i $$</p>
+                                                                     <h3> Step 4: Plug the solved for \\(Q_i\\) to calculate price and profit </h3>
+                                                                     <p>$$ \\pi = (P - ATC) * Q_i $$</p>
+                                                                     <p>$$ \\text{Profit Max: } MC = P $$</p>
+                                                                     <p>$$ P = ", MC, " \\longrightarrow P = ", SRP, " $$</p>
+                                                                     <p>$$ ATC = ", ATC, " \\longrightarrow ATC = ", SRATC, " $$</p>
+                                                                     <p>$$ \\pi = (", SRP, " - ", SRATC,") * ", SRQ_i, " = ",  SRpi_i, " $$</p>
+                                                                     <h3>$$ \\text{Solution: } \\pi = ", SRpi_i, " $$</h3>
+                                                                     ")))
+  })
+  
+  observeEvent(input$ClearPerfectCompetitionStepsSRSolution, {
+    values$PerfectCompetitionStepsSRSolution = NULL
+  })
+  
+  output$PerfectCompetitionStepsSRSolution = renderUI({
+    values$PerfectCompetitionStepsSRSolution
+  })
+  
   
 }

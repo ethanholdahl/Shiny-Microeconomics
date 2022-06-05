@@ -997,6 +997,7 @@ stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
 # Solve for N firms in PC in the LR, 
 
 TCfun = "25 + Q_i^2"
+TCfun = "64 + Q^2 + 8*Q"
 demandfun = "101000 - 100*P"
 
 stepsPerfectCompetition = function(TCfun, demandfun){
@@ -1024,20 +1025,22 @@ stepsPerfectCompetitionSR = function(TCfun, demandfun, N){
   MC = caracas::der(TC, Q_i)
   ATC = TC/Q_i
   demandFun = caracas::as_sym(demandfun)
-  SRQ_i = caracas::subs(demandFun, P, MC)
+  demandQ_i = caracas::subs(demandFun, P, MC)
   Q_itoQ = Q/N
-  SRQ_Q = caracas::subs(SRQ_i, Q_i, Q_itoQ)
+  SRQ_Q = caracas::subs(demandQ_i, Q_i, Q_itoQ)
   SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q
   SRQ_i = SRQ/N
   SRP = caracas::subs(MC, Q_i, SRQ_i)
-  SRpi_i = (SRP-ATC)*SRQ_i
-  return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, SRQ_i = SRQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRpi_i = SRpi_i))
+  SRATC = caracas::subs(ATC, Q_i, SRQ_i)
+  SRpi_i = (SRP-SRATC)*SRQ_i
+  return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRATC = SRATC, SRpi_i = SRpi_i))
 }
 
 N = 20000
 demandfun = "200000-2500*P"
 
-
+stepsPerfectCompetition(TCfun, demandfun)
+results = stepsPerfectCompetitionSR(TCfun, demandfun, N)
 
 
 

@@ -30,7 +30,7 @@ fluidPage(
       withMathJax(),
       h1("More Content Coming Soon"),
       p(
-        "Please allow a short time for the interactive assets to load into your browser. Currently available are: The study pages under the Consumer Behavior, Individual and Market Demand, and Production tabs, and the practice page under the production tab. I will be adding content as quickly as I can."
+        "Please allow a short time for the interactive assets to load into your browser. Currently available are: The study pages under the Consumer Behavior, Individual and Market Demand, and Production tabs, and the practice page under the production and market structures tab. I will be adding content as quickly as I can."
       ),
     ),
     ###### Consumer Behavior ######
@@ -1382,56 +1382,103 @@ fluidPage(
       ),
       tabPanel("Practice",
                value = "MarketPractice",
-               fluidRow(
-                 column(4,
-                        p("Be sure not to omit the multiplication sign (*) when inputting functions"),
-                        div(
-                          style = "display:inline-block",
-                          textInput(
-                            inputId = "PerfectCompetitionStepsCostfun",
-                            label = "Firms' total cost function TC(Q):",
-                            value = "25 + Q^2",
+               tabsetPanel(
+                 tabPanel("Perfect Competition",
+                          fluidRow(
+                            column(4,
+                                   p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                                   p("Inputs for part a"),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "PerfectCompetitionStepsCostfun",
+                                       label = "Firms' total cost function TC(Q):",
+                                       value = "25 + Q^2",
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "PerfectCompetitionStepsDemandfun",
+                                       label = "Market demand function Q(P):",
+                                       value = "101000 - 100*P",
+                                     )
+                                   ),
+                                   #actionButton(inputId = "RunPerfectCompetitionStepsPlot",
+                                   #             label = "Draw Graph"),
+                                   #actionButton(inputId = "ClearPerfectCompetitionStepsPlot",
+                                   #             label = "Clear Plot"),
+                                   #plotlyOutput("PerfectCompetitionStepsPlot")%>% withSpinner(color="#004623"),
+                                   p("Inputs for part b"),
+                                   radioGroupButtons(
+                                     inputId = "PerfectCompetitionStepsSRChoice",
+                                     label = "Select a function to change for part b", 
+                                     choices = c("Demand", "Cost"),
+                                     status = "success"
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "PerfectCompetitionStepsSRfun",
+                                       label = "New Market demand function Q(P):",
+                                       value = "200000-2500*P",
+                                     )
+                                   ),
+                                   
+                            ),
+                            column(8,
+                                   uiOutput(
+                                     outputId = "PerfectCompetitionStepsQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest integer"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "PerfectCompetitionStepsAnswerN",
+                                       label = "How many firms will be in this market in the long run?",
+                                       min = 1,
+                                       value = 1,
+                                       step = 1,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunPerfectCompetitionStepsAnswer",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunPerfectCompetitionStepsSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearPerfectCompetitionStepsSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("PerfectCompetitionStepsAnswer") %>% withSpinner(color="#004623"),
+                                   htmlOutput("PerfectCompetitionStepsSolution") %>% withSpinner(color="#004623"),
+                                   uiOutput(
+                                     outputId = "PerfectCompetitionStepsSRQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "PerfectCompetitionStepsSRAnswerPi",
+                                       label = "How much profit do firms make in this market in the short run?",
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunPerfectCompetitionStepsSRAnswer",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunPerfectCompetitionStepsSRSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearPerfectCompetitionStepsSRSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("PerfectCompetitionStepsSRAnswer") %>% withSpinner(color="#004623"),
+                                   htmlOutput("PerfectCompetitionStepsSRSolution") %>% withSpinner(color="#004623"),
+                            )
+                          ),
+                 ), 
+                 tabPanel("Monopolies",
+                          ), 
+                 tabPanel("Oligopolies", 
                           )
-                        ),
-                        div(
-                          style = "display:inline-block",
-                          textInput(
-                            inputId = "PerfectCompetitionStepsDemandfun",
-                            label = "Market demand function: Q(P):",
-                            value = "101000 - 100*P",
-                          )
-                        ),
-                        #actionButton(inputId = "RunPerfectCompetitionStepsPlot",
-                        #             label = "Draw Graph"),
-                        #actionButton(inputId = "ClearPerfectCompetitionStepsPlot",
-                        #             label = "Clear Plot"),
-                        #plotlyOutput("PerfectCompetitionStepsPlot")%>% withSpinner(color="#004623"),
-                 ),
-                 column(8,
-                        uiOutput(
-                          outputId = "PerfectCompetitionStepsQuestion"
-                        ),
-                        h4("Type your answer to the question in the field below. If necessary, round to the nearest integer"),
-                        div(
-                          style = "display:inline-block",
-                          numericInput(
-                            inputId = "PerfectCompetitionStepsAnswerN",
-                            label = "How many firms will be in this market in the long run?",
-                            min = 1,
-                            value = 1,
-                            step = 1,
-                            width = '200px'
-                          )
-                        ),
-                        actionButton(inputId = "RunPerfectCompetitionStepsAnswer",
-                                     label = "Submit Solution"),
-                        actionButton(inputId = "RunPerfectCompetitionStepsSolution",
-                                     label = "Reveal Step-by-Step Solution"),
-                        actionButton(inputId = "ClearPerfectCompetitionStepsSolution",
-                                     label = "Clear Step-by-Step Solution"),
-                        htmlOutput("PerfectCompetitionStepsAnswer") %>% withSpinner(color="#004623"),
-                        htmlOutput("PerfectCompetitionStepsSolution") %>% withSpinner(color="#004623")
-                 )
                )
       ),
       tabPanel("Graphs",
