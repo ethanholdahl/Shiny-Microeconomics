@@ -1739,11 +1739,11 @@ function(input, output, session) {
       PPC = caracas::subs(MCPC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
       QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     }
-    DWLQ = QPC-QSol
-    DWLP = PSol - PPC
-    DWL = DWLQ*DWLP/2
+    DWLQ = QPC-QSol %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    DWLP = PSol - PPC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    DWL = (DWLQ*DWLP/2) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     return(list(demandFun = demandFun, demandFunP = demandFunP, TR = TR, MR = MR, TC = TC, MC = MC, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol,
-                SolvePC = SolvePC, TCPC = TCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
+                SolvePC = SolvePC, TCPC = TCPC, MCPC = MCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
   }
   
   ########## SHINY SERVER CODE ##########
@@ -2992,6 +2992,8 @@ function(input, output, session) {
     demandFunP = results$demandFunP %>% caracas::tex()
     TR = results$TR %>% caracas::tex()
     MR = results$MR %>% caracas::tex()
+    TC = results$TC %>% caracas::tex()
+    MC = results$MC %>% caracas::tex()
     QSol = results$QSol %>% caracas::tex()
     PSol = results$PSol %>% caracas::tex()
     TCSol = results$TCSol %>% caracas::tex()
@@ -3056,6 +3058,7 @@ function(input, output, session) {
     MC = results$MC %>% caracas::tex()
     QSol = results$QSol %>% caracas::tex()
     PSol = results$PSol %>% caracas::tex()
+    MCPC = results$MCPC %>% caracas::tex()
     TCPC = results$TCPC %>% caracas::tex()
     ATCPC = results$ATCPC %>% caracas::tex()
     LRQ_i = results$LRQ_i %>% caracas::tex()
@@ -3080,10 +3083,9 @@ function(input, output, session) {
                                                                <p>$$ MC = P $$</p>
                                                                <p>$$ ", MCPC, " = P $$</p>
                                                                <p>$$ \\text{Plug in } Q_i \\text{ from Step 1: } Q_i = ", LRQ_i, "$$</p>
-                                                               <p>$$ ", PPC, " = P $$</p>
+                                                               <p>$$ P_{PC} = ", PPC, "  $$</p>
                                                                <h3> Step 3: Plug the solved for price into the demand function and solve for market quantity </h3>
                                                                <p>$$ Q = ", demandFun, " $$</p>
-                                                               <p>$$ P_{PC} = ", PPC, "  $$</p>
                                                                <p>$$ Q_{PC} = ", QPC, " $$</p>
                                                                <h3> Step 4: Now that \\(P_{PC} \\text{ and } Q_{PC} \\) have been solved for, solve for DWL </h3>
                                                                <p>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</p>

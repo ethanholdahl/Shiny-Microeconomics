@@ -1092,11 +1092,11 @@ stepsMonopoly = function(TCfun, demandfun){
     PPC = caracas::subs(MCPC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
   }
-  DWLQ = QPC-QSol
-  DWLP = PSol - PPC
-  DWL = DWLQ*DWLP/2
+  DWLQ = QPC-QSol %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  DWLP = PSol - PPC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+  DWL = (DWLQ*DWLP/2) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
   return(list(demandFun = demandFun, demandFunP = demandFunP, TR = TR, MR = MR, TC = TC, MC = MC, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol,
-              SolvePC = SolvePC, TCPC = TCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
+              SolvePC = SolvePC, TCPC = TCPC, MCPC = MCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
 }
 
 
