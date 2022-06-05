@@ -45,6 +45,7 @@ fluidPage(
       <li><a href='https://shiny.ethanholdahl.com/Micro/?url=MarketPractice' style='color:darkgreen'>Market Structures</a></li>
       <ul>
       <li> Perfect Competition </li>
+      <li> Monopolies </li>
       </ul>
       </ul>
       </ul>
@@ -1422,11 +1423,6 @@ fluidPage(
                                        value = "101000 - 100*P",
                                      )
                                    ),
-                                   #actionButton(inputId = "RunPerfectCompetitionStepsPlot",
-                                   #             label = "Draw Graph"),
-                                   #actionButton(inputId = "ClearPerfectCompetitionStepsPlot",
-                                   #             label = "Clear Plot"),
-                                   #plotlyOutput("PerfectCompetitionStepsPlot")%>% withSpinner(color="#004623"),
                                    p("Inputs for part b"),
                                    radioGroupButtons(
                                      inputId = "PerfectCompetitionStepsSRChoice",
@@ -1494,6 +1490,75 @@ fluidPage(
                           ),
                  ), 
                  tabPanel("Monopolies",
+                          fluidRow(
+                            column(4,
+                                   p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "MonopolyStepsCostfun",
+                                       label = "Firm's total cost function TC(Q):",
+                                       value = "5000 + 10*Q",
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "MonopolyStepsDemandfun",
+                                       label = "Market demand function Q(P):",
+                                       value = "1000 - 5*P",
+                                     )
+                                   ),
+                            ),
+                            column(8,
+                                   uiOutput(
+                                     outputId = "MonopolyStepsQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "MonopolyStepsAnswerPi",
+                                       label = "How much profit can the firm make?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunMonopolyStepsAnswer",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunMonopolyStepsSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearMonopolyStepsSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("MonopolyStepsAnswer") %>% withSpinner(color="#004623"),
+                                   htmlOutput("MonopolyStepsSolution") %>% withSpinner(color="#004623"),
+                                   uiOutput(
+                                     outputId = "MonopolyStepsDWLQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "MonopolyStepsDWLAnswerDWL",
+                                       label = "How much dead weight loss is created?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunMonopolyStepsDWLAnswer",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunMonopolyStepsDWLSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearMonopolyStepsDWLSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("MonopolyStepsDWLAnswer") %>% withSpinner(color="#004623"),
+                                   htmlOutput("MonopolyStepsDWLSolution") %>% withSpinner(color="#004623"),
+                            )
+                          ),
                           ), 
                  tabPanel("Oligopolies", 
                           )

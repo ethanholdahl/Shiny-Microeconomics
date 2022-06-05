@@ -1726,7 +1726,7 @@ function(input, output, session) {
       ATCPC = caracas::as_sym("fill")
       LRQ_i = caracas::as_sym("fill")
       PPC = MC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-      QPC = caracas::subs(demandFun, P, EqPPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+      QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     } else {
       Q = caracas::symbol('Q')
       Q_i = caracas::symbol('Q_i')
@@ -1775,7 +1775,11 @@ function(input, output, session) {
                            PerfectCompetitionStepsAnswer = NULL,
                            PerfectCompetitionStepsSolution = NULL,
                            PerfectCompetitionStepsSRAnswer = NULL,
-                           PerfectCompetitionStepsSRSolution = NULL
+                           PerfectCompetitionStepsSRSolution = NULL,
+                           MonopolyStepsAnswer = NULL,
+                           MonopolyStepsSolution = NULL,
+                           MonopolyStepsDWLAnswer = NULL,
+                           MonopolyStepsDWLSolution = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -2777,7 +2781,7 @@ function(input, output, session) {
   })
   
   
-  ###### Market Structures - Practice ######
+  ###### Market Structures: Perfect Competition - Practice ######
   
   observeEvent(input$PerfectCompetitionStepsSRChoice, {
     if(input$PerfectCompetitionStepsSRChoice == "Demand"){
@@ -2951,5 +2955,169 @@ function(input, output, session) {
     values$PerfectCompetitionStepsSRSolution
   })
   
+  ###### Market Structures: Monopoly - Practice ######
+  
+  output$MonopolyStepsQuestion = renderUI({
+    h4(paste0("a.) A firm in a monopoly has the total cost function TC(Q) = ", input$MonopolyStepsCostfun, ". 
+              The demand function in this market is given by Q(P) = ", input$MonopolyStepsDemandfun, ".
+              How much profit can the firm make in this market?"))
+  })
+  
+  output$MonopolyStepsDWLQuestion = renderUI({
+    h4(paste0("b.) How much dead weight loss is created in this market if the monopoly is unregulated?"))
+  })
+  
+  observeEvent(input$RunMonopolyStepsAnswer, {
+    TCfun = input$MonopolyStepsCostfun
+    demandfun = input$MonopolyStepsDemandfun
+    results = stepsMonopoly(TCfun, demandfun)
+    Pi = caracas::as_expr(results$PiSol)
+    PiAns = input$MonopolyStepsAnswerPi
+    if(Pi == PiAns){
+      values$MonopolyStepsAnswer = h3("Well Done! Your answer is correct!")
+    } else {
+      values$MonopolyStepsAnswer = h4("Your solution is incorrect")
+    }
+  })
+  
+  output$MonopolyStepsAnswer = renderUI({
+    values$MonopolyStepsAnswer
+  })
+  
+  observeEvent(input$RunMonopolyStepsSolution, {
+    TCfun = input$MonopolyStepsCostfun
+    demandfun = input$MonopolyStepsDemandfun
+    results = stepsMonopoly(TCfun, demandfun)
+    demandFun = results$demandFun %>% caracas::tex()
+    demandFunP = results$demandFunP %>% caracas::tex()
+    TR = results$TR %>% caracas::tex()
+    MR = results$MR %>% caracas::tex()
+    QSol = results$QSol %>% caracas::tex()
+    PSol = results$PSol %>% caracas::tex()
+    TCSol = results$TCSol %>% caracas::tex()
+    PiSol = results$PiSol %>% caracas::tex()
+    values$MonopolyStepsSolution = withMathJax(HTML(paste0("
+                                                           <h3> Step 1: Solve for the inverse demand function </h3>
+                                                           <p>$$ Q = ", demandFun, " $$</p>
+                                                           <p>$$ P = ", demandFunP, " $$</p>
+                                                           <h3> Step 2: Solve for Q by maximizing the firm's profit </h3>
+                                                           <p>$$ \\text{Max } \\pi \\quad ( \\text{Set } MR = MC) $$</p>
+                                                           <p>$$ TR = ", TR, " $$</p>
+                                                           <p>$$ MR = \\frac{dTR}{dQ} = \\frac{d(", TR, ")}{dQ} $$</p>
+                                                           <p>$$ MR = ", MR, " $$</p>
+                                                           <p>$$ TC = ", TC, " $$</p>
+                                                           <p>$$ MC = \\frac{dTC}{dQ} = \\frac{d(", TC, ")}{dQ} $$</p>
+                                                           <p>$$ MC = ", MC, " $$</p>
+                                                           <p>$$ MR = MC $$</p>
+                                                           <p>$$ ", MR, " = ", MC, " $$</p>
+                                                           <p>$$ Q = ", QSol, " $$</p>
+                                                           <h3> Step 3: Plug Q = \\( ", QSol, " \\) into the inverse demand curve </h3>
+                                                           <p>$$ P = ", demandFunP, " $$</p>
+                                                           <p>$$ P = ", PSol, " $$</p>
+                                                           <h3> Step 4: Solve for the firm's profit </h3>
+                                                           <p>$$ \\pi = TR - TC $$</p>
+                                                           <p>$$ \\pi = P*Q - (", TC, ") $$</p>
+                                                           <p>$$ \\pi = ", PSol, "*", QSol, " - ", TCSol, " $$</p>
+                                                           <p>$$ \\pi = ", PiSol, " $$</p>
+                                                           <h3>$$ \\text{Solution: } \\pi = ", PiSol, " $$</h3>
+                                                           ")))
+  })
+  
+  observeEvent(input$ClearMonopolyStepsSolution, {
+    values$MonopolyStepsSolution = NULL
+  })
+  
+  output$MonopolyStepsSolution = renderUI({
+    values$MonopolyStepsSolution
+  })
+  
+  observeEvent(input$RunMonopolyStepsDWLAnswer, {
+    TCfun = input$MonopolyStepsCostfun
+    demandfun = input$MonopolyStepsDemandfun
+    results = stepsMonopoly(TCfun, demandfun)
+    DWL = caracas::as_expr(results$DWL)
+    DWLAns = input$MonopolyStepsDWLAnswerDWL
+    if(DWL == DWLAns){
+      values$MonopolyStepsSRAnswer = h3("Well Done! Your answer is correct!")
+    } else {
+      values$MonopolyStepsSRAnswer = h4("Your solution is incorrect")
+    }
+  })
+  
+  output$MonopolyStepsDWLAnswer = renderUI({
+    values$MonopolyStepsDWLAnswer
+  })
+  
+  observeEvent(input$RunMonopolyStepsDWLSolution, {
+    TCfun = input$MonopolyStepsCostfun
+    demandfun = input$MonopolyStepsDemandfun
+    results = stepsMonopoly(TCfun, demandfun)
+    demandFun = results$demandFun %>% caracas::tex()
+    MC = results$MC %>% caracas::tex()
+    QSol = results$QSol %>% caracas::tex()
+    PSol = results$PSol %>% caracas::tex()
+    TCPC = results$TCPC %>% caracas::tex()
+    ATCPC = results$ATCPC %>% caracas::tex()
+    LRQ_i = results$LRQ_i %>% caracas::tex()
+    PPC = results$PPC %>% caracas::tex()
+    QPC = results$QPC %>% caracas::tex()
+    DWLQ = results$DWLQ %>% caracas::tex()
+    DWLP = results$DWLP %>% caracas::tex()
+    DWL = results$DWL %>% caracas::tex()
+    if(results$SolvePC){
+      values$MonopolyStepsDWLSolution = withMathJax(HTML(paste0("<p> Note: These solutions are calculated assuming linear demand and marginal cost curves </p>
+                                                               <h4>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</h4>
+                                                               <p>$$ Q_{M} = ", QSol, " \\qquad P_{M} = ", PSol, " $$</p>
+                                                               <p> Need to solve for \\( Q_{PC} \\text{ and } P_{PC} \\) </p>
+                                                               <h3> Step 1: Solve for the long run zero profit condition in perfect competition: \\( MC = ATC \\) </h3>
+                                                               <p>$$ TC = ", TCPC, "$$</p>
+                                                               <p>$$ MC = \\frac{dTC}{dQ_i} = \\frac{d(", TCPC, ")}{dQ_i} = ", MCPC, "$$</p>
+                                                               <p>$$ ATC = \\frac{TC}{Q_i} = \\frac{", TCPC, "}{Q_i} = ", ATCPC, "$$</p>
+                                                               <p>$$ MC = ATC $$</p>
+                                                               <p>$$ ", MCPC, " = ", ATCPC, " $$</p>
+                                                               <p>$$ Q_i = ", LRQ_i, "$$</p>
+                                                               <h3> Step 2: Solve for the firm's profit maximizing condition: \\(MC = MR = P\\) </h3>
+                                                               <p>$$ MC = P $$</p>
+                                                               <p>$$ ", MCPC, " = P $$</p>
+                                                               <p>$$ \\text{Plug in } Q_i \\text{ from Step 1: } Q_i = ", LRQ_i, "$$</p>
+                                                               <p>$$ ", PPC, " = P $$</p>
+                                                               <h3> Step 3: Plug the solved for price into the demand function and solve for market quantity </h3>
+                                                               <p>$$ Q = ", demandFun, " $$</p>
+                                                               <p>$$ P_{PC} = ", PPC, "  $$</p>
+                                                               <p>$$ Q_{PC} = ", QPC, " $$</p>
+                                                               <h3> Step 4: Now that \\(P_{PC} \\text{ and } Q_{PC} \\) have been solved for, solve for DWL </h3>
+                                                               <p>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</p>
+                                                               <p>$$ DWL = \\frac{(", QPC, " - ", QSol, ") * (", PSol, " - ", PPC, ")}{2} $$</p>
+                                                               <p>$$ DWL = \\frac{(", DWLQ, ") * (", DWLP, ")}{2} $$</p>
+                                                               <p>$$ DWL = ", DWL, " $$</p>
+                                                               <h3>$$ \\text{Solution: } DWL = ", DWL, " $$</h3>
+                                                               ")))
+    } else {
+      values$MonopolyStepsDWLSolution = withMathJax(HTML(paste0("<p> Note: These solutions are calculated assuming linear demand and marginal cost curves </p>
+                                                               <h4>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</h4>
+                                                               <p>$$ Q_{M} = ", QSol, " \\qquad P_{M} = ", PSol, " $$</p>
+                                                               <p> Need to solve for \\( Q_{PC} \\text{ and } P_{PC} \\) </p>
+                                                               <h3> Step 1: Solve for \\(P_{PC}\\): In perfect competition, \\(P_{PC} = MC\\) </h3>
+                                                               <p>$$ P_{PC} = ", PPC, " $$</p>
+                                                               <h3> Step 2: Solve for \\(Q_{PC}\\): Plug  P_{PC} = \\(", MC, "\\) into the demand function </h3>
+                                                               <p>$$ Q = ", demandFun, " $$</p>
+                                                               <p>$$ Q_{PC} = ", QPC, " $$</p>
+                                                               <h3> Step 3: Now that \\(P_{PC} \\text{ and } Q_{PC} \\) have been solved for, solve for DWL </h3>
+                                                               <p>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</p>
+                                                               <p>$$ DWL = \\frac{(", QPC, " - ", QSol, ") * (", PSol, " - ", PPC, ")}{2} $$</p>
+                                                               <p>$$ DWL = \\frac{(", DWLQ, ") * (", DWLP, ")}{2} $$</p>
+                                                               <p>$$ DWL = ", DWL, " $$</p>
+                                                               <h3>$$ \\text{Solution: } DWL = ", DWL, " $$</h3>
+                                                               ")))
+    }
+  })
+  
+  observeEvent(input$ClearMonopolyStepsDWLSolution, {
+    values$MonopolyStepsDWLSolution = NULL
+  })
+  
+  output$MonopolyStepsDWLSolution = renderUI({
+    values$MonopolyStepsDWLSolution
+  })
   
 }

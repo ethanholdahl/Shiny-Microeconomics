@@ -1718,7 +1718,7 @@ stepsMonopoly = function(TCfun, demandfun){
     ATCPC = caracas::as_sym("fill")
     LRQ_i = caracas::as_sym("fill")
     PPC = MC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    QPC = caracas::subs(demandFun, P, EqPPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
   } else {
     Q = caracas::symbol('Q')
     Q_i = caracas::symbol('Q_i')
