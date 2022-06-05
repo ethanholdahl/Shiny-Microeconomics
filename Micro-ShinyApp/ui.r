@@ -1382,7 +1382,58 @@ fluidPage(
       ),
       tabPanel("Practice",
                value = "MarketPractice",
-               h1("Coming Soon")),
+               fluidRow(
+                 column(4,
+                        p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                        div(
+                          style = "display:inline-block",
+                          textInput(
+                            inputId = "PerfectCompetitionStepsCostfun",
+                            label = "Firms' total cost function TC(Q):",
+                            value = "25 + Q^2",
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          textInput(
+                            inputId = "PerfectCompetitionStepsDemandfun",
+                            label = "Market demand function: Q(P):",
+                            value = "101000 - 100*P",
+                          )
+                        ),
+                        #actionButton(inputId = "RunPerfectCompetitionStepsPlot",
+                        #             label = "Draw Graph"),
+                        #actionButton(inputId = "ClearPerfectCompetitionStepsPlot",
+                        #             label = "Clear Plot"),
+                        #plotlyOutput("PerfectCompetitionStepsPlot")%>% withSpinner(color="#004623"),
+                 ),
+                 column(8,
+                        uiOutput(
+                          outputId = "PerfectCompetitionStepsQuestion"
+                        ),
+                        h4("Type your answer to the question in the field below. If necessary, round to the nearest integer"),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "PerfectCompetitionStepsAnswerN",
+                            label = "How many firms will be in this market in the long run?",
+                            min = 1,
+                            value = 1,
+                            step = 1,
+                            width = '200px'
+                          )
+                        ),
+                        actionButton(inputId = "RunPerfectCompetitionStepsAnswer",
+                                     label = "Submit Solution"),
+                        actionButton(inputId = "RunPerfectCompetitionStepsSolution",
+                                     label = "Reveal Step-by-Step Solution"),
+                        actionButton(inputId = "ClearPerfectCompetitionStepsSolution",
+                                     label = "Clear Step-by-Step Solution"),
+                        htmlOutput("PerfectCompetitionStepsAnswer") %>% withSpinner(color="#004623"),
+                        htmlOutput("PerfectCompetitionStepsSolution") %>% withSpinner(color="#004623")
+                 )
+               )
+      ),
       tabPanel("Graphs",
                value = "MarketGraphs",
                h1("Coming Soon"))
