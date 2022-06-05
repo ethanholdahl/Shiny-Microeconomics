@@ -28,10 +28,26 @@ fluidPage(
       "Home",
       value = "Home",
       withMathJax(),
-      h1("More Content Coming Soon"),
-      p(
-        "Please allow a short time for the interactive assets to load into your browser. Currently available are: The study pages under the Consumer Behavior, Individual and Market Demand, and Production tabs, and the practice page under the production and market structures tab. I will be adding content as quickly as I can."
-      ),
+      HTML("<h3>More Content Coming Soon</h3>
+      <p>Please allow a short time for the interactive assets to load into your browser.</p>
+      <p>List of currently published content:</p>
+      <ul>
+      <li> Study Pages (notes and accompanying interactive graphs)</li>
+      <ul>
+      <li> Consumer Behavior </li>
+      <li> Individual and Market Demand </li>
+      <li> Production </li>
+      </ul>
+      <li> Practice Pages (user defined test-like questions with an answer validator and step by step solutions) </li>
+      <ul>
+      <li> Production </li>
+      <li> Market Structures </li>
+      <ul>
+      <li> Perfect Competition </li>
+      </ul>
+      </ul>
+      </ul>
+      ")
     ),
     ###### Consumer Behavior ######
     navbarMenu(
