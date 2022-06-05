@@ -951,17 +951,7 @@ stepsCostMin = function(prodfun, w, r, Q){
               Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter))
 }
 
-
 results = stepsCostMin(prodfun, w, r, Q)
-
-results$perfectsSubs
-results$perfectsSubsInterior
-results$perfectSubsCornerL
-results$MPL
-results$MPK
-results$MRTS
-
-results$MPL/results$MPK
 
 stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
   ProductionLRsteps = calculateProductionLR(prodfun, w, r, steps = TRUE)
@@ -1005,6 +995,50 @@ stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
 # Perfect Competition in the LR (show price and profit earned by firms, control decision to add/remove firms and have it adjust profit)
 # PC in the LR show LR solution and change in total supply
 # Solve for N firms in PC in the LR, 
+
+TCfun = "25 + Q_i^2"
+demandfun = "101000 - 100*P"
+
+stepsPerfectCompetition = function(TCfun, demandfun){
+  Q = caracas::as_sym('Q')
+  Q_i = caracas::symbol('Q_i')
+  P = caracas::symbol('P')
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+  MC = caracas::der(TC, Q_i)
+  ATC = TC/Q_i
+  Q_i = caracas::symbol('Q_i', positive = TRUE)
+  LRQ_i = caracas::solve_sys(MC, ATC, Q_i)[[1]]$Q_i
+  Q_i = caracas::symbol('Q_i')
+  EqP = caracas::subs(MC, Q_i, LRQ_i)
+  demandFun = caracas::as_sym(demandfun)
+  EqQ = caracas::subs(demandFun, P, EqP)
+  EqN = EqQ/LRQ_i
+  return(list(TC = TC, MC = MC, ATC = ATC, LRQ_i = LRQ_i, EqP = EqP, demandFun = demandFun, EqQ = EqQ, EqN = EqN))
+}
+
+stepsPerfectCompetitionSR = function(TCfun, demandfun, N){
+  Q_i = caracas::symbol('Q_i')
+  Q = caracas::symbol('Q')
+  P = caracas::symbol('P')
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+  MC = caracas::der(TC, Q_i)
+  ATC = TC/Q_i
+  demandFun = caracas::as_sym(demandfun)
+  SRQ_i = caracas::subs(demandFun, P, MC)
+  Q_itoQ = Q/N
+  SRQ_Q = caracas::subs(SRQ_i, Q_i, Q_itoQ)
+  SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q
+  SRQ_i = SRQ/N
+  SRP = caracas::subs(MC, Q_i, SRQ_i)
+  SRpi_i = (SRP-ATC)*SRQ_i
+  return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, SRQ_i = SRQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRpi_i = SRpi_i))
+}
+
+N = 20000
+demandfun = "200000-2500*P"
+
+
+
 
 
 ######### MONOPOLY ###########

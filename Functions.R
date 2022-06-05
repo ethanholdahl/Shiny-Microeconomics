@@ -1385,7 +1385,7 @@ makeFirmExpansionGraph = function(prodfun, QMax, QNum, w, r, smooth = 100){
   return(list(plotly, plot))
 }
 
-######################### PRACTICE - PRODUCTION #######################3
+######################### PRACTICE - PRODUCTION #######################
 
 stepsCostMin = function(prodfun, w, r, Q){
   K = caracas::symbol('K')
@@ -1650,4 +1650,41 @@ makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
     isoquantCurveGeom = geom_path(data = isoquantCurve, aes(x = L, y = K, group = Isoquant_Line), color = color)
   }
   return(isoquantCurveGeom)
+}
+
+################### PRACTICE - PERFECT COMPETITION ####################
+
+stepsPerfectCompetition = function(TCfun, demandfun){
+  Q = caracas::as_sym('Q')
+  Q_i = caracas::symbol('Q_i')
+  P = caracas::symbol('P')
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+  MC = caracas::der(TC, Q_i)
+  ATC = TC/Q_i
+  Q_i = caracas::symbol('Q_i', positive = TRUE)
+  LRQ_i = caracas::solve_sys(MC, ATC, Q_i)[[1]]$Q_i
+  Q_i = caracas::symbol('Q_i')
+  EqP = caracas::subs(MC, Q_i, LRQ_i)
+  demandFun = caracas::as_sym(demandfun)
+  EqQ = caracas::subs(demandFun, P, EqP)
+  EqN = EqQ/LRQ_i
+  return(list(TC = TC, MC = MC, ATC = ATC, LRQ_i = LRQ_i, EqP = EqP, demandFun = demandFun, EqQ = EqQ, EqN = EqN))
+}
+
+stepsPerfectCompetitionSR = function(TCfun, demandfun, N){
+  Q_i = caracas::symbol('Q_i')
+  Q = caracas::symbol('Q')
+  P = caracas::symbol('P')
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+  MC = caracas::der(TC, Q_i)
+  ATC = TC/Q_i
+  demandFun = caracas::as_sym(demandfun)
+  SRQ_i = caracas::subs(demandFun, P, MC)
+  Q_itoQ = Q/N
+  SRQ_Q = caracas::subs(SRQ_i, Q_i, Q_itoQ)
+  SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q
+  SRQ_i = SRQ/N
+  SRP = caracas::subs(MC, Q_i, SRQ_i)
+  SRpi_i = (SRP-ATC)*SRQ_i
+  return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, SRQ_i = SRQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRpi_i = SRpi_i))
 }
