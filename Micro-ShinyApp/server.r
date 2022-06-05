@@ -1670,12 +1670,12 @@ function(input, output, session) {
     MC = caracas::der(TC, Q_i)
     ATC = TC/Q_i
     Q_i = caracas::symbol('Q_i', positive = TRUE)
-    LRQ_i = caracas::solve_sys(MC, ATC, Q_i)[[1]]$Q_i
+    LRQ_i = caracas::solve_sys(MC, ATC, Q_i)[[1]]$Q_i %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     Q_i = caracas::symbol('Q_i')
-    EqP = caracas::subs(MC, Q_i, LRQ_i)
+    EqP = caracas::subs(MC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     demandFun = caracas::as_sym(demandfun)
-    EqQ = caracas::subs(demandFun, P, EqP)
-    EqN = EqQ/LRQ_i
+    EqQ = caracas::subs(demandFun, P, EqP)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    EqN = EqQ/LRQ_i  %>% caracas::as_expr() %>% round(0) %>% caracas::as_sym()
     return(list(TC = TC, MC = MC, ATC = ATC, LRQ_i = LRQ_i, EqP = EqP, demandFun = demandFun, EqQ = EqQ, EqN = EqN))
   }
   
@@ -1690,11 +1690,11 @@ function(input, output, session) {
     demandQ_i = caracas::subs(demandFun, P, MC)
     Q_itoQ = Q/N
     SRQ_Q = caracas::subs(demandQ_i, Q_i, Q_itoQ)
-    SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q
-    SRQ_i = SRQ/N
-    SRP = caracas::subs(MC, Q_i, SRQ_i)
-    SRATC = caracas::subs(ATC, Q_i, SRQ_i)
-    SRpi_i = (SRP-SRATC)*SRQ_i
+    SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    SRQ_i = SRQ/N  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    SRP = caracas::subs(MC, Q_i, SRQ_i)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    SRATC = caracas::subs(ATC, Q_i, SRQ_i)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    SRpi_i = (SRP-SRATC)*SRQ_i  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRATC = SRATC, SRpi_i = SRpi_i))
   }
   
@@ -2767,7 +2767,7 @@ function(input, output, session) {
     TCfun = input$PerfectCompetitionStepsCostfun
     demandfun = input$PerfectCompetitionStepsDemandfun
     results = stepsPerfectCompetition(TCfun, demandfun)
-    N = caracas::as_expr(results$EqN) %>% round(0)
+    N = caracas::as_expr(results$EqN)
     NAns = input$PerfectCompetitionStepsAnswerN
     if(N == NAns){
         values$PerfectCompetitionStepsAnswer = h3("Well Done! Your answer is correct!")
@@ -2791,7 +2791,7 @@ function(input, output, session) {
     EqP = caracas::tex(results$EqP)
     demandFun = caracas::tex(results$demandFun)
     EqQ = caracas::tex(results$EqQ)
-    EqN = round(caracas::as_expr(results$EqN), 0)
+    EqN = caracas::as_expr(results$EqN)
     values$PerfectCompetitionStepsSolution = withMathJax(HTML(paste0("
                                                                      <h3> Step 1: Solve for the long run zero profit condition in perfect competition: \\( MC = ATC \\) </h3>
                                                                      <p>$$ TC = ", TC, "$$</p>
@@ -2828,14 +2828,14 @@ function(input, output, session) {
     TCfun = input$PerfectCompetitionStepsCostfun
     demandfun = input$PerfectCompetitionStepsDemandfun
     results = stepsPerfectCompetition(TCfun, demandfun)
-    N = round(caracas::as_expr(results$EqN), 0)
+    N = caracas::as_expr(results$EqN)
     if(input$PerfectCompetitionStepsSRChoice == "Demand"){
       demandfun = input$PerfectCompetitionStepsSRfun
     } else {
       TCfun = input$PerfectCompetitionStepsSRfun
     }
     results = stepsPerfectCompetitionSR(TCfun, demandfun, N)
-    Pi = caracas::as_expr(results$SRpi_i) %>% round(2)
+    Pi = caracas::as_expr(results$SRpi_i)
     PiAns = input$PerfectCompetitionStepsSRAnswerPi
     if(Pi == PiAns){
       values$PerfectCompetitionStepsSRAnswer = h3("Well Done! Your answer is correct!")
@@ -2852,7 +2852,7 @@ function(input, output, session) {
     TCfun = input$PerfectCompetitionStepsCostfun
     demandfun = input$PerfectCompetitionStepsDemandfun
     results = stepsPerfectCompetition(TCfun, demandfun)
-    N = round(caracas::as_expr(results$EqN), 0)
+    N = caracas::as_expr(results$EqN)
     if(input$PerfectCompetitionStepsSRChoice == "Demand"){
       demandfun = input$PerfectCompetitionStepsSRfun
     } else {
