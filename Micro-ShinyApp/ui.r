@@ -1561,6 +1561,97 @@ fluidPage(
                           ),
                           ), 
                  tabPanel("Oligopolies", 
+                          fluidRow(
+                            column(4,
+                                   p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "OligopolyStepsCostfun",
+                                       label = "Firms' total cost function TC(Q):",
+                                       value = "10*Q",
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     textInput(
+                                       inputId = "OligopolyStepsDemandfun",
+                                       label = "Market demand function Q(P):",
+                                       value = "200 - 5*P",
+                                     )
+                                   ),
+                            ),
+                            column(8,
+                                   uiOutput(
+                                     outputId = "BertrandStepsQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "BertrandStepsAnswerP1",
+                                       label = "What is the price firm 1 sets?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "BertrandStepsAnswerP2",
+                                       label = "What is the price firm 2 sets?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunBertrandStepsAnswer",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunBertrandStepsSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearBertrandStepsSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("BertrandStepsAnswer") %>% withSpinner(color="#004623"),
+                                   htmlOutput("BertrandStepsSolution") %>% withSpinner(color="#004623"),
+                                   uiOutput(
+                                     outputId = "CournotStepsQuestion"
+                                   ),
+                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "CournotStepsAnswerq",
+                                       label = "How much dead weight loss is created?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "CournotStepsAnswerPi",
+                                       label = "How much dead weight loss is created?",
+                                       min = 0,
+                                       value = 0,
+                                       step = .01,
+                                       width = '200px'
+                                     )
+                                   ),
+                                   actionButton(inputId = "RunCournotStepsAnswers",
+                                                label = "Submit Solution"),
+                                   actionButton(inputId = "RunCournotStepsSolution",
+                                                label = "Reveal Step-by-Step Solution"),
+                                   actionButton(inputId = "ClearCournotStepsSolution",
+                                                label = "Clear Step-by-Step Solution"),
+                                   htmlOutput("CournotStepsAnswers") %>% withSpinner(color="#004623"),
+                                   htmlOutput("CournotStepsSolution") %>% withSpinner(color="#004623"),
+                            )
+                          ),
                           )
                )
       ),
