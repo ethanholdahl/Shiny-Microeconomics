@@ -1317,6 +1317,17 @@ fluidPage(
                         actionButton(inputId = "ClearCostMinStepsPlot",
                                      label = "Clear Plot"),
                         plotlyOutput("CostMinStepsPlot")%>% withSpinner(color="#004623"),
+                        p("The following inputs are for part b"),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsSRQ",
+                            label = "Q: Level of production",
+                            value = 25,
+                            min = 1,
+                            width = '200px'
+                          )
+                        ),
                          ),
                  column(8,
                         uiOutput(
@@ -1363,7 +1374,41 @@ fluidPage(
                         actionButton(inputId = "ClearCostMinStepsSolutions",
                                      label = "Clear Step-by-Step Solutions"),
                         htmlOutput("CostMinStepsAnswers") %>% withSpinner(color="#004623"),
-                        htmlOutput("CostMinStepsSolutions") %>% withSpinner(color="#004623")
+                        htmlOutput("CostMinStepsSolutions") %>% withSpinner(color="#004623"),
+                        uiOutput(
+                          outputId = "CostMinStepsSRQuestion"
+                        ),
+                        h5("Type your answers to the question in the field below, rounding to the nearest hundredth"),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsSRAnswerCSR",
+                            label = "How much does the production of 25 units cost in the short run?",
+                            min = 0,
+                            value = 0,
+                            step = .01,
+                            width = '200px'
+                          )
+                        ),
+                        div(
+                          style = "display:inline-block",
+                          numericInput(
+                            inputId = "CostMinStepsSRAnswerCLR",
+                            label = "How much does the production of 25 units cost in the long run?",
+                            min = 0,
+                            value = 0,
+                            step = .01,
+                            width = '200px'
+                          )
+                        ),
+                        actionButton(inputId = "RunCostMinStepsSRAnswers",
+                                     label = "Submit Solutions"),
+                        actionButton(inputId = "RunCostMinStepsSRSolutions",
+                                     label = "Reveal Step-by-Step Solutions"),
+                        actionButton(inputId = "ClearCostMinStepsSRSolutions",
+                                     label = "Clear Step-by-Step Solutions"),
+                        htmlOutput("CostMinStepsSRAnswers") %>% withSpinner(color="#004623"),
+                        htmlOutput("CostMinStepsSRSolutions") %>% withSpinner(color="#004623"),
                         )
                  ),
                ),
