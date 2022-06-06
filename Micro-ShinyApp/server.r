@@ -3182,7 +3182,7 @@ function(input, output, session) {
   
   
   output$CournotStepsQuestion = renderUI({
-    h4(paste0("b.) Now, assume there are ", input$CournotStepsNVal, " firms are instead engaged in Cournot competition. In equilibrium, how much quantity does each firm produce and how much profit do they make?"))
+    h4(paste0("b.) Now, assume ", input$CournotStepsNVal, " firms are now instead engaged in Cournot competition. In equilibrium, how much quantity does each firm produce and how much profit do they make?"))
   })
   
   
