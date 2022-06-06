@@ -1103,8 +1103,8 @@ results = stepsMonopoly(TCfun, demandfun)
 
 ######### OLIGOPOLY ##########
 
-TCfun = "2*Q"
-demandfun = "10 - P"
+TCfun = "10*Q"
+demandfun = "200 - 5*P"
 N = 2
 
 stepsBertrand = function(TCfun, demandfun, N){

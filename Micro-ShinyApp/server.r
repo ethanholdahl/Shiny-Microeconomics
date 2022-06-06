@@ -3210,6 +3210,7 @@ function(input, output, session) {
     TCfun = input$OligopolyStepsCostfun
     demandfun = input$OligopolyStepsDemandfun
     results = stepsBertrand(TCfun, demandfun, 2)
+    Q_i = caracas::symbol('Q_i')
     TC = results$TC
     ATC = results$ATC
     demandFun = results$demandFun
