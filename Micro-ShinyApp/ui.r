@@ -46,6 +46,7 @@ fluidPage(
       <ul>
       <li> Perfect Competition </li>
       <li> Monopolies </li>
+      <li> Oligopolies </li>
       </ul>
       </ul>
       </ul>
