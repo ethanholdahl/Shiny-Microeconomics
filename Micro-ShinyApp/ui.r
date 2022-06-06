@@ -1580,6 +1580,29 @@ fluidPage(
                                        value = "200 - 5*P",
                                      )
                                    ),
+                                   p("The following options are for the Cournot Question"),
+                                   div(
+                                     style = "display:inline-block",
+                                     switchInput(
+                                       inputId = "CournotStepsN",
+                                       label = "Solve for N firms",
+                                       labelWidth = "80px",
+                                       onStatus = "success", 
+                                       offStatus = "danger"
+                                     )
+                                   ),
+                                   div(
+                                     style = "display:inline-block",
+                                     numericInput(
+                                       inputId = "CournotStepsNVal",
+                                       label = "How many firms in Cournot competiton?", 
+                                       min = 1,
+                                       value = 2,
+                                       step = 1,
+                                       width = '200px'
+                                       )
+                                   ),
+                                   
                             ),
                             column(8,
                                    uiOutput(
@@ -1624,7 +1647,7 @@ fluidPage(
                                      style = "display:inline-block",
                                      numericInput(
                                        inputId = "CournotStepsAnswerq",
-                                       label = "How much dead weight loss is created?",
+                                       label = "How much quantity does each firm produce?",
                                        min = 0,
                                        value = 0,
                                        step = .01,
@@ -1635,7 +1658,7 @@ fluidPage(
                                      style = "display:inline-block",
                                      numericInput(
                                        inputId = "CournotStepsAnswerPi",
-                                       label = "How much dead weight loss is created?",
+                                       label = "How much profit does each firm make?",
                                        min = 0,
                                        value = 0,
                                        step = .01,

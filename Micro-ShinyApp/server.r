@@ -1746,6 +1746,52 @@ function(input, output, session) {
                 SolvePC = SolvePC, TCPC = TCPC, MCPC = MCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
   }
   
+  ################## PRACTICE - OLIGOPOLY #####################
+  
+  stepsBertrand = function(TCfun, demandfun, N){
+    #Only works for increasing or constant marginal cost
+    #If marginal cost is decreasing then 1 firm produces everything
+    Q_i = caracas::symbol('Q_i')
+    Q = caracas::symbol('Q')
+    P = caracas::symbol('P')
+    TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+    ATC = TC/Q_i
+    demandFun = caracas::as_sym(demandfun)
+    demandQ_i = caracas::subs(demandFun, P, ATC)
+    QtoQ_i = Q_i*N
+    Q_i = caracas::symbol('Q_i', positive = TRUE)
+    Q_iSol = caracas::solve_sys(QtoQ_i, demandQ_i, Q_i)[[1]]$Q_i
+    Q_i = caracas::symbol('Q_i')
+    PSol = caracas::subs(ATC, Q_i, Q_iSol)
+    QSol = Q_iSol * N
+    return(list(TC = TC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, QtoQ_i = QtoQ_i, Q_iSol = Q_iSol, PSol = PSol, QSol = QSol))
+  }
+  
+  stepsCournot = function(TCfun, demandfun, N = TRUE){
+    Q = caracas::symbol('Q')
+    q_i = caracas::symbol('q_i')
+    q = caracas::symbol('q')
+    P = caracas::symbol('P')
+    if(N == TRUE){
+      N = caracas::symbol('N')
+    }
+    demandFun = caracas::as_sym(demandfun)
+    demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P
+    demandFunPq = caracas::subs(demandFunP, Q, q_i + (N-1)*q)
+    TC = caracas::subs(caracas::as_sym(TCfun), Q, q_i)
+    Pi = q_i*demandFunPq-TC
+    SimplifyPi = caracas::simplify(Pi)
+    dPi = caracas::der(SimplifyPi, q_i)
+    MaxPiq_i = caracas::solve_sys(dPi, q_i)[[1]]$q_i
+    Subinq = caracas::subs(MaxPiq_i, q, MaxPiq_i)
+    qSol = caracas::solve_sys(Subinq, q, q)[[1]]$q
+    QSol = qSol*N
+    PSol = caracas::subs(demandFunP, Q, QSol)
+    TCSol = caracas::subs(TC, q_i, qSol)
+    PiSol = caracas::simplify(PSol*qSol - TCSol)
+    return(list(demandFun = demandFun, demandFunP = demandFunP, demandFunPq = demandFunPq, TC = TC, Pi = Pi, SimplifyPi = SimplifyPi, dPi = dPi, MaxPiq_i = MaxPiq_i, Subinq = Subinq, qSol = qSol, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol))
+  }
+  
   ########## SHINY SERVER CODE ##########
   
   values <- reactiveValues(myurl = c(), parent_tab = "",
@@ -1779,7 +1825,11 @@ function(input, output, session) {
                            MonopolyStepsAnswer = NULL,
                            MonopolyStepsSolution = NULL,
                            MonopolyStepsDWLAnswer = NULL,
-                           MonopolyStepsDWLSolution = NULL
+                           MonopolyStepsDWLSolution = NULL,
+                           BertrandStepsAnswer = NULL,
+                           BertrandStepsSolution = NULL,
+                           CournotStepsAnswer = NULL,
+                           CournotStepsSolution = NULL
                            )
   
   # url navigation code from Dean Attali
@@ -3120,6 +3170,207 @@ function(input, output, session) {
   
   output$MonopolyStepsDWLSolution = renderUI({
     values$MonopolyStepsDWLSolution
+  })
+  
+  ###### Market Structures: Oligopoly - Practice ######
+  
+  output$BertrandStepsQuestion = renderUI({
+    HTML(paste0("<h4>Firms have the total cost function TC(Q) = ", input$OligopolyStepsCostfun, ", 
+              and the demand function in this market is given by Q(P) = ", input$OligopolyStepsDemandfun, ".</h4>
+              <h4> a.) There are two firms in Bertrand competition in this market. Assume prices are continuous. In equilibrium, how much does each firm price their goods at?</h4>"))
+  })
+  
+  
+  output$CournotStepsQuestion = renderUI({
+    h4(paste0("b.) Now, assume there are ", input$CournotStepsNVal, " firms are instead engaged in Cournot competition. In equilibrium, how much quantity does each firm produce and how much profit do they make?"))
+  })
+  
+  
+  
+  
+  observeEvent(input$RunBertrandStepsAnswer, {
+    TCfun = input$OligopolyStepsCostfun
+    demandfun = input$OligopolyStepsDemandfun
+    results = stepsBertrand(TCfun, demandfun, 2)
+    P = caracas::as_expr(results$PSol)
+    P1Ans = input$BertrandStepsAnswerP1
+    P2Ans = input$BertrandStepsAnswerP2
+    if(P == P1Ans && P == P2Ans){
+      values$BertrandStepsAnswer = h3("Well Done! Your answer is correct!")
+    } else {
+      values$BertrandStepsAnswer = h4("There is atleast one answer that is not correct.")
+    }
+  })
+  
+  output$BertrandStepsAnswer = renderUI({
+    values$BertrandStepsAnswer
+  })
+  
+  observeEvent(input$RunBertrandStepsSolution, {
+    TCfun = input$OligopolyStepsCostfun
+    demandfun = input$OligopolyStepsDemandfun
+    results = stepsBertrand(TCfun, demandfun, 2)
+    TC = results$TC
+    ATC = results$ATC
+    demandFun = results$demandFun
+    demandQ_i = results$demandQ_i
+    QtoQ_i = results$QtoQ_i
+    Q_iSol = results$Q_iSol
+    PSol = results$PSol
+    QSol = results$QSol
+    if(caracas::tex(caracas::der(results$ATC, Q_i)) != 0){
+      #increasing marginal cost (does not work for decreasing yet)
+      values$BertrandStepsSolution = withMathJax(HTML(paste0("<p> Note: These solutions are calculated assuming non-decreasing marginal costs. Solutions for all cost curves will be implemented later </p>
+                                                             <h3> Recall: In Bertrand competition with continuous prices, both firms must set the same price such that their profit is 0. </h3>
+                                                             <h3> Step 1: Solve for the 0 profit condition </h3>
+                                                             <p>$$ \\text{Need to find the price levels such that } \\pi = 0 $$</p>
+                                                             <p>$$ \\pi = TR - TC = q(P - ATC) = 0 $$</p>
+                                                             <p>$$ P = ATC $$</p>
+                                                             <p>$$ TC = ", TC, " $$</p>
+                                                             <p>$$ ATC = \\frac{", TC, "}{Q} = ", ATC, " $$</p>
+                                                             <p>$$ P = ", ATC, " $$</p>
+                                                             <h3> Step 2: Plug \\(P = ", ATC, "\\) into the demand function to ensure the market clears </h3>
+                                                             <p>$$ Q = ", demandFun, " $$</p>
+                                                             <p>$$ Q = ", demandQ_i, " $$</p>
+                                                             <p>$$ \\text{If firms have the same price, then they split the market quantity evenly } $$</p>
+                                                             <p>$$ Q = ", QtoQ_i, " $$</p>
+                                                             <p>$$ ", QtoQ_i, " = ", demandQ_i, " $$</p>
+                                                             <p>$$ Q_{i} = ", Q_iSol, " $$</p>
+                                                             <h3> Step 3: Plug \\(Q_{i} = ", Q_iSol, " \\) into the P equation: \\(P = ", ATC, "\\) </h3>
+                                                             <p>$$ P = ", PSol, " $$</p>
+                                                             <h3>$$ \\text{Solution: } P_{1} = P_{2} = ", PSol, " $$</h3>
+                                                             ")))
+    } else {
+      values$BertrandStepsSolution = withMathJax(HTML(paste0("<h3> Recall: In Bertrand competition with continuous prices, both firms must set the same price such that their profit is 0. </h3>
+                                                             <h3> Step 1: Solve for the 0 profit condition </h3>
+                                                             <p>$$ \\text{Need to find the price levels such that } \\pi = 0 $$</p>
+                                                             <p>$$ \\pi = TR - TC = q(P - ATC) = 0 $$</p>
+                                                             <p>$$ P = ATC $$</p>
+                                                             <p>$$ TC = ", TC, " $$</p>
+                                                             <p>$$ ATC = \\frac{", TC, "}{Q} = ", ATC, " $$</p>
+                                                             <p>$$ P = ", ATC, " $$</p>
+                                                             <h3>$$ \\text{Solution: } P_{1} = P_{2} = ", PSol, " $$</h3>
+                                                             ")))
+    }
+  })
+  
+  observeEvent(input$ClearBertrandStepsSolution, {
+    values$BertrandStepsSolution = NULL
+  })
+  
+  output$BertrandStepsSolution = renderUI({
+    values$BertrandStepsSolution
+  })
+  
+  observeEvent(input$RunCournotStepsAnswers, {
+    TCfun = input$OligopolyStepsCostfun
+    demandfun = input$OligopolyStepsDemandfun
+    N = input$CournotStepsNVal
+    results = stepsCournot(TCfun, demandfun, N)
+    q = caracas::as_expr(results$qSol) %>% round(2)
+    Pi = caracas::as_expr(results$PiSol) %>% round(2)
+    qAns = input$CournotStepsAnswerq
+    PiAns = input$CournotStepsAnswerPi
+    if(q == qAns && Pi == PiAns){
+      values$CournotStepsAnswers = h3("Well Done! Your answer is correct!")
+    } else {
+      values$CournotStepsAnswers = h4("There is atleast one answer that is not correct.")
+    }
+  })
+  
+  output$CournotStepsAnswers = renderUI({
+    values$CournotStepsAnswers
+  })
+  
+  observeEvent(input$RunCournotStepsSolution, {
+    TCfun = input$OligopolyStepsCostfun
+    demandfun = input$OligopolyStepsDemandfun
+    N = input$CournotStepsNVal
+    if(input$CournotStepsN){
+      results = stepsCournot(TCfun, demandfun)
+      resultsN = stepsCournot(TCfun, demandfun, N)
+      qSolN = resultsN$qSol %>% caracas::tex()
+      PiSolN = resultsN$PiSol %>% caracas::tex()
+    } else {
+      results = stepsCournot(TCfun, demandfun, N)
+    }
+    demandFun = results$demandFun %>% caracas::tex()
+    demandFunP = results$demandFunP %>% caracas::tex()
+    demandFunPq = results$demandFunPq %>% caracas::tex()
+    TC = results$TC %>% caracas::tex()
+    Pi = results$Pi %>% caracas::tex()
+    SimplifyPi = results$SimplifyPi %>% caracas::tex()
+    dPi = results$dPi %>% caracas::tex()
+    MaxPiq_i = results$MaxPiq_i %>% caracas::tex()
+    Subinq = results$Subinq %>% caracas::tex()
+    qSol = results$qSol %>% caracas::tex()
+    QSol = results$QSol %>% caracas::tex()
+    PSol = results$PSol %>% caracas::tex()
+    TCSol = results$TCSol %>% caracas::tex()
+    PiSol = results$PiSol %>% caracas::tex()
+    if(input$CournotStepsN){
+      message = paste0("<h3> In Cournot competition, firms profit maximize by treating all other firms production choices as exogenous </h3>
+                       <h3> Step 1: Solve for the inverse demand curve in terms of \\(q_i \\text{ and } q\\)</h3>
+                       <p>$$ Q = ", demandFun, "$$</p>
+                       <p>$$ P = ", demandFunP, "$$</p>
+                       <p>$$ Q = N*q $$</p>
+                       <p>$$ Q = q_i + (N-1)*q $$</p>
+                       <p>$$ P = ", demandFunPq, "$$</p>
+                       <h3> Step 2: Solve for the firm's profit maximizing condition </h3>
+                       <p>$$ \\pi_i = TR - TC $$</p>
+                       <p>$$ \\pi_i = P*q_i - ", TC, " $$</p>
+                       <p>$$ \\pi_i = ", Pi, " $$</p>
+                       <p>$$ \\pi_i = ", SimplifyPi, " $$</p>
+                       <p>$$ \\frac{d\\pi_i}{dq_i} = ", dPi, " $$</p>
+                       <p>$$ \\text{Set equal to 0 and solve for } q_i $$</p>
+                       <p>$$ q_i = ", MaxPiq_i, " $$</p>
+                       <h3> Step 3: Invoke symmetry and set \\(q_i = q\\) </h3>
+                       <p>$$ q_i = q = ", MaxPiq_i, " $$</p>
+                       <p>$$ q_i = ", qSol, " $$</p>
+                       <p>$$ Q = N*q_i = ", N, "*", qSol, " = ", QSol, " $$</p>
+                       <p>$$ P = ", demandFunP, "$$</p>
+                       <p>$$ P = ", PSol, "$$</p>
+                       <p>$$ \\pi_i = P*q_i - ", TC, " $$</p>
+                       <p>$$ \\pi_i = ", PiSol, " $$</p>
+                       <h3> Step 4: Plug in ", N, " for N </h3>
+                       <h3>$$ \\text{Solution: } q_i = ", qSolN, " \\qquad \\pi_i = ", PiSolN, " $$</h3>
+                       ")
+    } else {
+      message = paste0("<h3> In Cournot competition, firms profit maximize by treating all other firms production choices as exogenous </h3>
+                       <h3> Step 1: Solve for the inverse demand curve in terms of \\(q_i \\text{ and } q\\)</h3>
+                       <p>$$ Q = ", demandFun, "$$</p>
+                       <p>$$ P = ", demandFunP, "$$</p>
+                       <p>$$ \\text{In this problem, I will use } q \\text{ to denote the quantity the other firm produces} $$</p>
+                       <p>$$ Q = q_i + q $$</p>
+                       <p>$$ P = ", demandFunPq, "$$</p>
+                       <h3> Step 2: Solve for the firm's profit maximizing condition </h3>
+                       <p>$$ \\pi_i = TR - TC $$</p>
+                       <p>$$ \\pi_i = P*q_i - ", TC, " $$</p>
+                       <p>$$ \\pi_i = ", Pi, " $$</p>
+                       <p>$$ \\pi_i = ", SimplifyPi, " $$</p>
+                       <p>$$ \\frac{d\\pi_i}{dq_i} = ", dPi, " $$</p>
+                       <p>$$ \\text{Set equal to 0 and solve for } q_i $$</p>
+                       <p>$$ q_i = ", MaxPiq_i, " $$</p>
+                       <h3> Step 3: Invoke symmetry and set \\(q_i = q\\) </h3>
+                       <p>$$ q_i = q = ", MaxPiq_i, " $$</p>
+                       <p>$$ q_i = ", qSol, " $$</p>
+                       <p>$$ Q = N * q_i = ", N, "*", qSol, " = ", QSol, " $$</p>
+                       <p>$$ P = ", demandFunP, "$$</p>
+                       <p>$$ P = ", PSol, "$$</p>
+                       <p>$$ \\pi_i = P*q_i - ", TC, " $$</p>
+                       <p>$$ \\pi_i = ", PiSol, " $$</p>
+                       <h3>$$ \\text{Solution: } q_i = ", qSol, " \\qquad \\pi_i = ", PiSol, " $$</h3>
+                       ")
+    }
+    values$CournotStepsSolution = withMathJax(HTML(message))
+  })
+  
+  observeEvent(input$ClearCournotStepsSolution, {
+    values$CournotStepsSolution = NULL
+  })
+  
+  output$CournotStepsSolution = renderUI({
+    values$CournotStepsSolution
   })
   
 }

@@ -1781,5 +1781,5 @@ stepsCournot = function(TCfun, demandfun, N = TRUE){
   PSol = caracas::subs(demandFunP, Q, QSol)
   TCSol = caracas::subs(TC, q_i, qSol)
   PiSol = caracas::simplify(PSol*qSol - TCSol)
-  return(list(demandFun = demandFun, demandFunP = demandFunP, demandFunPq = demandFunPq, TC = TC, Pi = Pi, SimplifyPi = SimplifyPi, dPi = dPi, MaxPiq_i = MaxPiq_i, Suninq = Subinq, qSol = qSol, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol))
+  return(list(demandFun = demandFun, demandFunP = demandFunP, demandFunPq = demandFunPq, TC = TC, Pi = Pi, SimplifyPi = SimplifyPi, dPi = dPi, MaxPiq_i = MaxPiq_i, Subinq = Subinq, qSol = qSol, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol))
 }
