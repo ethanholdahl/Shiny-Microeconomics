@@ -1623,10 +1623,20 @@ function(input, output, session) {
     Equal = KcostMin == LcostMin
     Kbetter = KcostMin < LcostMin
     
+    if(Kbetter){
+      C = Ksolutions_C[[KSol]] %>% caracas::as_expr()
+      L = Ksolutions_L[[KSol]] %>% caracas::as_expr()
+      K = Ksolutions_K2[[KSol]] %>% caracas::as_expr()
+    } else {
+      C = Lsolutions_C[[LSol]] %>% caracas::as_expr()
+      L = Lsolutions_L2[[LSol]] %>% caracas::as_expr()
+      K = Lsolutions_K[[LSol]] %>% caracas::as_expr()
+    }
+    
     return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
                 Lcritical = Lcritical, Lsolutions_L1 = Lsolutions_L1, LprodFunSolutions = LprodFunSolutions, Lsolutions_K = Lsolutions_K, Lsolutions_L2 = Lsolutions_L2, Lsolutions_C = Lsolutions_C, Lpossible = Lpossible, Lpositive = Lpositive,
                 Kcritical = Kcritical, Ksolutions_K1 = Ksolutions_K1, KprodFunSolutions = KprodFunSolutions, Ksolutions_L = Ksolutions_L, Ksolutions_K2 = Ksolutions_K2, Ksolutions_C = Ksolutions_C, Kpossible = Kpossible, Kpositive = Kpositive,
-                Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter))
+                Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter, C = C, L = L, K = K))
   }
   
   makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
@@ -2396,25 +2406,13 @@ function(input, output, session) {
     smooth = input$CostMinStepsSmooth
     
     results = stepsCostMin(prodfun, w, r, Q)
-    if(results$perfectSubs){
-      if(results$perfectSubsInterior){
+    if(results$perfectSubsInterior){
         C = results$C %>% caracas::as_expr()
-      } else {
+        } else {
         C = results$C %>% caracas::as_expr()
         L = results$L %>% caracas::as_expr()
         K = results$K %>% caracas::as_expr() 
-      }
-    } else {
-      if(results$Kbetter){
-        C = results$Ksolutions_C[[results$KSol]] %>% caracas::as_expr()
-        L = results$Ksolutions_L[[results$KSol]] %>% caracas::as_expr()
-        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::as_expr()
-      } else {
-        C = results$Lsolutions_C[[results$LSol]] %>% caracas::as_expr()
-        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::as_expr()
-        K = results$Lsolutions_K[[results$LSol]] %>% caracas::as_expr()
-      }
-    }
+        }
     LMax = 1.5*C/w
     KMax = 1.5*C/r
     point = "Cost Minimization Solution"
@@ -2467,24 +2465,12 @@ function(input, output, session) {
     KAns = input$CostMinStepsAnswerK
     
     results = stepsCostMin(prodfun, w, r, Q)
-    if(results$perfectSubs){
-      if(results$perfectSubsInterior){
-        C = results$C %>% caracas::as_expr()
-      } else {
-        C = results$C %>% caracas::as_expr()
-        L = results$L %>% caracas::as_expr()
-        K = results$K %>% caracas::as_expr() 
-      }
+    if(results$perfectSubsInterior){
+      C = results$C %>% caracas::as_expr()
     } else {
-      if(results$Kbetter){
-        C = results$Ksolutions_C[[results$KSol]] %>% caracas::as_expr()
-        L = results$Ksolutions_L[[results$KSol]] %>% caracas::as_expr()
-        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::as_expr()
-      } else {
-        C = results$Lsolutions_C[[results$LSol]] %>% caracas::as_expr()
-        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::as_expr()
-        K = results$Lsolutions_K[[results$LSol]] %>% caracas::as_expr()
-      }
+      C = results$C %>% caracas::as_expr()
+      L = results$L %>% caracas::as_expr()
+      K = results$K %>% caracas::as_expr() 
     }
     if (results$perfectSubsInterior){
       if(CAns == C && (LAns*w + KAns*r) == C){

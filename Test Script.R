@@ -945,11 +945,24 @@ stepsCostMin = function(prodfun, w, r, Q){
   Equal = KcostMin == LcostMin
   Kbetter = KcostMin < LcostMin
   
+  if(Kbetter){
+    C = Ksolutions_C[[KSol]] %>% caracas::as_expr()
+    L = Ksolutions_L[[KSol]] %>% caracas::as_expr()
+    K = Ksolutions_K2[[KSol]] %>% caracas::as_expr()
+    } else {
+      C = Lsolutions_C[[LSol]] %>% caracas::as_expr()
+      L = Lsolutions_L2[[LSol]] %>% caracas::as_expr()
+      K = Lsolutions_K[[LSol]] %>% caracas::as_expr()
+    }
+  
   return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
               Lcritical = Lcritical, Lsolutions_L1 = Lsolutions_L1, LprodFunSolutions = LprodFunSolutions, Lsolutions_K = Lsolutions_K, Lsolutions_L2 = Lsolutions_L2, Lsolutions_C = Lsolutions_C, Lpossible = Lpossible, Lpositive = Lpositive,
               Kcritical = Kcritical, Ksolutions_K1 = Ksolutions_K1, KprodFunSolutions = KprodFunSolutions, Ksolutions_L = Ksolutions_L, Ksolutions_K2 = Ksolutions_K2, Ksolutions_C = Ksolutions_C, Kpossible = Kpossible, Kpositive = Kpositive,
-              Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter))
+              Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter, C = C, L = L, K = K))
 }
+
+
+
 
 results = stepsCostMin(prodfun, w, r, Q)
 
