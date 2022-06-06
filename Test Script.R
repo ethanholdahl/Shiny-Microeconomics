@@ -1099,10 +1099,57 @@ stepsMonopoly = function(TCfun, demandfun){
               SolvePC = SolvePC, TCPC = TCPC, MCPC = MCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
 }
 
-
 results = stepsMonopoly(TCfun, demandfun)
-
-
 
 ######### OLIGOPOLY ##########
 
+TCfun = "2*Q"
+demandfun = "10 - P"
+N = 2
+
+stepsBertrand = function(TCfun, demandfun, N){
+  #Only works for increasing or constant marginal cost
+  #If marginal cost is decreasing then 1 firm produces everything
+  Q_i = caracas::symbol('Q_i')
+  Q = caracas::symbol('Q')
+  P = caracas::symbol('P')
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
+  ATC = TC/Q_i
+  demandFun = caracas::as_sym(demandfun)
+  demandQ_i = caracas::subs(demandFun, P, ATC)
+  QtoQ_i = Q_i*N
+  Q_i = caracas::symbol('Q_i', positive = TRUE)
+  Q_iSol = caracas::solve_sys(QtoQ_i, demandQ_i, Q_i)[[1]]$Q_i
+  Q_i = caracas::symbol('Q_i')
+  PSol = caracas::subs(ATC, Q_i, Q_iSol)
+  QSol = Q_iSol * N
+  return(list(TC = TC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, QtoQ_i = QtoQ_i, Q_iSol = Q_iSol, PSol = PSol, QSol = QSol))
+}
+
+stepsCournot = function(TCfun, demandfun, N = TRUE){
+  Q = caracas::symbol('Q')
+  q_i = caracas::symbol('q_i')
+  q = caracas::symbol('q')
+  P = caracas::symbol('P')
+  if(N == TRUE){
+    N = caracas::symbol('N')
+  }
+  demandFun = caracas::as_sym(demandfun)
+  demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P
+  demandFunPq = caracas::subs(demandFunP, Q, q_i + (N-1)*q)
+  TC = caracas::subs(caracas::as_sym(TCfun), Q, q_i)
+  Pi = q_i*demandFunPq-TC
+  SimplifyPi = caracas::simplify(Pi)
+  dPi = caracas::der(SimplifyPi, q_i)
+  MaxPiq_i = caracas::solve_sys(dPi, q_i)[[1]]$q_i
+  Subinq = caracas::subs(MaxPiq_i, q, MaxPiq_i)
+  qSol = caracas::solve_sys(Subinq, q, q)[[1]]$q
+  QSol = qSol*N
+  PSol = caracas::subs(demandFunP, Q, QSol)
+  TCSol = caracas::subs(TC, q_i, qSol)
+  PiSol = caracas::simplify(PSol*qSol - TCSol)
+  return(list(demandFun = demandFun, demandFunP = demandFunP, demandFunPq = demandFunPq, TC = TC, Pi = Pi, SimplifyPi = SimplifyPi, dPi = dPi, MaxPiq_i = MaxPiq_i, Suninq = Subinq, qSol = qSol, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol))
+}
+
+stepsBertrand(TCfun, demandfun, N)
+stepsCournot(TCfun, demandfun, N)
