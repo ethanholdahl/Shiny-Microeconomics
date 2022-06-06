@@ -1631,6 +1631,17 @@ stepsCostMin = function(prodfun, w, r, Q){
               Lcost = Lcost, LcostMin = LcostMin, LSol = LSol, Kcost = Kcost, KcostMin = KcostMin, KSol = KSol, Equal = Equal, Kbetter = Kbetter, C = C, L = L, K = K))
 }
 
+stepsCostMinSR = function(prodfun, w, r, Q, K){
+  Kbar = K
+  K = caracas::symbol('K')
+  L = caracas::symbol('L')
+  prodFun = caracas::as_sym(prodfun)
+  prodFunSR = caracas::subs(prodFun, K, Kbar) %>% caracas::N(5)
+  LSol = caracas::solve_sys(Q, prodFunSR, L)[[1]]$L %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+  CSol = Kbar * r + LSol * w %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+  return(list(prodFun = prodFun, prodFunSR = prodFunSR, LSol = LSol, CSol = CSol))
+}
+
 makeIsoquantCurve = function(prodfun, Q, LMax, smooth = 100, color = "red"){
   L = caracas::symbol('L')
   K = caracas::symbol('K')
