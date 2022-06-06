@@ -1675,7 +1675,7 @@ function(input, output, session) {
     EqP = caracas::subs(MC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     demandFun = caracas::as_sym(demandfun)
     EqQ = caracas::subs(demandFun, P, EqP)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    EqN = EqQ/LRQ_i  %>% caracas::as_expr() %>% round(0) %>% caracas::as_sym()
+    EqN = (EqQ/LRQ_i)  %>% caracas::as_expr() %>% round(0) %>% caracas::as_sym()
     return(list(TC = TC, MC = MC, ATC = ATC, LRQ_i = LRQ_i, EqP = EqP, demandFun = demandFun, EqQ = EqQ, EqN = EqN))
   }
   
@@ -1691,10 +1691,10 @@ function(input, output, session) {
     Q_itoQ = Q/N
     SRQ_Q = caracas::subs(demandQ_i, Q_i, Q_itoQ)
     SRQ = caracas::solve_sys(Q, SRQ_Q, Q)[[1]]$Q  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    SRQ_i = SRQ/N  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    SRQ_i = (SRQ/N)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     SRP = caracas::subs(MC, Q_i, SRQ_i)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     SRATC = caracas::subs(ATC, Q_i, SRQ_i)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    SRpi_i = (SRP-SRATC)*SRQ_i  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    SRpi_i = ((SRP-SRATC)*SRQ_i)  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     return(list(TC = TC, MC = MC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, Q_itoQ = Q_itoQ, SRQ_Q = SRQ_Q, SRQ = SRQ, SRQ_i = SRQ_i, SRP = SRP, SRATC = SRATC, SRpi_i = SRpi_i))
   }
   
@@ -1705,14 +1705,14 @@ function(input, output, session) {
     Q = caracas::symbol('Q')
     P = caracas::symbol('P')
     demandFun = caracas::as_sym(demandfun)
-    demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P
+    demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P %>% caracas::N(5)
     TR = demandFunP*Q
-    MR = caracas::der(TR, Q)
-    TC = caracas::as_sym(TCfun)
-    MC = caracas::der(TC, Q)
-    QSol = caracas::solve_sys(MR, MC, Q)[[1]]$Q %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    PSol = caracas::subs(demandFunP, Q, QSol) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    TCSol = caracas::subs(TC, Q, QSol) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    MR = caracas::der(TR, Q)  %>% caracas::N(5)
+    TC = caracas::as_sym(TCfun)  %>% caracas::N(5)
+    MC = caracas::der(TC, Q)  %>% caracas::N(5)
+    QSol = caracas::solve_sys(MR, MC, Q)[[1]]$Q %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    PSol = caracas::subs(demandFunP, Q, QSol) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    TCSol = caracas::subs(TC, Q, QSol) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     PiSol = (PSol*QSol - TCSol) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     
     #DWL Assuming linear MC, Demand Curves
@@ -1723,24 +1723,25 @@ function(input, output, session) {
     if(length(result) == 0){
       SolvePC = FALSE
       TCPC = caracas::as_sym("fill")
+      MCPC = caracas::as_sym("fill")
       ATCPC = caracas::as_sym("fill")
       LRQ_i = caracas::as_sym("fill")
-      PPC = MC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-      QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+      PPC = MC %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+      QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     } else {
       Q = caracas::symbol('Q')
       Q_i = caracas::symbol('Q_i')
-      TCPC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
-      MCPC = caracas::der(TCPC, Q_i)
+      TCPC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)  %>% caracas::N(5)
+      MCPC = caracas::der(TCPC, Q_i)  %>% caracas::N(5)
       ATCPC = TCPC/Q_i
       Q_i = caracas::symbol('Q_i', positive = TRUE)
       LRQ_i = caracas::solve_sys(MCPC, ATCPC, Q_i)[[1]]$Q_i %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
       Q_i = caracas::symbol('Q_i')
-      PPC = caracas::subs(MCPC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-      QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+      PPC = caracas::subs(MCPC, Q_i, LRQ_i) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+      QPC = caracas::subs(demandFun, P, PPC)  %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     }
-    DWLQ = QPC-QSol %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
-    DWLP = PSol - PPC %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
+    DWLQ = QPC-QSol %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    DWLP = PSol - PPC %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     DWL = (DWLQ*DWLP/2) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     return(list(demandFun = demandFun, demandFunP = demandFunP, TR = TR, MR = MR, TC = TC, MC = MC, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol,
                 SolvePC = SolvePC, TCPC = TCPC, MCPC = MCPC, ATCPC = ATCPC, LRQ_i = LRQ_i, PPC = PPC, QPC = QPC, DWLQ = DWLQ, DWLP = DWLP, DWL = DWL))
@@ -1755,15 +1756,15 @@ function(input, output, session) {
     Q = caracas::symbol('Q')
     P = caracas::symbol('P')
     TC = caracas::subs(caracas::as_sym(TCfun), Q, Q_i)
-    ATC = TC/Q_i
+    ATC = (TC/Q_i) %>% caracas::N(5)
     demandFun = caracas::as_sym(demandfun)
-    demandQ_i = caracas::subs(demandFun, P, ATC)
+    demandQ_i = caracas::subs(demandFun, P, ATC)  %>% caracas::N(5)
     QtoQ_i = Q_i*N
     Q_i = caracas::symbol('Q_i', positive = TRUE)
-    Q_iSol = caracas::solve_sys(QtoQ_i, demandQ_i, Q_i)[[1]]$Q_i
+    Q_iSol = caracas::solve_sys(QtoQ_i, demandQ_i, Q_i)[[1]]$Q_i %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     Q_i = caracas::symbol('Q_i')
-    PSol = caracas::subs(ATC, Q_i, Q_iSol)
-    QSol = Q_iSol * N
+    PSol = caracas::subs(ATC, Q_i, Q_iSol) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    QSol = (Q_iSol * N) %>% caracas::as_expr() %>% round(4) %>% caracas::as_sym()
     return(list(TC = TC, ATC = ATC, demandFun = demandFun, demandQ_i = demandQ_i, QtoQ_i = QtoQ_i, Q_iSol = Q_iSol, PSol = PSol, QSol = QSol))
   }
   
@@ -1776,19 +1777,19 @@ function(input, output, session) {
       N = caracas::symbol('N')
     }
     demandFun = caracas::as_sym(demandfun)
-    demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P
+    demandFunP = caracas::solve_sys(Q, demandFun, P)[[1]]$P %>% caracas::N(5)
     demandFunPq = caracas::subs(demandFunP, Q, q_i + (N-1)*q)
     TC = caracas::subs(caracas::as_sym(TCfun), Q, q_i)
     Pi = q_i*demandFunPq-TC
     SimplifyPi = caracas::simplify(Pi)
     dPi = caracas::der(SimplifyPi, q_i)
-    MaxPiq_i = caracas::solve_sys(dPi, q_i)[[1]]$q_i
+    MaxPiq_i = caracas::solve_sys(dPi, q_i)[[1]]$q_i %>% caracas::N(5)
     Subinq = caracas::subs(MaxPiq_i, q, MaxPiq_i)
-    qSol = caracas::solve_sys(Subinq, q, q)[[1]]$q
+    qSol = caracas::solve_sys(Subinq, q, q)[[1]]$q %>% caracas::N(5)
     QSol = qSol*N
-    PSol = caracas::subs(demandFunP, Q, QSol)
-    TCSol = caracas::subs(TC, q_i, qSol)
-    PiSol = caracas::simplify(PSol*qSol - TCSol)
+    PSol = caracas::subs(demandFunP, Q, QSol) %>% caracas::N(5)
+    TCSol = caracas::subs(TC, q_i, qSol) %>% caracas::N(5)
+    PiSol = caracas::simplify(PSol*qSol - TCSol) %>% caracas::N(5)
     return(list(demandFun = demandFun, demandFunP = demandFunP, demandFunPq = demandFunPq, TC = TC, Pi = Pi, SimplifyPi = SimplifyPi, dPi = dPi, MaxPiq_i = MaxPiq_i, Subinq = Subinq, qSol = qSol, QSol = QSol, PSol = PSol, TCSol = TCSol, PiSol = PiSol))
   }
   
@@ -3151,7 +3152,7 @@ function(input, output, session) {
                                                                <p> Need to solve for \\( Q_{PC} \\text{ and } P_{PC} \\) </p>
                                                                <h3> Step 1: Solve for \\(P_{PC}\\): In perfect competition, \\(P_{PC} = MC\\) </h3>
                                                                <p>$$ P_{PC} = ", PPC, " $$</p>
-                                                               <h3> Step 2: Solve for \\(Q_{PC}\\): Plug  P_{PC} = \\(", MC, "\\) into the demand function </h3>
+                                                               <h3> Step 2: Solve for \\(Q_{PC}\\): Plug  \\(P_{PC} = ", MC, "\\) into the demand function </h3>
                                                                <p>$$ Q = ", demandFun, " $$</p>
                                                                <p>$$ Q_{PC} = ", QPC, " $$</p>
                                                                <h3> Step 3: Now that \\(P_{PC} \\text{ and } Q_{PC} \\) have been solved for, solve for DWL </h3>
@@ -3228,7 +3229,7 @@ function(input, output, session) {
                                                              <p>$$ \\pi = TR - TC = q(P - ATC) = 0 $$</p>
                                                              <p>$$ P = ATC $$</p>
                                                              <p>$$ TC = ", TC, " $$</p>
-                                                             <p>$$ ATC = \\frac{", TC, "}{Q} = ", ATC, " $$</p>
+                                                             <p>$$ ATC = \\frac{", TC, "}{Q_i} = ", ATC, " $$</p>
                                                              <p>$$ P = ", ATC, " $$</p>
                                                              <h3> Step 2: Plug \\(P = ", ATC, "\\) into the demand function to ensure the market clears </h3>
                                                              <p>$$ Q = ", demandFun, " $$</p>
@@ -3248,7 +3249,7 @@ function(input, output, session) {
                                                              <p>$$ \\pi = TR - TC = q(P - ATC) = 0 $$</p>
                                                              <p>$$ P = ATC $$</p>
                                                              <p>$$ TC = ", TC, " $$</p>
-                                                             <p>$$ ATC = \\frac{", TC, "}{Q} = ", ATC, " $$</p>
+                                                             <p>$$ ATC = \\frac{", TC, "}{Q_i} = ", ATC, " $$</p>
                                                              <p>$$ P = ", ATC, " $$</p>
                                                              <h3>$$ \\text{Solution: } P_{1} = P_{2} = ", PSol, " $$</h3>
                                                              ")))
@@ -3290,10 +3291,20 @@ function(input, output, session) {
     if(input$CournotStepsN){
       results = stepsCournot(TCfun, demandfun)
       resultsN = stepsCournot(TCfun, demandfun, N)
-      qSolN = resultsN$qSol %>% caracas::tex()
-      PiSolN = resultsN$PiSol %>% caracas::tex()
+      qSolN = resultsN$qSol %>% caracas::as_expr() %>% round(2)
+      PiSolN = resultsN$PiSol %>% caracas::as_expr() %>% round(2)
+      qSol = results$qSol %>% caracas::tex() 
+      QSol = results$QSol %>% caracas::tex()
+      PSol = results$PSol %>% caracas::tex()
+      TCSol = results$TCSol %>% caracas::tex()
+      PiSol = results$PiSol %>% caracas::tex()
     } else {
       results = stepsCournot(TCfun, demandfun, N)
+      qSol = results$qSol %>% caracas::as_expr() %>% round(2)
+      QSol = results$QSol %>% caracas::as_expr() %>% round(2)
+      PSol = results$PSol %>% caracas::as_expr() %>% round(2)
+      TCSol = results$TCSol %>% caracas::as_expr() %>% round(2)
+      PiSol = results$PiSol %>% caracas::as_expr() %>% round(2)
     }
     demandFun = results$demandFun %>% caracas::tex()
     demandFunP = results$demandFunP %>% caracas::tex()
@@ -3304,11 +3315,6 @@ function(input, output, session) {
     dPi = results$dPi %>% caracas::tex()
     MaxPiq_i = results$MaxPiq_i %>% caracas::tex()
     Subinq = results$Subinq %>% caracas::tex()
-    qSol = results$qSol %>% caracas::tex()
-    QSol = results$QSol %>% caracas::tex()
-    PSol = results$PSol %>% caracas::tex()
-    TCSol = results$TCSol %>% caracas::tex()
-    PiSol = results$PiSol %>% caracas::tex()
     if(input$CournotStepsN){
       message = paste0("<h3> In Cournot competition, firms profit maximize by treating all other firms production choices as exogenous </h3>
                        <h3> Step 1: Solve for the inverse demand curve in terms of \\(q_i \\text{ and } q\\)</h3>

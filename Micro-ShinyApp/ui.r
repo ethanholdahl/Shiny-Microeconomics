@@ -1322,7 +1322,7 @@ fluidPage(
                         uiOutput(
                           outputId = "CostMinStepsQuestion"
                         ),
-                        h4("Type your answers to the question in the field below, rounding to the nearest hundredth"),
+                        h5("Type your answers to the question in the field below, rounding to the nearest hundredth"),
                         div(
                           style = "display:inline-block",
                           numericInput(
@@ -1445,7 +1445,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "PerfectCompetitionStepsQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest integer"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest integer"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
@@ -1468,7 +1468,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "PerfectCompetitionStepsSRQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
@@ -1609,7 +1609,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "BertrandStepsQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
@@ -1643,7 +1643,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "CournotStepsQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
