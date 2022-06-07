@@ -2409,6 +2409,64 @@ function(input, output, session) {
   
   ###### Production - Practice ######
   
+  observeEvent(input$RunNewCostMinQuestion, {
+    type = sample(1:3,1)
+    if(type == 1){
+      #CobbDouglass
+      a = sample(1:20,1)
+      b = (sample(1:19,1))/20
+      fun = paste0(a, "*K^", b, "*L^", (1-b))
+    } else if(type == 2){
+      #Perfect Substitutes
+      a = sample(1:20,1)
+      b = sample(1:20,1)
+      fun = paste0(a, "*K + ", b, "*L")
+    } else {
+      #Other
+      a = sample(1:10,1)
+      b = sample(1:10,1)
+      c = sample(1:10,1)
+      d = sample(1:20,1)
+      fun = paste0(a, "*K*L + ", b, "*K + ", c, "*L -", d)
+    }
+    Q = sample(4:100,1)
+    w = sample(1:20,1)
+    r = sample(1:20,1)
+    Q1 = sample(4:100,1)
+    while(Q1 == Q){
+      Q1 = sample(4:100,1)
+    }
+    updateTextInput(session = session,
+      inputId = "CostMinStepsProdfun",
+      label = "Input a differentiable production function: f(K, L). Be sure not to omit the multiplication sign (*).",
+      value = fun,
+    )
+    updateNumericInput(session = session,
+      inputId = "CostMinStepsQ",
+      label = "Q: Level of production",
+      value = Q,
+      min = 1,
+    )
+    updateNumericInput(session = session,
+      inputId = "CostMinStepsW",
+      label = "w: wages, the price of labor (L)",
+      value = w,
+      min = 1,
+    )
+    updateNumericInput(session = session,
+      inputId = "CostMinStepsR",
+      label = "r: rental rate, the price of capital (K)",
+      value = r,
+      min = 1,
+    )
+    updateNumericInput(session = session,
+      inputId = "CostMinStepsSRQ",
+      label = "Q: Level of production",
+      value = Q1,
+      min = 1,
+    )
+  })
+  
   observeEvent(input$CostMinStepsQ, {
     updateNumericInput(session, inputId = "CostMinStepsAnswerC",
                        label = paste0("How much does the production of ", input$CostMinStepsQ ," units cost?"))

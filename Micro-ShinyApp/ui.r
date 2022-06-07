@@ -1263,6 +1263,8 @@ fluidPage(
                value = "ProductionPractice",
                fluidRow(
                  column(4,
+                        actionButton(inputId = "RunNewCostMinQuestion",
+                                     label = "Generate a new question"),
                         div(
                           style = "display:inline-block",
                           textInput(
