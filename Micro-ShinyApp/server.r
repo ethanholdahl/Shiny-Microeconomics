@@ -3457,20 +3457,21 @@ function(input, output, session) {
     h4(paste0("b.) How much dead weight loss is created in this market if the monopoly is unregulated?"))
   })
   
-  observeEvent(input$RunNewOligopolyQuestion, {
+  observeEvent(input$RunNewMonopolyQuestion, {
     a = sample(1:20, 1)
-    b = sample(1:10, 1)
-    c = (a+1)*(b+1)
-    d = sample(c:1000, 1)
+    b = sample(1:15, 1)
+    c = a*b*2
+    d = sample(c:500, 1)
+    e = sample(1:200,1)*50
     updateTextInput(session = session,
-                    inputId = "OligopolyStepsCostfun",
+                    inputId = "MonopolyStepsCostfun",
                     label = "Firms' total cost function TC(Q):",
-                    value = paste0(a, "*Q")
+                    value = paste0(e, " - ", a, "*Q")
     )
-    updateTextInput(
-      inputId = "OligopolyStepsDemandfun",
-      label = "Market demand function Q(P):",
-      value = paste0(d, " - ", b,"*P")
+    updateTextInput(session = session,
+                    inputId = "MonopolyStepsDemandfun",
+                    label = "Market demand function Q(P):",
+                    value = paste0(d, " - ", b,"*P")
     )
   })
   
@@ -3652,7 +3653,7 @@ function(input, output, session) {
       label = "Firms' total cost function TC(Q):",
       value = paste0(a, "*Q")
     )
-    updateTextInput(
+    updateTextInput(session = session,
       inputId = "OligopolyStepsDemandfun",
       label = "Market demand function Q(P):",
       value = paste0(d, " - ", b,"*P")

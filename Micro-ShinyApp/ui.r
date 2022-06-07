@@ -1544,6 +1544,8 @@ fluidPage(
                           fluidRow(
                             column(4,
                                    p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                                   actionButton(inputId = "RunNewMonopolyQuestion",
+                                                label = "Generate a new question"),
                                    div(
                                      style = "display:inline-block",
                                      textInput(
