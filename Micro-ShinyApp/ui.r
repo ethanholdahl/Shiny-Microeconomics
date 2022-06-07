@@ -1328,7 +1328,12 @@ fluidPage(
                             width = '200px'
                           )
                         ),
-                         ),
+                        actionButton(inputId = "RunCostMinStepsSRPlot",
+                                     label = "Draw Graph"),
+                        actionButton(inputId = "ClearCostMinStepsSRPlot",
+                                     label = "Clear Plot"),
+                        plotlyOutput("CostMinStepsSRPlot")%>% withSpinner(color="#004623"),
+                        ),
                  column(8,
                         uiOutput(
                           outputId = "CostMinStepsQuestion"
