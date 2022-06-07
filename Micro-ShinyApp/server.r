@@ -3275,13 +3275,19 @@ function(input, output, session) {
   
   observeEvent(input$PerfectCompetitionStepsSRChoice, {
     if(input$PerfectCompetitionStepsSRChoice == "Demand"){
+      e = sample(1:100, 1)
+      f = a*e
+      g = sample(2:100, 1)*f
+      SRfun = paste0(g, " - ", e,"*P")
       updateTextInput(session, inputId = "PerfectCompetitionStepsSRfun",
                       label = "New Market demand function Q(P):",
-                      value = "200000-2500*P")
+                      value = SRfun)
     } else {
+      h = sample(1:20, 1)^2
+      SRfun = paste0(h, " + Q^2")
       updateTextInput(session, inputId = "PerfectCompetitionStepsSRfun",
                       label = "New Firms' total cost function TC(Q):",
-                      value = "64 + Q^2 + 8*Q")
+                      value = SRfun)
     }
   })
   
@@ -3303,6 +3309,37 @@ function(input, output, session) {
                 The number of firms in this market has not yet adjusted to the change in the cost of production. 
                 In the short run, how much profit (or losses) are made by each firm?"))
     }
+  })
+  
+  observeEvent(input$RunNewPerfectCompetitionQuestion, {
+    a = sample(1:20, 1)^2
+    b = sample(1:100, 1)
+    c = a*b
+    d = sample(2:100, 1)*c
+    i = sample(1:2, 1)
+    if(i == 1){
+      SRchoice = "Demand"
+    } else {
+      SRchoice = "Cost"
+    }
+    
+    updateTextInput(session = session,
+                    inputId = "PerfectCompetitionStepsCostfun",
+                    label = "Firms' total cost function TC(Q):",
+                    value = paste0(a, " + Q^2")
+    )
+    updateTextInput(session = session,
+                    inputId = "PerfectCompetitionStepsDemandfun",
+                    label = "Market demand function Q(P):",
+                    value = paste0(d, " - ", b,"*P")
+    )
+    updateRadioGroupButtons(session = session,
+      inputId = "PerfectCompetitionStepsSRChoice",
+      label = "Select a function to change for part b", 
+      choices = c("Demand", "Cost"),
+      selected = SRchoice,
+      status = "success"
+    )
   })
   
   observeEvent(input$RunPerfectCompetitionStepsAnswer, {

@@ -1457,6 +1457,8 @@ fluidPage(
                           fluidRow(
                             column(4,
                                    p("Be sure not to omit the multiplication sign (*) when inputting functions"),
+                                   actionButton(inputId = "RunNewPerfectCompetitionQuestion",
+                                                label = "Generate a new question"),
                                    p("Inputs for part a"),
                                    div(
                                      style = "display:inline-block",
