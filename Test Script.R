@@ -754,19 +754,19 @@ stepsCostMin = function(prodfun, w, r, Q){
     if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
       perfectSubsCornerL = TRUE
       #L more economical at all input levels
-      C = Q/MPL*w
-      L = Q/MPL
+      C = (Q/MPL*w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+      L = (Q/MPL) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
       K = caracas::as_sym(0)
     } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
       perfectSubsCornerL = FALSE
       #K more economical at all input levels
-      C = Q/MPK*r
+      C = (Q/MPK*r) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
       L = caracas::as_sym(0)
-      K = Q/MPK
+      K = (Q/MPK) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     } else {
       # L and K equally economical at all input levels
       perfectSubsInterior = TRUE
-      C = Q/MPL*w
+      C = (Q/MPL*w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
       L = caracas::as_sym(0)
       K = caracas::as_sym(0)
     }
@@ -951,11 +951,11 @@ stepsCostMin = function(prodfun, w, r, Q){
     C = Ksolutions_C[[KSol]] 
     L = Ksolutions_L[[KSol]] 
     K = Ksolutions_K2[[KSol]] 
-    } else {
-      C = Lsolutions_C[[LSol]] 
-      L = Lsolutions_L2[[LSol]] 
-      K = Lsolutions_K[[LSol]] 
-    }
+  } else {
+    C = Lsolutions_C[[LSol]] 
+    L = Lsolutions_L2[[LSol]] 
+    K = Lsolutions_K[[LSol]] 
+  }
   
   return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
               Lcritical = Lcritical, Lsolutions_L1 = Lsolutions_L1, LprodFunSolutions = LprodFunSolutions, Lsolutions_K = Lsolutions_K, Lsolutions_L2 = Lsolutions_L2, Lsolutions_C = Lsolutions_C, Lpossible = Lpossible, Lpositive = Lpositive,

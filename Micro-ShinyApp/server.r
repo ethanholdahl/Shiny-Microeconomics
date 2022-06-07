@@ -1432,19 +1432,19 @@ function(input, output, session) {
       if(caracas::as_expr(MPL)/w > caracas::as_expr(MPK)/r){
         perfectSubsCornerL = TRUE
         #L more economical at all input levels
-        C = Q/MPL*w
-        L = Q/MPL
+        C = (Q/MPL*w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+        L = (Q/MPL) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         K = caracas::as_sym(0)
       } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
         perfectSubsCornerL = FALSE
         #K more economical at all input levels
-        C = Q/MPK*r
+        C = (Q/MPK*r) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         L = caracas::as_sym(0)
-        K = Q/MPK
+        K = (Q/MPK) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
       } else {
         # L and K equally economical at all input levels
         perfectSubsInterior = TRUE
-        C = Q/MPL*w
+        C = (Q/MPL*w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
         L = caracas::as_sym(0)
         K = caracas::as_sym(0)
       }
