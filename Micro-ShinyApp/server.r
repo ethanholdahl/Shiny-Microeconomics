@@ -1434,17 +1434,19 @@ function(input, output, session) {
         #L more economical at all input levels
         C = Q/MPL*w
         L = Q/MPL
-        K = 0
+        K = caracas::as_sym(0)
       } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
         perfectSubsCornerL = FALSE
         #K more economical at all input levels
         C = Q/MPK*r
-        L = 0
+        L = caracas::as_sym(0)
         K = Q/MPK
       } else {
         # L and K equally economical at all input levels
         perfectSubsInterior = TRUE
         C = Q/MPL*w
+        L = caracas::as_sym(0)
+        K = caracas::as_sym(0)
       }
       return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, L = L, K = K, C = C))
     }
@@ -1624,13 +1626,13 @@ function(input, output, session) {
     Kbetter = KcostMin < LcostMin
     
     if(Kbetter){
-      C = Ksolutions_C[[KSol]] %>% caracas::as_expr()
-      L = Ksolutions_L[[KSol]] %>% caracas::as_expr()
-      K = Ksolutions_K2[[KSol]] %>% caracas::as_expr()
+      C = Ksolutions_C[[KSol]] 
+      L = Ksolutions_L[[KSol]] 
+      K = Ksolutions_K2[[KSol]] 
     } else {
-      C = Lsolutions_C[[LSol]] %>% caracas::as_expr()
-      L = Lsolutions_L2[[LSol]] %>% caracas::as_expr()
-      K = Lsolutions_K[[LSol]] %>% caracas::as_expr()
+      C = Lsolutions_C[[LSol]] 
+      L = Lsolutions_L2[[LSol]] 
+      K = Lsolutions_K[[LSol]] 
     }
     
     return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
@@ -1646,7 +1648,7 @@ function(input, output, session) {
     prodFun = caracas::as_sym(prodfun)
     prodFunSR = caracas::subs(prodFun, K, Kbar) %>% caracas::N(5)
     LSol = caracas::solve_sys(Q, prodFunSR, L)[[1]]$L %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
-    CSol = Kbar * r + LSol * w %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+    CSol = (Kbar * r + LSol * w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
     return(list(prodFun = prodFun, prodFunSR = prodFunSR, LSol = LSol, CSol = CSol))
   }
   
@@ -1840,6 +1842,9 @@ function(input, output, session) {
                            CostMinStepsPlot = NULL,
                            CostMinStepsAnswers = NULL,
                            CostMinStepsSolutions = NULL,
+                           CostMinStepsSRPlot = NULL,
+                           CostMinStepsSRAnswers = NULL,
+                           CostMinStepsSRSolutions = NULL,
                            PerfectCompetitionStepsAnswer = NULL,
                            PerfectCompetitionStepsSolution = NULL,
                            PerfectCompetitionStepsSRAnswer = NULL,
@@ -2407,6 +2412,49 @@ function(input, output, session) {
   observeEvent(input$CostMinStepsQ, {
     updateNumericInput(session, inputId = "CostMinStepsAnswerC",
                        label = paste0("How much does the production of ", input$CostMinStepsQ ," units cost?"))
+    values$CostMinStepsAnswers = NULL
+    values$CostMinStepsSRAnswers = NULL
+    values$CostMinStepsSolutions = NULL
+    values$CostMinStepsSRSolutions = NULL
+    values$CostMinStepsPlot = NULL
+    values$CostMinStepsSRPlot = NULL
+  })
+  
+  observeEvent(input$CostMinStepsSRQ, {
+    updateNumericInput(session, inputId = "CostMinStepsSRAnswerCLR",
+                       label = paste0("How much does the production of ", input$CostMinStepsSRQ ," units cost in the long run?"))
+    updateNumericInput(session, inputId = "CostMinStepsSRAnswerCSR",
+                       label = paste0("How much does the production of ", input$CostMinStepsSRQ ," units cost in the short run?"))
+    values$CostMinStepsSRAnswers = NULL
+    values$CostMinStepsSRSolutions = NULL
+    values$CostMinStepsSRPlot = NULL
+  })
+  
+  observeEvent(input$CostMinStepsProdfun, {
+    values$CostMinStepsAnswers = NULL
+    values$CostMinStepsSRAnswers = NULL
+    values$CostMinStepsSolutions = NULL
+    values$CostMinStepsSRSolutions = NULL
+    values$CostMinStepsPlot = NULL
+    values$CostMinStepsSRPlot = NULL
+  })
+  
+  observeEvent(input$CostMinStepsW, {
+    values$CostMinStepsAnswers = NULL
+    values$CostMinStepsSRAnswers = NULL
+    values$CostMinStepsSolutions = NULL
+    values$CostMinStepsSRSolutions = NULL
+    values$CostMinStepsPlot = NULL
+    values$CostMinStepsSRPlot = NULL
+  })
+  
+  observeEvent(input$CostMinStepsR, {
+    values$CostMinStepsAnswers = NULL
+    values$CostMinStepsSRAnswers = NULL
+    values$CostMinStepsSolutions = NULL
+    values$CostMinStepsSRSolutions = NULL
+    values$CostMinStepsPlot = NULL
+    values$CostMinStepsSRPlot = NULL
   })
   
   observeEvent(input$RunCostMinStepsPlot, {
@@ -2459,7 +2507,7 @@ function(input, output, session) {
   })
   
   output$CostMinStepsQuestion = renderUI({
-    h4(paste0("A firm has the production function Q = f(K, L) = ", input$CostMinStepsProdfun, ".
+    h4(paste0("a) A firm has the production function Q = f(K, L) = ", input$CostMinStepsProdfun, ".
               The cost of labor (L) is w = ", input$CostMinStepsW, " and the cost of capital (K) is r = ", input$CostMinStepsR, ".
               The firm wants to produce Q = ", input$CostMinStepsQ, " units of output at the lowest cost possible.
               What is the solution to their constrained optimization problem?"))
@@ -2502,12 +2550,65 @@ function(input, output, session) {
     values$CostMinStepsAnswers
   })
   
+  
+  observeEvent(input$RunCostMinStepsSRPlot, {
+    prodfun = input$CostMinStepsProdfun
+    Q0 = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    smooth = input$CostMinStepsSmooth
+    Q1 = input$CostMinStepsSRQ
+    values$CostMinStepsSRPlot = makeLRvSRCostExpansionGraph(prodfun, w, r, Q0, Q1, smooth = smooth)
+  })
+  
+  observeEvent(input$ClearCostMinStepsSRPlot, {
+    values$CostMinStepsSRPlot = NULL
+  })
+  
+  output$CostMinStepsSRPlot = renderPlotly({
+    values$CostMinStepsSRPlot
+  })
+  
+  output$CostMinStepsSRQuestion = renderUI({
+    h4(paste0("b) Assume a firm was operating with the input levels you solved for in a). However, the market has changed and now the firm wants to produce Q = ", input$CostMinStepsSRQ, " units of output.
+              How much will it cost to produce Q = ", input$CostMinStepsSRQ," units in the short run and how much will it cost to produce Q = ", input$CostMinStepsSRQ," units in the long run?"))
+  })
+  
+  
+  observeEvent(input$RunCostMinStepsSRAnswers, {
+    prodfun = input$CostMinStepsProdfun
+    Q0 = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    Q = input$CostMinStepsSRQ
+    results = stepsCostMin(prodfun, w, r, Q0)
+    K1 = results$K %>% caracas::as_expr()
+    resultsSR = stepsCostMinSR(prodfun, w, r, Q, K1)
+    resultsLR = stepsCostMin(prodfun, w, r, Q)
+    CSR = resultsSR$CSol %>% caracas::as_expr()
+    CLR = resultsLR$C %>% caracas::as_expr()
+    CSRAns = input$CostMinStepsSRAnswerCSR
+    CLRAns = input$CostMinStepsSRAnswerCLR
+    if(CSRAns == CSR && CLRAns == CLR){
+      values$CostMinStepsSRAnswers = h3("Well Done! All your answers are correct!")
+      } else {
+        values$CostMinStepsSRAnswers = h4("There is atleast one answer that is not correct.")
+      }
+  })
+  
+  output$CostMinStepsSRAnswers = renderUI({
+    values$CostMinStepsSRAnswers
+  })
+  
   observeEvent(input$RunCostMinStepsSolutions, {
     prodfun = input$CostMinStepsProdfun
     Q = input$CostMinStepsQ
     w = input$CostMinStepsW
     r = input$CostMinStepsR
     results = stepsCostMin(prodfun, w, r, Q)
+    C = results$C %>% caracas::tex()
+    L = results$L %>% caracas::tex()
+    K = results$K %>% caracas::tex()
     MPL = caracas::tex(results$MPL)
     MPK = caracas::tex(results$MPK)
     MRTS = caracas::tex(results$MRTS)
@@ -2515,7 +2616,6 @@ function(input, output, session) {
     perfectSubsInterior = results$perfectSubsInterior
     perfectSubsCornerL = results$perfectSubsCornerL
     if(perfectSubs){
-      C = caracas::tex(results$C)
       if(perfectSubsInterior){
         values$CostMinStepsSolutions = withMathJax(HTML(paste0("
                                                                <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
@@ -2538,6 +2638,7 @@ function(input, output, session) {
                                                                <p>$$ C = \\alpha * \\frac{", Q, "}{", MPK,"} * ", r," + (1-\\alpha) * \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
                                                                <p>$$ C = \\alpha *", C, " + (1-\\alpha) *", C," $$</p>
                                                                <p>$$ C = ", C, "$$</p>
+                                                               <h3>$$ \\text{The solution is:} \\qquad C = ", C, " \\qquad L = (1-\\alpha) * \\frac{", Q, "}{", MPL,"} \\qquad K = \\alpha * \\frac{", Q, "}{", MPK,"} $$</h3>
                                                                ")))
       } else {
         if(perfectSubsCornerL){
@@ -2562,6 +2663,7 @@ function(input, output, session) {
                                                                  <p>$$ C = K * r + L * w $$</p>
                                                                  <p>$$ C = 0 * ", r," + \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
                                                                  <p>$$ C = ", C, "$$</p>
+                                                                 <h3>$$ \\text{The solution is:} \\qquad C = ", C, " \\qquad L = ", L, " \\qquad K = ", K, "$$</h3>
                                                                  ")))
         } else {
           values$CostMinStepsSolutions = withMathJax(HTML(paste0("
@@ -2585,19 +2687,11 @@ function(input, output, session) {
                                                                  <p>$$ C = K * r + L * w $$</p>
                                                                  <p>$$ C = \\frac{", Q, "}{", MPK,"} * ", r," + 0 *", w, "$$</p>
                                                                  <p>$$ C = ", C, "$$</p>
+                                                                 <h3>$$ \\text{The solution is:} \\qquad C = ", C, " \\qquad L = ", L, " \\qquad K = ", K, "$$</h3>
                                                                 ")))
         }
       }
     } else {
-      if(results$Kbetter){
-        C = results$Ksolutions_C[[results$KSol]] %>% caracas::tex()
-        L = results$Ksolutions_L[[results$KSol]] %>% caracas::tex()
-        K = results$Ksolutions_K2[[results$KSol]] %>% caracas::tex()
-      } else {
-        C = results$Lsolutions_C[[results$LSol]] %>% caracas::tex()
-        L = results$Lsolutions_L2[[results$LSol]] %>% caracas::tex()
-        K = results$Lsolutions_K[[results$LSol]] %>% caracas::tex()
-      }
       solutionMessage = paste0("
                                <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
                                <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
@@ -2688,18 +2782,19 @@ function(input, output, session) {
         LSolsStr = paste0("<p>$$ L = ", Lcritical, "$$</p>")
         addLMessage[[i]] = paste0(addLMessage[[i]], LSolsStr,"
                             <p> Substitute the solution for L into the production function</p>
-                            <p>$$", Q, " = ", LprodFunSolutions,"$$</p>
                             ")
         if(!results$Lpossible[[i]]){
-          addLMessage[[i]] = paste0(addLMessage[[i]], "<p> It is not possible to produce ", Q, " units of output when L = 0</p>
-                                      ")
+          addLMessage[[i]] = paste0(addLMessage[[i]], "<p>$$", Q, " \\neq ", LprodFunSolutions,"$$</p>
+                                    <p> It is not possible to produce ", Q, " units of output when L = 0</p>
+                                    ")
         } else {
           Lsolutions_K = caracas::tex(results$Lsolutions_K[[i]])
           Lsolutions_L = caracas::tex(results$Lsolutions_L2[[i]])
           Lsolutions_C = caracas::tex(results$Lsolutions_C[[i]])
-          addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Now solving for K we get </p>
-                                      <p>$$ K = ", Lsolutions_K, "$$</p>
-                                      ")
+          addLMessage[[i]] = paste0(addLMessage[[i]], "<p>$$", Q, " = ", LprodFunSolutions,"$$</p>
+                                    <p> Now solving for K we get </p>
+                                    <p>$$ K = ", Lsolutions_K, "$$</p>
+                                    ")
           addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Now we can calculate the total cost of production when L = 0 and K =", Lsolutions_K,"</p>
                                       <p>$$ C = L*w + K*r $$</p>
                                       <p>$$ C = ", Lsolutions_L,"*", w,"+", Lsolutions_K,"*", r, "$$</p>
@@ -2707,7 +2802,7 @@ function(input, output, session) {
                                       ")
         }
       }
-
+      
       for(i in 1){
         addKMessage[[i]] = ""
         Kcritical = caracas::tex(results$Ksolutions_K1[[i]])
@@ -2715,18 +2810,19 @@ function(input, output, session) {
         KSolsStr = paste0("<p>$$ K = ", Kcritical, "$$</p>")
         addKMessage[[i]] = paste0(addKMessage[[i]], KSolsStr,"
                             <p> Substitute the solution for K into the production function</p>
-                            <p>$$", Q, " = ", KprodFunSolutions,"$$</p>
                             ")
         if(!results$Kpossible[[i]]){
-          addKMessage[[i]] = paste0(addKMessage[[i]], "<p> It is not possible to produce ", Q, " units of output when K = 0</p>
-                                      ")
+          addKMessage[[i]] = paste0(addKMessage[[i]], "<p>$$", Q, " \\neq ", KprodFunSolutions,"$$</p>
+                                    <p> It is not possible to produce ", Q, " units of output when K = 0</p>
+                                    ")
         } else {
           Ksolutions_L = caracas::tex(results$Ksolutions_L[[i]])
           Ksolutions_K = caracas::tex(results$Ksolutions_K2[[i]])
           Ksolutions_C = caracas::tex(results$Ksolutions_C[[i]])
-          addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now solving for L we get </p>
-                                      <p>$$ L = ", Ksolutions_L, "$$</p>
-                                      ")
+          addKMessage[[i]] = paste0(addKMessage[[i]], "<p>$$", Q, " = ", KprodFunSolutions,"$$</p>
+                                    <p> Now solving for L we get </p>
+                                    <p>$$ L = ", Ksolutions_L, "$$</p>
+                                    ")
           addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
                                       <p>$$ C = L*w + K*r $$</p>
                                       <p>$$ C = ", Ksolutions_L,"*", w,"+", Ksolutions_K,"*", r, "$$</p>
@@ -2828,6 +2924,352 @@ function(input, output, session) {
     values$CostMinStepsSolutions
   })
   
+  observeEvent(input$RunCostMinStepsSRSolutions, {
+    prodfun = input$CostMinStepsProdfun
+    Q0 = input$CostMinStepsQ
+    w = input$CostMinStepsW
+    r = input$CostMinStepsR
+    Q = input$CostMinStepsSRQ
+    results = stepsCostMin(prodfun, w, r, Q0)
+    K1 = results$K %>% caracas::as_expr()
+    resultsSR = stepsCostMinSR(prodfun, w, r, Q, K1)
+    prodFun = resultsSR$prodFun %>% caracas::tex()
+    prodFunSR = resultsSR$prodFunSR %>% caracas::tex()
+    LSol = resultsSR$LSol %>% caracas::tex()
+    CSol = resultsSR$CSol %>% caracas::tex()
+    solutionSRMessage = paste0("<h3> First we will solve for the cost in the short run (K is fixed)</h3>
+                               <h3> Step 1: Plug \\(\\overline{K} = ", K1,"\\) into the production function </h3>
+                               <p>$$ Q = ", prodFun, " $$</p>
+                               <p>$$ Q = ", prodFunSR, " $$</p>
+                               <h3> Step 2: Solve for L by plugging in Q = ", Q, "</h3>
+                               <p>$$ ", Q, " = ", prodFunSR, " $$</p>
+                               <p>$$ ", LSol, " = L $$</p>
+                               <h3> Step3: Solve for the cost </h3>
+                               <p>$$ C = w*L + r*K $$</p>
+                               <p>$$ C = ", w, "*", LSol, " + ", r, "*", K1, "$$</p>
+                               <p>$$ C = ", CSol, " $$</p>
+                               <h3 style='margin-bottom:3cm;'>$$ \\text{The solution is:} \\qquad C = ", CSol, " $$</h3>
+                               <h3> Next, we will solve for the cost in the long run (all variables are free)</h3>
+                               ") 
+    results = stepsCostMin(prodfun, w, r, Q)
+    C = results$C %>% caracas::tex()
+    L = results$L %>% caracas::tex()
+    K = results$K %>% caracas::tex()
+    MPL = caracas::tex(results$MPL)
+    MPK = caracas::tex(results$MPK)
+    MRTS = caracas::tex(results$MRTS)
+    perfectSubs = results$perfectSubs
+    perfectSubsInterior = results$perfectSubsInterior
+    perfectSubsCornerL = results$perfectSubsCornerL
+    
+    if(perfectSubs){
+      if(perfectSubsInterior){
+        solutionMessage = paste0("
+                                 <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
+                                 <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                 <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                 <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                 <h3>Step 2: Find ratio of prices</h3> 
+                                 <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                 <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                 <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h3>
+                                 <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                 <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
+                                 <p> We just found that \\(MRTS_{LK} = \\)-slope Isocost line, that \\(\\frac{MP_L}{w} = \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                 <p> This means that <i>any combination</i> of inputs that produces ", Q," units of quantity is equally cost efficient, even interior solutions!</p>
+                                 <p> So, technically there are infinite solutions here. The following set contains them all.</p>
+                                 <p>$$ K = \\alpha * \\frac{", Q, "}{", MPK,"} \\qquad L = (1-\\alpha) * \\frac{", Q, "}{", MPL,"} \\qquad \\text{where} \\quad \\alpha \\in [0,1] $$</p>
+                                 <h3>Step 4: Solve system of equations with target quantity</h3>
+                                 <p>$$", Q," = ", prodfun,"$$</p>
+                                 <p>$$ C = K * r + L * w $$</p>
+                                 <p>$$ C = \\alpha * \\frac{", Q, "}{", MPK,"} * ", r," + (1-\\alpha) * \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
+                                 <p>$$ C = \\alpha *", C, " + (1-\\alpha) *", C," $$</p>
+                                 <p>$$ C = ", C, "$$</p>
+                                 <h3>$$ \\text{The solution is:} \\qquad C = ", C, " $$</h3>
+                                 ")
+      } else {
+        if(perfectSubsCornerL){
+          solutionMessage =paste0("
+                                  <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
+                                  <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                  <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                  <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                  <h3>Step 2: Find ratio of prices</h3>
+                                  <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                  <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                  <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h3>
+                                  <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                  <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
+                                  <p> We just found that \\(MRTS_{LK} \\neq \\)-slope Isocost line, that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                  <p> This means we must have a corner solution! Now we must figue out if we want to only employ K or L.</p>
+                                  <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
+                                  <p> Since \\(\\frac{MP_L}{w} > \\frac{MP_K}{r}\\), we should only use L in production. </p>
+                                  <p>$$ K = 0 \\qquad L = \\frac{", Q, "}{", MPL,"} $$</p>
+                                  <h3>Step 4: Solve system of equations with target quantity</h3>
+                                  <p>$$", Q," = ", prodfun,"$$</p>
+                                  <p>$$ C = K * r + L * w $$</p>
+                                  <p>$$ C = 0 * ", r," + \\frac{", Q, "}{", MPL,"} *", w, "$$</p>
+                                  <p>$$ C = ", C, "$$</p>
+                                  <h3>$$ \\text{The solution is:} \\qquad C = ", C, "$$</h3>
+                                  ")
+        } else {
+          solutionMessage = paste0("
+                                   <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
+                                   <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                                   <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                                   <p> Note: K and L are perfect substitutes. This will likely result in a corner solutions </p>
+                                   <h3>Step 2: Find ratio of prices</h3>
+                                   <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                                   <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                                   <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h3>
+                                   <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                                   <p>$$", MRTS," \\neq \\frac{", w,"}{", r,"}$$</p>
+                                   <p> We just found that \\(MRTS_{LK} \\neq \\)-slope Isocost line, that \\(\\frac{MP_L}{w} \\neq \\frac{MP_K}{r}\\) for all values of L and K.</p>
+                                   <p> This means we must have a corner solution! Now we must figue out if we want to only employ K or L.</p>
+                                   <p> $$ \\frac{MP_L}{w} = \\frac{", MPL,"}{", w,"} \\qquad \\frac{MP_K}{r} = \\frac{", MPK,"}{", r,"} $$
+                                   <p> Since \\(\\frac{MP_L}{w} < \\frac{MP_K}{r}\\), we should only use K in production. </p>
+                                   <p>$$ K = \\frac{", Q, "}{", MPK,"} \\qquad L = 0 $$</p>
+                                   <h3>Step 4: Solve system of equations with target quantity</h3>
+                                   <p>$$", Q," = ", prodfun,"$$</p>
+                                   <p>$$ C = K * r + L * w $$</p>
+                                   <p>$$ C = \\frac{", Q, "}{", MPK,"} * ", r," + 0 *", w, "$$</p>
+                                   <p>$$ C = ", C, "$$</p>
+                                   <h3>$$ \\text{The solution is:} \\qquad C = ", C, " $$</h3>
+                                   ")
+        }
+      }
+    } else {
+      solutionMessage = paste0("
+                               <h3>Step 1: Solve for \\(MP_L\\) and \\(MP_K\\)</h3>
+                               <p>$$MP_L =", MPL,", \\qquad  MP_K =", MPK,"$$</p>
+                               <p>$$MRTS_{LK} = \\frac{MP_L}{MP_K} = \\frac{", MPL,"}{", MPK,"} = ", MRTS,"$$</p>
+                               <h3>Step 2: Find ratio of prices</h3>
+                               <p>$$\\frac{w}{r} = \\frac{", w,"}{", r,"}$$</p>
+                               <p>$$\\text{slope Isocost line} = - \\frac{", w,"}{", r,"}$$</p>
+                               <h3>Step 3: Set \\(MRTS_{LK} = \\text{-slope Isocost line}\\)</h3>
+                               <p>$$MRTS_{LK} = \\text{-slope Isocost line}$$</p>
+                               <p>$$", MRTS," = \\frac{", w,"}{", r,"}$$</p>
+                               <h3>Step 4: Solve system of equations with target quantity</h3>
+                               <p>$$", Q," = ", prodfun,"$$</p>
+                               ")
+      addLMessage = list()
+      if(length(results$Lcritical) > 0){
+        for(i in 2:(1+length(results$Lcritical))){
+          addLMessage[[i]] = ""
+          Lcritical = caracas::tex(results$Lsolutions_L1[[i]])
+          LprodFunSolutions = caracas::tex(results$LprodFunSolutions[[i]])
+          LSolsStr = paste0("<p>$$ L = ", Lcritical, "$$</p>")
+          addLMessage[[i]] = paste0(addLMessage[[i]], LSolsStr, "
+                            <p> Substitute the solution for L into the production function</p>
+                            <p>$$", Q, " = ", LprodFunSolutions,"$$</p>
+                            ")
+          if(!results$Lpossible[[i]]){
+            addLMessage[[i]] = paste0(addLMessage[[i]], "<p> No non-negative values of both K and L can produce", Q, "units of output when L = ", Lcritical, "</p>
+                                      ")
+          } else {
+            Lsolutions_K = caracas::tex(results$Lsolutions_K[[i]])
+            Lsolutions_L = caracas::tex(results$Lsolutions_L2[[i]])
+            Lsolutions_C = caracas::tex(results$Lsolutions_C[[i]])
+            addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Now solving for K we get </p>
+                                      <p>$$ K = ", Lsolutions_K, "$$</p>
+                                      ")
+            if(Lsolutions_L != Lcritical){
+              addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Substituting \\( K = ", Lsolutions_K, "\\) into \\( L = ", Lcritical, "\\) we get </p>
+                                      <p>$$ L = ", Lsolutions_L, "$$</p>
+                                      ")
+            }
+            addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
+                                      <p>$$ C = L*w + K*r $$</p>
+                                      <p>$$ C = ", Lsolutions_L,"*", w,"+", Lsolutions_K,"*", r, "$$</p>
+                                      <p>$$ C = ", Lsolutions_C, "$$</p>
+                                      ")
+          }
+        }
+      }
+      addKMessage = list()
+      if(length(results$Kcritical) > 0){
+        for(i in 2:(1+length(results$Kcritical))){
+          addKMessage[[i]] = ""
+          Kcritical = caracas::tex(results$Ksolutions_K1[[i]])
+          KprodFunSolutions = caracas::tex(results$KprodFunSolutions[[i]])
+          KSolsStr = paste0("<p>$$ K = ", Kcritical, "$$</p>")
+          addKMessage[[i]] = paste0(addKMessage[[i]], KSolsStr, "
+                            <p> Substitute the solution for K into the production function</p>
+                            <p>$$", Q, " = ", KprodFunSolutions,"$$</p>
+                            ")
+          if(!results$Kpossible[[i]]){
+            addKMessage[[i]] = paste0(addKMessage[[i]], "<p> No non-negative values of both K and L can produce", Q, "units of output when K = ", Kcritical, "</p>
+                                      ")
+          } else {
+            Ksolutions_L = caracas::tex(results$Ksolutions_L[[i]])
+            Ksolutions_K = caracas::tex(results$Ksolutions_K2[[i]])
+            Ksolutions_C = caracas::tex(results$Ksolutions_C[[i]])
+            addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now solving for L we get </p>
+                                      <p>$$ L = ", Ksolutions_L, "$$</p>
+                                      ")
+            if(Ksolutions_K != Kcritical){
+              addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Substituting \\( L = ", Ksolutions_L, "\\) into \\( K = ", Kcritical, "\\) we get </p>
+                                      <p>$$ K = ", Ksolutions_K, "$$</p>
+                                      ")
+            }
+            addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
+                                      <p>$$ C = L*w + K*r $$</p>
+                                      <p>$$ C = ", Ksolutions_L,"*", w,"+", Ksolutions_K,"*", r, "$$</p>
+                                      <p>$$ C = ", Ksolutions_C, "$$</p>
+                                      ")
+          }
+        }
+      }
+      
+      # check corners
+      for(i in 1){
+        addLMessage[[i]] = ""
+        Lcritical = caracas::tex(results$Lsolutions_L1[[i]])
+        LprodFunSolutions = caracas::tex(results$LprodFunSolutions[[i]])
+        LSolsStr = paste0("<p>$$ L = ", Lcritical, "$$</p>")
+        addLMessage[[i]] = paste0(addLMessage[[i]], LSolsStr,"
+                            <p> Substitute the solution for L into the production function</p>
+                            ")
+        if(!results$Lpossible[[i]]){
+          addLMessage[[i]] = paste0(addLMessage[[i]], "<p>$$", Q, " \\neq ", LprodFunSolutions,"$$</p>
+                                    <p> It is not possible to produce ", Q, " units of output when L = 0</p>
+                                    ")
+        } else {
+          Lsolutions_K = caracas::tex(results$Lsolutions_K[[i]])
+          Lsolutions_L = caracas::tex(results$Lsolutions_L2[[i]])
+          Lsolutions_C = caracas::tex(results$Lsolutions_C[[i]])
+          addLMessage[[i]] = paste0(addLMessage[[i]], "<p>$$", Q, " = ", LprodFunSolutions,"$$</p>
+                                    <p> Now solving for K we get </p>
+                                    <p>$$ K = ", Lsolutions_K, "$$</p>
+                                    ")
+          addLMessage[[i]] = paste0(addLMessage[[i]], "<p> Now we can calculate the total cost of production when L = 0 and K =", Lsolutions_K,"</p>
+                                      <p>$$ C = L*w + K*r $$</p>
+                                      <p>$$ C = ", Lsolutions_L,"*", w,"+", Lsolutions_K,"*", r, "$$</p>
+                                      <p>$$ C = ", Lsolutions_C, "$$</p>
+                                      ")
+        }
+      }
+      
+      for(i in 1){
+        addKMessage[[i]] = ""
+        Kcritical = caracas::tex(results$Ksolutions_K1[[i]])
+        KprodFunSolutions = caracas::tex(results$KprodFunSolutions[[i]])
+        KSolsStr = paste0("<p>$$ K = ", Kcritical, "$$</p>")
+        addKMessage[[i]] = paste0(addKMessage[[i]], KSolsStr,"
+                            <p> Substitute the solution for K into the production function</p>
+                            ")
+        if(!results$Kpossible[[i]]){
+          addKMessage[[i]] = paste0(addKMessage[[i]], "<p>$$", Q, " \\neq ", KprodFunSolutions,"$$</p>
+                                    <p> It is not possible to produce ", Q, " units of output when K = 0</p>
+                                      ")
+        } else {
+          Ksolutions_L = caracas::tex(results$Ksolutions_L[[i]])
+          Ksolutions_K = caracas::tex(results$Ksolutions_K2[[i]])
+          Ksolutions_C = caracas::tex(results$Ksolutions_C[[i]])
+          addKMessage[[i]] = paste0(addKMessage[[i]], "<p>$$", Q, " = ", KprodFunSolutions,"$$</p>
+                                    <p> Now solving for L we get </p>
+                                    <p>$$ L = ", Ksolutions_L, "$$</p>
+                                    ")
+          addKMessage[[i]] = paste0(addKMessage[[i]], "<p> Now we can calculate the total cost of production with these values of L and K </p>
+                                      <p>$$ C = L*w + K*r $$</p>
+                                      <p>$$ C = ", Ksolutions_L,"*", w,"+", Ksolutions_K,"*", r, "$$</p>
+                                      <p>$$ C = ", Ksolutions_C, "$$</p>
+                                      ")
+        }
+      }
+      
+      # Separate into rows if Lcritical and Kcritical are both not NULL
+      if(length(results$Kcritical)>0){
+        if(length(results$Lcritical)>0){
+          solutionMessage = paste0(solutionMessage, "<div class='row'>
+                                   <div class='column'>
+                                   <h3>If we attack this problem by solving for L:</h3>
+                                   <div class='row'>
+                                   ")
+          colwidth = 100/length(results$Lcritical)
+          for(i in 1:length(results$Lcritical)){
+            solutionMessage = paste0(solutionMessage, "
+                                     <div class='column' style='width: ", colwidth,"%;'>",
+                                     addLMessage[[i+1]],
+                                     "</div>
+                                     ")
+          }
+          solutionMessage = paste0(solutionMessage, "</div>
+                                   </div>
+                                   <div class='column'>
+                                   <h3>If we attack this problem by solving for K:</h3>
+                                   <div class='row'>
+                                   ")
+          colwidth = 100/length(results$Kcritical)
+          for(i in 1:length(results$Kcritical)){
+            solutionMessage = paste0(solutionMessage, "
+                                     <div class='column' style='width: ", colwidth,"%;'>",
+                                     addKMessage[[i+1]],
+                                     "</div>
+                                     ")
+          }
+          solutionMessage = paste0(solutionMessage, "</div>
+                                   </div>
+                                   </div>
+                                   ")
+        } else {
+          #K only
+          solutionMessage = paste0(solutionMessage, "<div class='row'>
+                                   ")
+          colwidth = 100/length(results$Kcritical)
+          for(i in 1:length(results$Kcritical)){
+            solutionMessage = paste0(solutionMessage, "
+                                     <div class='column' style='width: ", colwidth,"%;'>",
+                                     addKMessage[[i+1]],
+                                     "</div>
+                                     ")
+          }
+          solutionMessage = paste0(solutionMessage, "</div>
+                                   ")
+        }
+      } else {
+        #L only
+        solutionMessage = paste0(solutionMessage, "<div class='row'>
+                                   ")
+        colwidth = 100/length(results$Lcritical)
+        for(i in 1:length(results$Lcritical)){
+          solutionMessage = paste0(solutionMessage, "
+                                     <div class='column' style='width: ", colwidth,"%;'>",
+                                   addLMessage[[i+1]],
+                                   "</div>
+                                     ")
+        }
+        solutionMessage = paste0(solutionMessage, "</div>
+                                   ")
+      }
+      
+      #add check for corner solutions
+      solutionMessage = paste0(solutionMessage, "<div class='row'>
+                                   <h3>Step 5: Check for corner solutions</h3>
+                                   <p>$$", Q," = ", prodfun,"$$</p>
+                                   <div class='column'>",
+                               addLMessage[[1]], "
+                                   </div>
+                                   <div class='column'>",
+                               addKMessage[[1]], "
+                                   </div>
+                                   </div>
+                                   ")
+      #Solution
+      solutionMessage = paste0(solutionMessage, "<h3>Step 6: Select the lowest cost solution from the set of solutions above</h3>
+                               <h3>$$ \\text{The solution is:} \\qquad C = ", C, " $$</h3>")
+      
+    }
+    values$CostMinStepsSRSolutions = withMathJax(HTML(paste0(solutionSRMessage, solutionMessage)))
+  })
+  
+  observeEvent(input$ClearCostMinStepsSRSolutions, {
+    values$CostMinStepsSRSolutions = NULL
+  })
+  
+  output$CostMinStepsSRSolutions = renderUI({
+    values$CostMinStepsSRSolutions
+  })
   
   ###### Market Structures: Perfect Competition - Practice ######
   
@@ -3119,7 +3561,7 @@ function(input, output, session) {
       values$MonopolyStepsDWLSolution = withMathJax(HTML(paste0("<p> Note: These solutions are calculated assuming linear demand and marginal cost curves </p>
                                                                <h4>$$ DWL = \\frac{(Q_{PC} - Q_{M}) * (P_{M} - P_{PC})}{2} $$</h4>
                                                                <p>$$ Q_{M} = ", QSol, " \\qquad P_{M} = ", PSol, " $$</p>
-                                                               <p> Need to solve for \\( Q_{PC} \\text{ and } P_{PC} \\) </p>
+                                                               <p>$$ \\text{Need to solve for } Q_{PC} \\text{ and } P_{PC} $$</p>
                                                                <h3> Step 1: Solve for the long run zero profit condition in perfect competition: \\( MC = ATC \\) </h3>
                                                                <p>$$ TC = ", TCPC, "$$</p>
                                                                <p>$$ MC = \\frac{dTC}{dQ_i} = \\frac{d(", TCPC, ")}{dQ_i} = ", MCPC, "$$</p>

@@ -756,17 +756,19 @@ stepsCostMin = function(prodfun, w, r, Q){
       #L more economical at all input levels
       C = Q/MPL*w
       L = Q/MPL
-      K = 0
+      K = caracas::as_sym(0)
     } else if(caracas::as_expr(MPL)/w < caracas::as_expr(MPK)/r){
       perfectSubsCornerL = FALSE
       #K more economical at all input levels
       C = Q/MPK*r
-      L = 0
+      L = caracas::as_sym(0)
       K = Q/MPK
     } else {
       # L and K equally economical at all input levels
       perfectSubsInterior = TRUE
       C = Q/MPL*w
+      L = caracas::as_sym(0)
+      K = caracas::as_sym(0)
     }
     return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, L = L, K = K, C = C))
   }
@@ -946,13 +948,13 @@ stepsCostMin = function(prodfun, w, r, Q){
   Kbetter = KcostMin < LcostMin
   
   if(Kbetter){
-    C = Ksolutions_C[[KSol]] %>% caracas::as_expr()
-    L = Ksolutions_L[[KSol]] %>% caracas::as_expr()
-    K = Ksolutions_K2[[KSol]] %>% caracas::as_expr()
+    C = Ksolutions_C[[KSol]] 
+    L = Ksolutions_L[[KSol]] 
+    K = Ksolutions_K2[[KSol]] 
     } else {
-      C = Lsolutions_C[[LSol]] %>% caracas::as_expr()
-      L = Lsolutions_L2[[LSol]] %>% caracas::as_expr()
-      K = Lsolutions_K[[LSol]] %>% caracas::as_expr()
+      C = Lsolutions_C[[LSol]] 
+      L = Lsolutions_L2[[LSol]] 
+      K = Lsolutions_K[[LSol]] 
     }
   
   return(list(MPL = MPL, MPK = MPK, MRTS = MRTS, perfectSubs = perfectSubs, perfectSubsInterior = perfectSubsInterior, perfectSubsCornerL = perfectSubsCornerL, 
@@ -968,7 +970,7 @@ stepsCostMinSR = function(prodfun, w, r, Q, K){
   prodFun = caracas::as_sym(prodfun)
   prodFunSR = caracas::subs(prodFun, K, Kbar) %>% caracas::N(5)
   LSol = caracas::solve_sys(Q, prodFunSR, L)[[1]]$L %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
-  CSol = Kbar * r + LSol * w %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
+  CSol = (Kbar * r + LSol * w) %>% caracas::as_expr() %>% round(2) %>% caracas::as_sym()
   return(list(prodFun = prodFun, prodFunSR = prodFunSR, LSol = LSol, CSol = CSol))
 }
 
@@ -976,7 +978,23 @@ stepsCostMinSR = function(prodfun, w, r, Q, K){
 results = stepsCostMin(prodfun, w, r, Q)
 
 K = results$K
+Q = 25
+resultsSR = stepsCostMinSR(prodfun, w, r, Q, K)
 
+resultsLR = stepsCostMin(prodfun, w, r, Q)
+
+resultsSR$CSol
+
+
+
+######### COSTS ###########
+# Total Cost Curve (TC = VC + FC)
+# Average Total Cost Curve (ATC = AVC + AFC)
+# MC Curve
+# SR vs LR TC Curves
+# SR vs LR ATC Curves
+# SR vs LR MC Curves
+# Economies of Scale
 
 stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
   ProductionLRsteps = calculateProductionLR(prodfun, w, r, steps = TRUE)
@@ -997,17 +1015,6 @@ stepsLRvsSRCostExpansion = function(prodfun, w, r, Q, QList){
   }
   CList = unique(CList)
 }
-
-
-######### COSTS ###########
-# Total Cost Curve (TC = VC + FC)
-# Average Total Cost Curve (ATC = AVC + AFC)
-# MC Curve
-# SR vs LR TC Curves
-# SR vs LR ATC Curves
-# SR vs LR MC Curves
-# Economies of Scale
-
 
 ########## PERFECT COMPETITION ##########
 # Zoom in animation on supply vs demand -> perfectly elastic; Price takers
