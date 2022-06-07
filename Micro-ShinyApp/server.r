@@ -3357,7 +3357,7 @@ function(input, output, session) {
   output$PerfectCompetitionStepsQuestion = renderUI({
     h4(paste0("a.) All firms in a perfectly competitive market have the total cost function TC(Q) = ", input$PerfectCompetitionStepsCostfun, ". 
               The demand function in this market is given by Q(P) = ", input$PerfectCompetitionStepsDemandfun, ".
-              In the long run, how many firms will be in this perfectly competitve market?"))
+              In the long run, how many firms will be in this perfectly competitive market?"))
   })
   
   output$PerfectCompetitionStepsSRQuestion = renderUI({

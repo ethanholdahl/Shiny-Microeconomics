@@ -1571,7 +1571,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "MonopolyStepsQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
@@ -1594,7 +1594,7 @@ fluidPage(
                                    uiOutput(
                                      outputId = "MonopolyStepsDWLQuestion"
                                    ),
-                                   h4("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
+                                   h5("Type your answer to the question in the field below. If necessary, round to the nearest hundredth"),
                                    div(
                                      style = "display:inline-block",
                                      numericInput(
