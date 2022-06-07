@@ -3567,7 +3567,7 @@ function(input, output, session) {
     updateTextInput(session = session,
                     inputId = "MonopolyStepsCostfun",
                     label = "Firms' total cost function TC(Q):",
-                    value = paste0(e, " - ", a, "*Q")
+                    value = paste0(e, " + ", a, "*Q")
     )
     updateTextInput(session = session,
                     inputId = "MonopolyStepsDemandfun",
