@@ -1849,6 +1849,7 @@ function(input, output, session) {
                            PerfectCompetitionStepsSolution = NULL,
                            PerfectCompetitionStepsSRAnswer = NULL,
                            PerfectCompetitionStepsSRSolution = NULL,
+                           PCQa = 25,
                            MonopolyStepsAnswer = NULL,
                            MonopolyStepsSolution = NULL,
                            MonopolyStepsDWLAnswer = NULL,
@@ -3332,6 +3333,7 @@ function(input, output, session) {
   ###### Market Structures: Perfect Competition - Practice ######
   
   observeEvent(input$PerfectCompetitionStepsSRChoice, {
+    a = values$PCQa 
     if(input$PerfectCompetitionStepsSRChoice == "Demand"){
       e = sample(1:100, 1)
       f = a*e
@@ -3342,6 +3344,9 @@ function(input, output, session) {
                       value = SRfun)
     } else {
       h = sample(1:20, 1)^2
+      while(h == a){
+        h = sample(1:20, 1)^2
+      }
       SRfun = paste0(h, " + Q^2")
       updateTextInput(session, inputId = "PerfectCompetitionStepsSRfun",
                       label = "New Firms' total cost function TC(Q):",
@@ -3370,7 +3375,8 @@ function(input, output, session) {
   })
   
   observeEvent(input$RunNewPerfectCompetitionQuestion, {
-    a = sample(1:20, 1)^2
+    values$PCQa = sample(1:20, 1)^2
+    a = values$PCQa 
     b = sample(1:100, 1)
     c = a*b
     d = sample(2:100, 1)*c
