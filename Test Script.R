@@ -1140,6 +1140,12 @@ TCfun = "10*Q"
 demandfun = "200 - 5*P"
 N = 2
 
+demandfun = paste0(sample(50:1000, 1), " - ", sample(1:10, 1),"*P")
+TCfun = paste0(sample(1:20, 1), "*Q")
+
+demandfun = paste0(100, " - ", 4,"*P")
+TCfun = paste0(20, "*Q")
+
 stepsBertrand = function(TCfun, demandfun, N){
   #Only works for increasing or constant marginal cost
   #If marginal cost is decreasing then 1 firm produces everything

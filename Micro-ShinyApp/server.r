@@ -3457,6 +3457,23 @@ function(input, output, session) {
     h4(paste0("b.) How much dead weight loss is created in this market if the monopoly is unregulated?"))
   })
   
+  observeEvent(input$RunNewOligopolyQuestion, {
+    a = sample(1:20, 1)
+    b = sample(1:10, 1)
+    c = (a+1)*(b+1)
+    d = sample(c:1000, 1)
+    updateTextInput(session = session,
+                    inputId = "OligopolyStepsCostfun",
+                    label = "Firms' total cost function TC(Q):",
+                    value = paste0(a, "*Q")
+    )
+    updateTextInput(
+      inputId = "OligopolyStepsDemandfun",
+      label = "Market demand function Q(P):",
+      value = paste0(d, " - ", b,"*P")
+    )
+  })
+  
   observeEvent(input$RunMonopolyStepsAnswer, {
     TCfun = input$MonopolyStepsCostfun
     demandfun = input$MonopolyStepsDemandfun
@@ -3625,7 +3642,22 @@ function(input, output, session) {
     h4(paste0("b.) Now, assume ", input$CournotStepsNVal, " firms are now instead engaged in Cournot competition. In equilibrium, how much quantity does each firm produce and how much profit do they make?"))
   })
   
-  
+  observeEvent(input$RunNewOligopolyQuestion, {
+    a = sample(1:20, 1)
+    b = sample(1:10, 1)
+    c = (a+1)*(b+1)
+    d = sample(c:1000, 1)
+    updateTextInput(session = session,
+      inputId = "OligopolyStepsCostfun",
+      label = "Firms' total cost function TC(Q):",
+      value = paste0(a, "*Q")
+    )
+    updateTextInput(
+      inputId = "OligopolyStepsDemandfun",
+      label = "Market demand function Q(P):",
+      value = paste0(d, " - ", b,"*P")
+    )
+  })
   
   
   observeEvent(input$RunBertrandStepsAnswer, {
