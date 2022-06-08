@@ -3799,7 +3799,7 @@ function(input, output, session) {
                                                              <h3> Recall: In Bertrand competition with continuous prices, both firms must set the same price such that their profit is 0. </h3>
                                                              <h3> Step 1: Solve for the 0 profit condition </h3>
                                                              <p>$$ \\text{Need to find the price levels such that } \\pi = 0 $$</p>
-                                                             <p>$$ \\pi = TR - TC = q(P - ATC) = 0 $$</p>
+                                                             <p>$$ \\pi = TR - TC = Q_i(P - ATC) = 0 $$</p>
                                                              <p>$$ P = ATC $$</p>
                                                              <p>$$ TC = ", TC, " $$</p>
                                                              <p>$$ ATC = \\frac{", TC, "}{Q_i} = ", ATC, " $$</p>
